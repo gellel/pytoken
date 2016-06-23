@@ -1,0 +1,7 @@
+$ brew 
+$ pip
+
+$ pip install beautifulsoup4
+$ pip install selenium 
+
+$ brew install chromedriver

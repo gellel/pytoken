@@ -13,6 +13,7 @@ from selenium.common.exceptions import TimeoutException
 from collections import namedtuple as Object 
 import urllib2
 import urllib
+import time
 import re
 import os
 
@@ -53,10 +54,15 @@ file.write(HTML)
 ## close the file
 file.close()
 
+
 ## initalise selenium phantom
-browser = webdriver.Firefox()
+browser = webdriver.Chrome()
 ## fetch local file
 browser.get("file:///" + (__fullpath__ + __filename__))
+
+print browser
+
+browser.quit()
 
 
 #try:
