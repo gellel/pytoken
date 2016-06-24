@@ -62,7 +62,6 @@ class StringStyle:
 		self.string = kwargs.pop('string', '')
 		self.format = self.format_string(self.string)
 		
-
 ### highlight marked up elements (using {{str}}) and format
 def formatted_string (string, attributes = {'color':'green'}):
 	### @params
@@ -113,7 +112,6 @@ def concat_strings (strings, seperator = " "):
 	### return concate str
 	return string
 
-
 ### print multiple lines of text to terminal, automatically wrapping orphans
 def print_multiline (string, width = None):
 	### @params
@@ -125,7 +123,6 @@ def print_multiline (string, width = None):
 	for line in string_paragraph:
 		### print line
 		print line
-
 
 ### ask user to response in one of two methods or repeat command
 def prompt_boolean (confirm = "YES", reject = "NO"):
@@ -153,7 +150,6 @@ def prompt_boolean (confirm = "YES", reject = "NO"):
 		### convert string options to uppercase for easy comparison
 		confirm = str.upper(confirm)
 		reject = str.upper(reject)
-
 		### if user has entered fulltext confirm or shorthand "Y" (Yes)
 		if response == confirm or response == "Y":
 			return True
@@ -170,9 +166,13 @@ def prompt_boolean (confirm = "YES", reject = "NO"):
 			return prompt_boolean(confirm, reject)
 
 
-### ask the user to enter a string
+def prompt_none ():
+	print formatted_operator("system", formatted_string("{{Empty}} input returned. Try again?", {'weight':'bold'}))
+
+
+### ask the user to enter a URL for the later webrequest
 def prompt_partnersite ():
-	### notify user a DE to enter the website for the gemini partner
+	### notify user as DE to enter the website for the gemini partner
 	print formatted_operator("de", formatted_string("Okay! What is the {{Gemini partner's}} website {{URL}}?", {'weight':'bold'}))
 	### store the input a variable or None if no input received
 	partnersite = raw_input(formatted_operator("system", formatted_string("Please enter the partners website {{URL}}: ", {'weight':'bold'}))) or None
@@ -184,15 +184,15 @@ def prompt_partnersite ():
 def confirm_partnersite (partnersite):
 	if partnersite is None:
 		### notify user that their submission wasn't accepted
+		prompt_none()
 		### prompt users until they confirm or exit
-		print formatted_operator("system", formatted_string("{{Empty}} input returned. Try again?", {'weight':'bold'}))
 		### if prompt_boolean returns true
 		if prompt_boolean():
 			### set the response to partnersite to the prompt
 			partnersite = prompt_partnersite()
 	### format string to include HTTP prefix
 	else:
-		if not re.match("http?s://", partnersite):
+		if not re.match("^https?://", partnersite):
 			partnersite = "https://" + partnersite
 	### return either None type or string	
 	return partnersite
@@ -203,19 +203,56 @@ def request_partnersite ():
 	return prompt_partnersite()
 
 
+### ask the user to enter a CSS selector for the extracting the HTML
+def prompt_target (partnersite = "the webpage"):
+	### notify user as DE to enter the CSS selector
+	print formatted_operator("de", formatted_string("What {{HTML Element}} do you want me to grab from {{"+ partnersite +"}}?", {'weight':'bold'}))
+	### store the input a variable or None if no input received
+	csstarget = raw_input(formatted_operator("system", formatted_string("Please enter a {{CSS selector}}: ", {'weight':'bold'}))) or None
+	### send response to confirmation method for response evaluation
+	return confirm_target(csstarget, partnersite)
 
-def prompt_target ():
-	pass
+def confirm_target (csstarget, partnersite):
+	if csstarget is None:
+		### notify user that their submission wasn't accepted
+		prompt_none()
+		### prompt users until they confirm or exit
+		### if prompt_boolean returns true
+		if prompt_boolean():
+			### set the response to csstarget to the prompt
+			csstarget = prompt_target(partnersite)
+	### return the CSS selector 
+	return csstarget
 
-def request_target ():
-	pass
+def request_target (partnersite = "the webpage"):
+	return prompt_target(partnersite)
 
+
+### ask the user to specify a child to emulate or assume the first child element
 def prompt_selector ():
-	pass
+	### notify user as DE to enter the optionally enter a selector
+	print formatted_operator("de", formatted_string("Should I grab the {{first child}}? Or would you like to specify a {{selector}} yourself?", {'weight':'bold'}))
 
 def request_selector ():
-	pass
+	return prompt_selector()
 
 
-#print request_partnersite()
+
+
+def open_webdriver ():
+	webdriver = webdriver.Chrome()
+
+
+
+partnersite = request_partnersite()
+
+if partnersite:
+	print formatted_string("{{"+ partnersite +"}}", {'color':'purple'})
+	
+	css_selector = request_target(partnersite)
+
+	if css_selector:
+		print formatted_string("{{"+ css_selector +"}}", {'color':'purple'})
+
+		request_selector()
 
