@@ -219,17 +219,26 @@ class Package:
 			except:
 				return False
 		else:
-			try:
-				subprocess.call([String().concat(self.name, "2>/dev/null")], shell = True)
-				return True
-			except:
-				return False
+			if not self.cmd:
+				try:
+					subprocess.call([String().concat(self.name, "2>/dev/null")], shell = True)
+					return True
+				except:
+					return False
+			else:
+				try:
+					subprocess.call(self.cmd, shell = True)
+					return True
+				except:
+					return False
+				
 	
 	### constructor
-	def __init__ (self, name, source = None, exe = False):
+	def __init__ (self, name, source = None, exe = False, cmd = False):
 		self.name = name
 		self.source = source
 		self.exe = exe
+		self.cmd = cmd
 		self.system = Responder()
 
 
@@ -309,7 +318,19 @@ class Install:
 	### substitute array item to be a dict with a class instance
 	def __pckg__ (self, packages):
 		for i in range(0, len(packages)):
-			packages[i]['package'] = Package(name = packages[i]['name'], source = packages[i]['source'], exe = packages[i]['exe'])
+
+			if 'exe' not in packages[i]:
+				packages[i].update({'exe': False})
+
+			if 'cmd' not in packages[i]:
+				packages[i].update({'cmd': False})
+
+			packages[i]['package'] = Package(
+				name = packages[i]['name'], 
+				source = packages[i]['source'], 
+				exe = packages[i]['exe'],
+				cmd = packages[i]['cmd'])
+
 		return packages
 	### format a Responder response
 	def __resp__ (self, string):
@@ -377,6 +398,10 @@ class File:
 		self.filepath = filepath
 		self.temporary = temporary
 		self.file = self.__crte__()
+
+
+
+
 
 
 ### installer for pip.py package
@@ -471,11 +496,46 @@ def pip_package_install (package):
 
 def brew_package_install (package):
 	try:
-		subprocess.call([String().concat("brew", "install", package)], shell = True)
+		subprocess.call([String().concat("brew", "ls", "--versions", package)], shell = True)
 		return True
 	except:
-		return False
+		try:
+			subprocess.call([String().concat("brew", "install", package, "2>/dev/null")], shell = True)
+			return True
+		except:
+			return False
 
+def selenium_install ():
+	return pip_package_install("selenium")
+
+def chromedriver_install():
+	return brew_package_install("chromedriver")
+ 	
+def main (resp = Responder()):
+	main_packages = [
+	{'name':'pip','source':'https://bootstrap.pypa.io/get-pip.py', 'installer':pip_install},
+	{'name':'brew', 'source':'http://brew.sh/', 'exe': True, 'installer':brew_install},
+	{'name':'selenium','source':'https://pypi.python.org/pypi/selenium', 'installer':selenium_install},
+	{'name':'chromedriver','source':'https://sites.google.com/a/chromium.org/chromedriver/', 'exe': True, 'cmd':'brew ls --versions chromedriver &> /dev/null', 'installer':chromedriver_install}]
+
+
+	def __core__ (main_required):
+		for i in range(0, len(main_required)):
+			main_required[i]['installed'] = Install([main_required[i]]).get()
+			if not main_required[i]['installed']:
+				return False
+		return True
+
+	def __main__():
+		return __core__(main_packages)
+
+
+	print resp.response("i'm checking installed files")
+
+	return __main__()
+
+		
+main(resp = Responder(name = "dee"))
 
 #print brew_install(), "was the result!"
 
@@ -485,10 +545,5 @@ def brew_package_install (package):
 
 #print Install([{'name':'pip','source':'https://bootstrap.pypa.io/get-pip.py', 'installer': pip_install}]).get(), "was the result!"
 
-pipinstalled = Install([{'name':'pip','source':'https://bootstrap.pypa.io/get-pip.py', 'exe':False, 'installer':pip_install}]).get()
-brewinstalled = Install([{'name':'brew', 'source':'http://brew.sh/', 'exe': True, 'installer':brew_install}]).get()
 
-print String().GREEN + str(pipinstalled) + String().END
-print brewinstalled
-
-
+#fetch_dependencies()
