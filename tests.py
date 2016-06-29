@@ -12,8 +12,6 @@ import tempfile
 import getpass
 ### py urllib2 class package
 import urllib2
-### py import base64 package
-import base64
 ### py system class package
 import sys
 ### py os class package
@@ -233,7 +231,10 @@ class Install:
 		### assign empty or reduced list
 		packages = self.__asgn__()
 		### if list is empty assume all packages were found
+		print len(packages)
+
 		if not len(packages):
+
 			### return True for handler
 			return True
 		### attempt to install the missing files
@@ -249,8 +250,10 @@ class Install:
 
 	### attempt to install the package through the supplied installer
 	def __istl__ (self, package):
+
 		if hasattr(package['installer'], '__call__'):
-				file = package['installer']()
+
+			file = package['installer']()
 
 		#print self.__resp__(String().concat("installer for", String(package['package'].name).tag(), "not supplied"))
 
@@ -265,6 +268,9 @@ class Install:
 			### attempt to import package through class method of get from "Package"
 			self.packages[i]['installed'] = True if self.__atmp__(self.packages[i]['package']) else False
 		### return reduced array
+
+		print self.packages, "YPP??"
+
 		return [pckg for pckg in self.packages if not self.packages[i]['installed']]
 		
 	### substitute array item to be a dict with a class instance
@@ -284,10 +290,11 @@ class Install:
 
 ### creates either a temporary or permanently write file
 class File:
-	def encode (self):
-		return base64.b64encode(b + self.read())
-	def decode (self):
-		return base64.b64decode(b + self.read())
+	def append (self, string):
+		self.file.seek(0, 2)
+		self.file.write("\n")
+		self.file.write(string)
+		self.file.seek(0)
 	### removes file instance from os directory
 	def remove (self):
 		os.remove(self.file.name)
@@ -342,23 +349,39 @@ class File:
 		self.file = self.__crte__()
 
 
-
+### installer for pip.py package
 def pip_install ():
+	### read the contents of the pip downloads page
 	def http_extract (http_page):
+		### extract content
 		contents = http_page.read()
+		### if file contents found
 		if contents:
+			### read and return
 			return __file__(contents)
 		else:
 			return None
-
+	### attempt to connect to the url of python package page
 	def http_connection ():
 		try:
 			return http_extract(urllib2.urlopen(urllib2.Request(url = "https://bootstrap.pypa.io/get-pip.py")))
 		except:
 			return None
-
-
+	### attempt check if installed or download
 	def __exec__ (temp):
+		### attempt to call pip -V
+		try:
+			subprocess.check_call(["pip -V"], shell = True)
+			return True
+		except:
+			try:
+				### attempt to install as admin
+				subprocess.call([String().concat("sudo", "python", temp.file.name)], shell=True)
+				return True
+			except:	
+				return False
+				
+
 		#pipe = subprocess.Popen(temp.file.name, stdout = subprocess.PIPE, stderr = subprocess.PIPE, shell = True)
 
 		#print os.access(temp.file.name, os.R_OK)
@@ -373,39 +396,48 @@ def pip_install ():
 
 		#subprocess.Popen(["python", str(temp.file.name)])
 
-
-		#subprocess.Popen(["python", str(temp.file.name), "pip", "install"])
-
-		#subprocess.call(['pip', 'install', '--allow-all-external'])
-		#__import__(temp.file.name)
-
-		try:
-			subprocess.call(["pip -V"], shell = True)
-			return True
-		except:
-			subprocess.Popen(["python", str(temp.file.name), "install"], shell = True)
-			return True
-		finally:
-			return False
-
+	### create temporary file
 	def __file__ (content):
 		temp = File(name = "get-pip", ext = "py", temporary = False)
-		temp.write(content)
+	
+		#regexp = re.compile(r'^DATA = b"""\n(.|\n)+"""', re.MULTILINE)
 
+		#match = re.search(regexp, content)
+
+		#string = "".join(match.group(0).split())
+
+		#datastring = "".join(match.group(0).split())
+
+		#print base64fix
+
+		#content = re.sub(regexp, string, content)
+
+		#print content
+
+		### write file contents to tempfile
+		temp.write(content)
+		### close the file so it can be executed (this was the bain of my existence.)
+		temp.file.close()
+
+		### if file was successfully test or installed
+		### remove file and exit installer
 		if __exec__(temp):
+			temp.remove()
 			return True
 		else:
 			return None
-
+	### attempt install
 	def __main__ ():
 		return http_connection()
-
+	### return result
 	return __main__()
 
 
 
-
-print pip_install()
+Install([
+	{'name':'pip','source':'https://bootstrap.pypa.io/get-pip.py', 'installer': pip_install}
+]).get()
+#print pip_install()
 
 
 """
