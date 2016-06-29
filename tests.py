@@ -213,14 +213,23 @@ class Package:
 			return False
 	### test the existence of the package
 	def __test__ (self):
-		try:
-			return __import__(self.name)
-		except:
-			return None
+		if not self.exe:
+			try:
+				return __import__(self.name)
+			except:
+				return False
+		else:
+			try:
+				subprocess.call([String().concat(self.name, "2>/dev/null")], shell = True)
+				return True
+			except:
+				return False
+	
 	### constructor
-	def __init__ (self, name, source):
+	def __init__ (self, name, source = None, exe = False):
 		self.name = name
 		self.source = source
+		self.exe = exe
 		self.system = Responder()
 
 
@@ -231,7 +240,6 @@ class Install:
 		### assign empty or reduced list
 		packages = self.__asgn__()
 		### if list is empty assume all packages were found
-		print len(packages)
 
 		if not len(packages):
 
@@ -244,19 +252,47 @@ class Install:
 			### if user agrees attempt to install each package
 			if Request(prompt = "attempt to install missing files?").open():
 				for i in range(0, len(packages)):
+					### install status will attempt to be changed from False to True during instal process
 					self.__istl__(packages[i])
-			###
+
+				### check the outcome of the install attempts
+				for i in range(0, len(packages)):
+					### if file package not installed, print solution
+					if not packages[i]['installed']:
+						### print the name of the package that wasn't able to be installed
+						print self.__resp__(String().concat("package", String({'str': String(packages[i]['name']).tag(), 'attr':{'weight':'bold'}}).get(), "could not be installed"))
+						### print the appropriate solution
+						print self.__resp__("please download the package and install before running the program again")
+						### if source is available print the URL
+						if packages[i]['source']:
+							print self.__resp__(String().concat("package available at", String({'str': String(packages[i]['source']).tag(), 'attr':{'style':'underline'}}).get()))
+						### return false; break loop; this will terminate all checking instances
+						### written with the assumption that you would not want your file to proceed running without all
+						return False
+				### return true if all files were installed
+				return True
+			### return false if user chose not to install packages
 			return False
 
 	### attempt to install the package through the supplied installer
 	def __istl__ (self, package):
-
+		### notify user that the package is attempting to be installed
+		print self.__resp__(String().concat("trying to install", String({'str': String(package['name']).tag(), 'attr':{'weight':'bold'}}).get()))
+		### try and call the supplied package installer
 		if hasattr(package['installer'], '__call__'):
 
-			file = package['installer']()
+			### this is the response that comes back from the file installer!!!
+			install_success = package['installer']()
 
-		#print self.__resp__(String().concat("installer for", String(package['package'].name).tag(), "not supplied"))
+			### if successfully installed set installed status from False to True
+			if install_success:
+				package['installed'] = True
 
+			### send the entire package back with new data
+			return package
+		### notify user that a package installer wasn't provided for this package
+		else:
+			print self.__resp__(String().concat(String({'str': String(package['name']).tag(), 'attr':{'weight':'bold'}}).get(), "has no installer!"))
 	### attempt to load the class package through Package.get() 		
 	def __atmp__ (self, package):
 		### return result
@@ -268,16 +304,12 @@ class Install:
 			### attempt to import package through class method of get from "Package"
 			self.packages[i]['installed'] = True if self.__atmp__(self.packages[i]['package']) else False
 		### return reduced array
-
-		print self.packages, "YPP??"
-
 		return [pckg for pckg in self.packages if not self.packages[i]['installed']]
 		
 	### substitute array item to be a dict with a class instance
 	def __pckg__ (self, packages):
 		for i in range(0, len(packages)):
-			packages[i]['package'] = Package(name = packages[i]['name'], source = packages[i]['source'])
-
+			packages[i]['package'] = Package(name = packages[i]['name'], source = packages[i]['source'], exe = packages[i]['exe'])
 		return packages
 	### format a Responder response
 	def __resp__ (self, string):
@@ -337,8 +369,6 @@ class File:
 			return ext
 		else:
 			return "." + ext
-
-
 	### constructor
 	def __init__ (self, name = "temporary", ext = "txt", temporary = True, mode = "r+", filepath = __filepath__):
 		self.name = name
@@ -381,37 +411,16 @@ def pip_install ():
 			except:	
 				return False
 				
-
-		#pipe = subprocess.Popen(temp.file.name, stdout = subprocess.PIPE, stderr = subprocess.PIPE, shell = True)
-
-		#print os.access(temp.file.name, os.R_OK)
-
-		#subprocess.call(temp.file.name, shell = True)
-		#subprocess.Popen([temp.file.name], stdout = subprocess.PIPE, stderr = subprocess.PIPE, shell = True)
-
-		#temp.file.close()
-			
-		#temp.file.close()
-		#print file.decode()
-
-		#subprocess.Popen(["python", str(temp.file.name)])
-
 	### create temporary file
 	def __file__ (content):
 		temp = File(name = "get-pip", ext = "py", temporary = False)
 	
 		#regexp = re.compile(r'^DATA = b"""\n(.|\n)+"""', re.MULTILINE)
-
 		#match = re.search(regexp, content)
-
 		#string = "".join(match.group(0).split())
-
 		#datastring = "".join(match.group(0).split())
-
 		#print base64fix
-
 		#content = re.sub(regexp, string, content)
-
 		#print content
 
 		### write file contents to tempfile
@@ -432,20 +441,54 @@ def pip_install ():
 	### return result
 	return __main__()
 
+### installer for Homebrew package manager
+def brew_install ():
+	### attempt check if installed or download
+	def __exec__():
+		try:
+			subprocess.call(["brew -v"], shell = True)
+			return True
+		except:
+			try:
+				subprocess.call(['/usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"'], shell = True)
+				return True
+			except:
+				return False
+	### attempt install
+	def __main__():
+		return __exec__()
+	### return result
+	return __main__()
 
 
-Install([
-	{'name':'pip','source':'https://bootstrap.pypa.io/get-pip.py', 'installer': pip_install}
-]).get()
-#print pip_install()
+def pip_package_install (package):
+	import pip
+	pip.main(['install', package])
+	if __import__ (package):
+		return True
+	else:
+		return False
+
+def brew_package_install (package):
+	try:
+		subprocess.call([String().concat("brew", "install", package)], shell = True)
+		return True
+	except:
+		return False
 
 
-"""
-### install dependency pip
-def pip_install ():
-	return True
+#print brew_install(), "was the result!"
 
-Install([
-	{'name':'xeasy_install','source':'https://bootstrap.pypa.io/get-pip.py', 'installer': pip_install}
-]).get()
-"""
+#print pip_package_install("selenium")
+
+#print brew_package_install("chromedriver")
+
+#print Install([{'name':'pip','source':'https://bootstrap.pypa.io/get-pip.py', 'installer': pip_install}]).get(), "was the result!"
+
+pipinstalled = Install([{'name':'pip','source':'https://bootstrap.pypa.io/get-pip.py', 'exe':False, 'installer':pip_install}]).get()
+brewinstalled = Install([{'name':'brew', 'source':'http://brew.sh/', 'exe': True, 'installer':brew_install}]).get()
+
+print String().GREEN + str(pipinstalled) + String().END
+print brewinstalled
+
+
