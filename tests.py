@@ -143,14 +143,18 @@ class Browser:
 	def quit (self):
 		self.driver.quit()
 	### opens the defined self.url in the selenium browser
-	def get (self):
+	def get (self, url = "https://www.google.com/"):
+		if not self.url:
+			self.url = url
 		self.driver.get(self.url)
 	### returns the object created from selenium
 	def __self__ (self):
 		return self.driver
 	### constructor
 	def __init__ (self, engine = "Chrome"):
+		from selenium import webdriver
 		self.driver = getattr(webdriver, engine, "Chrome")()
+		self.url = ""
 
 
 ### class for recursive user prompts
@@ -469,7 +473,7 @@ def pip_install ():
 ### installer for Homebrew package manager
 def brew_install ():
 	### attempt check if installed or download
-	def __exec__():
+	def __exec__ ():
 		try:
 			subprocess.call(["brew -v"], shell = True)
 			return True
@@ -480,7 +484,7 @@ def brew_install ():
 			except:
 				return False
 	### attempt install
-	def __main__():
+	def __main__ ():
 		return __exec__()
 	### return result
 	return __main__()
@@ -508,9 +512,13 @@ def brew_package_install (package):
 def selenium_install ():
 	return pip_package_install("selenium")
 
-def chromedriver_install():
+def chromedriver_install ():
 	return brew_package_install("chromedriver")
- 	
+ 
+
+
+
+
 def main (resp = Responder()):
 	main_packages = [
 	{'name':'pip','source':'https://bootstrap.pypa.io/get-pip.py', 'installer':pip_install},
@@ -518,32 +526,80 @@ def main (resp = Responder()):
 	{'name':'selenium','source':'https://pypi.python.org/pypi/selenium', 'installer':selenium_install},
 	{'name':'chromedriver','source':'https://sites.google.com/a/chromium.org/chromedriver/', 'exe': True, 'cmd':'brew ls --versions chromedriver &> /dev/null', 'installer':chromedriver_install}]
 
-
 	def __core__ (main_required):
+		print resp.response("i'm checking installed files")
+
 		for i in range(0, len(main_required)):
 			main_required[i]['installed'] = Install([main_required[i]]).get()
 			if not main_required[i]['installed']:
 				return False
 		return True
 
-	def __main__():
-		return __core__(main_packages)
+	def __hglg__ (browser):
+		try:
+			browser.driver.execute_script('document.querySelector("'+ browser.cssSelector +'").parentElement.style.boxShadow = "0px 0px 100px aquamarine";')
+		except:
+			pass
+		#print browser.cssSelectorElement
+		#try:
+			#browser.driver.execute_script()
+
+			#''
+
+			#document.querySelector("#pt-cv-page-1").parentElement.style.boxShadow = "0px 0px 100px aquamarine";"0px 0px 100px aquamarine"
+
+	def __sfrc__ (browser, attempted = False):
+		raw_input('ell')
+
+	def __slel__ (browser, attempted = False):
+		if not attempted:
+			print resp.response("i think that url's okay. what element should i try and find on the page?")
+		
+		browser.cssSelector = raw_input("please type a valid CSS: ") or None
+
+		try:
+			browser.cssSelectorElement = browser.driver.find_elements_by_css_selector(browser.cssSelector)
+			__hglg__(browser)
+			__sfrc__(browser)
+		except:
+			print resp.response("sorry! i couldn't find that for you..")
+			if Request(prompt = "try again?").open():
+				__slel__(browser, attempted = True)
+			else:
+				return False
 
 
-	print resp.response("i'm checking installed files")
+
+	def __brws__ (browser, attempted = False):
+		if not attempted:
+			print resp.response("i'm going to open my own web-browser. what page should i go to?")
+		browser.url = raw_input("please type a correct url: ") or None
+		try: 
+			browser.get()
+			__slel__(browser)
+		except:
+			print resp.response("uh oh. there's something wrong with that url. try again?")
+			if Request(prompt = "try again?").open():
+				__brws__(browser, attempted = True)
+			else:
+				return False
+
+	def __impt__ ():
+		from selenium import webdriver
+		__brws__(Browser(engine = "Chrome"))
+	
+	def __main__ ():
+		if __core__(main_packages):
+			print resp.response("looks like everything's here. nice!")
+			__impt__()
+		else:
+			print resp.response("uh oh. i'm missing files. please install them before running again!")
+			return False
+
 
 	return __main__()
 
-		
-main(resp = Responder(name = "dee"))
+	
+if __name__ == "__main__":
+	main(resp = Responder(name = "dee"))
 
-#print brew_install(), "was the result!"
-
-#print pip_package_install("selenium")
-
-#print brew_package_install("chromedriver")
-
-#print Install([{'name':'pip','source':'https://bootstrap.pypa.io/get-pip.py', 'installer': pip_install}]).get(), "was the result!"
-
-
-#fetch_dependencies()
