@@ -226,7 +226,8 @@ class Package:
 		else:
 			cmd = self.name
 			if self.cmd:
-				cmd = self.cmd.split()
+				cmd = self.cmd
+
 			try:
 				subprocess.call(cmd, stdout=open(os.devnull, 'w'), stderr=subprocess.STDOUT)
 				return True
@@ -253,15 +254,18 @@ class Install:
 		### assign empty or reduced list
 		packages = self.__asgn__()
 		### if list is empty assume all packages were found
+		missing = [package for package in self.packages if not package['installed']]
 
-		if not len(packages):
+		#print len(missing)
+
+		if not len(missing):
 
 			### return True for handler
 			return True
 		### attempt to install the missing files
 		else:
 			### ask user if they would like to install the files dependencies
-			print self.__resp__(String().concat(String({'str': String(str(len(packages)) + "/" + str(len(self.packages))).tag(), 'attr':{'color':'red','weight':'bold'}}).get(), "packages are missing"))
+			print self.__resp__(String().concat(String({'str': String(str(len(missing)) + "/" + str(len(self.packages))).tag(), 'attr':{'color':'red','weight':'bold'}}).get(), "packages are missing"))
 			### if user agrees attempt to install each package
 			if Request(prompt = "attempt to install missing files?").open():
 				for i in range(0, len(packages)):
@@ -319,8 +323,10 @@ class Install:
 
 			if self.packages[i]['installed']:
 				print self.__resp__(String().concat(String({'str': String(self.packages[i]['name']).tag(), 'attr':{'weight':'bold'}}).get(), "is", String({'str':'{{installed}}','attr':{'color':'green','weight':'bold'}}).get()))
+
+		#print len(self.packages)
 		### return reduced array
-		return [pckg for pckg in self.packages if not self.packages[i]['installed']]
+		return self.packages
 		
 	### substitute array item to be a dict with a class instance
 	def __pckg__ (self, packages):
@@ -495,7 +501,7 @@ def brew_install ():
 
 def pip_package_install (package):
 	try:
-		subprocess.call(["pip", "install", package])
+		subprocess.call(["sudo", "pip", "install", package])
 		return True
 	except OSError as e:
 	    if e.errno == os.errno.ENOENT:
@@ -533,11 +539,14 @@ def main (resp = Responder()):
 	def __core__ (main_required):
 		print resp.response("i'm checking installed files")
 
+		return Install(main_packages).get()
+		"""
 		for i in range(0, len(main_required)):
 			main_required[i]['installed'] = Install([main_required[i]]).get()
 			if not main_required[i]['installed']:
 				return False
 		return True
+		"""
 
 	def __hglg__ (browser):
 		try:
@@ -590,7 +599,15 @@ def main (resp = Responder()):
 
 	def __impt__ ():
 		from selenium import webdriver
-		__brws__(Browser(engine = "Chrome"))
+		b = None
+		print resp.response("ok. before i do anything else, what is your preferred browser?")
+
+		if Request(prompt = "please type either", confirm = "chrome", reject = "firefox").open():
+			b = Browser(engine = "Chrome")
+		else:
+			b = Browser(engine = "Firefox")
+
+		__brws__(b)
 	
 	def __main__ ():
 		if __core__(main_packages):

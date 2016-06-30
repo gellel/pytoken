@@ -2,6 +2,7 @@ import subprocess
 import os
 
 def __test__(cmd):
+	cmd = cmd.split()
 	
 	try:
 		subprocess.call(cmd, stdout=open(os.devnull, 'w'), stderr=subprocess.STDOUT)
