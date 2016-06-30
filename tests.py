@@ -255,11 +255,8 @@ class Install:
 		packages = self.__asgn__()
 		### if list is empty assume all packages were found
 		missing = [package for package in self.packages if not package['installed']]
-
-		#print len(missing)
-
+		### check if list missing is not an empty list 
 		if not len(missing):
-
 			### return True for handler
 			return True
 		### attempt to install the missing files
@@ -271,7 +268,6 @@ class Install:
 				for i in range(0, len(packages)):
 					### install status will attempt to be changed from False to True during instal process
 					self.__istl__(packages[i])
-
 				### check the outcome of the install attempts
 				for i in range(0, len(packages)):
 					### if file package not installed, print solution
@@ -539,16 +535,17 @@ def main (resp = Responder()):
 			browser.driver.execute_script('document.querySelector("'+ browser.cssSelector +'").parentElement.style.boxShadow = "0px 0px 100px aquamarine";')
 		except:
 			pass
-		#print browser.cssSelectorElement
-		#try:
-			#browser.driver.execute_script()
 
-			#''
-
-			#document.querySelector("#pt-cv-page-1").parentElement.style.boxShadow = "0px 0px 100px aquamarine";"0px 0px 100px aquamarine"
 
 	def __sfrc__ (browser, attempted = False):
-		raw_input('ell')
+		if not attempted:
+			print resp.response("should i try and match the direct child of that element?")
+
+		if Request().open():
+			print True
+		else:
+			return False
+
 
 	def __slel__ (browser, attempted = False):
 		if not attempted:
@@ -585,11 +582,6 @@ def main (resp = Responder()):
 
 	def __impt__ ():
 		from selenium import webdriver
-
-		#d = webdriver.Chrome()
-		#d.get("https://www.google.com/")
-
-
 		try:
 			__brws__(Browser())
 		except:
