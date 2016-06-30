@@ -219,22 +219,22 @@ class Package:
 	def __test__ (self):
 		if not self.exe:
 			try:
-				return __import__(self.name)
+				__import__(self.name)
+				return True
 			except:
 				return False
 		else:
-			if not self.cmd:
-				try:
-					subprocess.call([String().concat(self.name, "2>/dev/null")], shell = True)
-					return True
-				except:
-					return False
-			else:
-				try:
-					subprocess.call(self.cmd, shell = True)
-					return True
-				except:
-					return False
+			cmd = self.name
+			if self.cmd:
+				cmd = self.cmd.split()
+			try:
+				subprocess.call(cmd, stdout=open(os.devnull, 'w'), stderr=subprocess.STDOUT)
+				return True
+			except OSError as e:
+			    if e.errno == os.errno.ENOENT:
+			        return False
+			    else:
+			        return False
 				
 	
 	### constructor
@@ -316,6 +316,9 @@ class Install:
 		for i in range(0, len(self.packages)):
 			### attempt to import package through class method of get from "Package"
 			self.packages[i]['installed'] = True if self.__atmp__(self.packages[i]['package']) else False
+
+			if self.packages[i]['installed']:
+				print self.__resp__(String().concat(String({'str': String(self.packages[i]['name']).tag(), 'attr':{'weight':'bold'}}).get(), "is", String({'str':'{{installed}}','attr':{'color':'green','weight':'bold'}}).get()))
 		### return reduced array
 		return [pckg for pckg in self.packages if not self.packages[i]['installed']]
 		
@@ -491,23 +494,24 @@ def brew_install ():
 
 
 def pip_package_install (package):
-	import pip
-	pip.main(['install', package])
-	if __import__ (package):
+	try:
+		subprocess.call(["pip", "install", package])
 		return True
-	else:
-		return False
+	except OSError as e:
+	    if e.errno == os.errno.ENOENT:
+	        return False
+	    else:
+	        return False
 
 def brew_package_install (package):
 	try:
-		subprocess.call([String().concat("brew", "ls", "--versions", package)], shell = True)
+		subprocess.call(["brew", "install", package])
 		return True
-	except:
-		try:
-			subprocess.call([String().concat("brew", "install", package, "2>/dev/null")], shell = True)
-			return True
-		except:
-			return False
+	except OSError as e:
+	    if e.errno == os.errno.ENOENT:
+	        return False
+	    else:
+	        return False
 
 def selenium_install ():
 	return pip_package_install("selenium")
@@ -524,7 +528,7 @@ def main (resp = Responder()):
 	{'name':'pip','source':'https://bootstrap.pypa.io/get-pip.py', 'installer':pip_install},
 	{'name':'brew', 'source':'http://brew.sh/', 'exe': True, 'installer':brew_install},
 	{'name':'selenium','source':'https://pypi.python.org/pypi/selenium', 'installer':selenium_install},
-	{'name':'chromedriver','source':'https://sites.google.com/a/chromium.org/chromedriver/', 'exe': True, 'cmd':'brew ls --versions chromedriver &> /dev/null', 'installer':chromedriver_install}]
+	{'name':'chromedriver','source':'https://sites.google.com/a/chromium.org/chromedriver/', 'exe': True, 'cmd':'brew ls --versions chromedriver', 'installer':chromedriver_install}]
 
 	def __core__ (main_required):
 		print resp.response("i'm checking installed files")
@@ -602,4 +606,7 @@ def main (resp = Responder()):
 	
 if __name__ == "__main__":
 	main(resp = Responder(name = "dee"))
+	#print brew_package_install("chromedriver")
+
+	#print pip_package_install("test")
 
