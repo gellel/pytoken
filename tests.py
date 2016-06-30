@@ -1,6 +1,7 @@
 ### python scripts dependencies
 ### py selenium browser package
 ### from selenium import webdriver
+#http://selenium-python.readthedocs.io/api.html
 
 ### py subprocess class package
 import subprocess
@@ -153,6 +154,7 @@ class Browser:
 	### constructor
 	def __init__ (self, engine = "Chrome"):
 		from selenium import webdriver
+
 		self.driver = getattr(webdriver, engine, "Chrome")()
 		self.url = ""
 
@@ -227,15 +229,13 @@ class Package:
 			cmd = self.name
 			if self.cmd:
 				cmd = self.cmd
-
 			try:
-				subprocess.call(cmd, stdout=open(os.devnull, 'w'), stderr=subprocess.STDOUT)
-				return True
-			except OSError as e:
-			    if e.errno == os.errno.ENOENT:
-			        return False
-			    else:
-			        return False
+			    subprocess.check_call(cmd, stdout=open(os.devnull, 'w'), stderr=subprocess.STDOUT)
+			    return True
+			except subprocess.CalledProcessError:
+			    return False
+			except OSError:
+			    return False
 				
 	
 	### constructor
@@ -439,7 +439,7 @@ def pip_install ():
 	def __exec__ (temp):
 		### attempt to call pip -V
 		try:
-			subprocess.check_call(["pip -V"], shell = True)
+			subprocess.call("pip", stdout=open(os.devnull, 'w'), stderr=subprocess.STDOUT)
 			return True
 		except:
 			try:
@@ -484,7 +484,7 @@ def brew_install ():
 	### attempt check if installed or download
 	def __exec__ ():
 		try:
-			subprocess.call(["brew -v"], shell = True)
+			subprocess.call("brew", stdout=open(os.devnull, 'w'), stderr=subprocess.STDOUT)
 			return True
 		except:
 			try:
@@ -509,32 +509,18 @@ def pip_package_install (package):
 	    else:
 	        return False
 
-def brew_package_install (package):
-	try:
-		subprocess.call(["brew", "install", package])
-		return True
-	except OSError as e:
-	    if e.errno == os.errno.ENOENT:
-	        return False
-	    else:
-	        return False
 
 def selenium_install ():
 	return pip_package_install("selenium")
 
 def chromedriver_install ():
-	return brew_package_install("chromedriver")
- 
-
-
-
+	return pip_package_install("chromedriver_installer")
 
 def main (resp = Responder()):
 	main_packages = [
 	{'name':'pip','source':'https://bootstrap.pypa.io/get-pip.py', 'installer':pip_install},
-	{'name':'brew', 'source':'http://brew.sh/', 'exe': True, 'installer':brew_install},
 	{'name':'selenium','source':'https://pypi.python.org/pypi/selenium', 'installer':selenium_install},
-	{'name':'chromedriver','source':'https://sites.google.com/a/chromium.org/chromedriver/', 'exe': True, 'cmd':'brew ls --versions chromedriver', 'installer':chromedriver_install}]
+	{'name':'chromedriver_installer','source':'https://sites.google.com/a/chromium.org/chromedriver/', 'installer':chromedriver_install}]
 
 	def __core__ (main_required):
 		print resp.response("i'm checking installed files")
@@ -599,19 +585,22 @@ def main (resp = Responder()):
 
 	def __impt__ ():
 		from selenium import webdriver
-		b = None
-		print resp.response("ok. before i do anything else, what is your preferred browser?")
 
-		if Request(prompt = "please type either", confirm = "chrome", reject = "firefox").open():
-			b = Browser(engine = "Chrome")
-		else:
-			b = Browser(engine = "Firefox")
+		#d = webdriver.Chrome()
+		#d.get("https://www.google.com/")
 
-		__brws__(b)
+
+		try:
+			__brws__(Browser())
+		except:
+			print resp.response("something's wrong with my web-browser! i need repairs i think")
+			return False
+		
+
 	
 	def __main__ ():
 		if __core__(main_packages):
-			print resp.response("looks like everything's here. nice!")
+			print resp.response(String({'str':"{{looks like everything's here. nice!}}",'attr':{'color':'green', 'weight':'bold'}}).get())
 			__impt__()
 		else:
 			print resp.response("uh oh. i'm missing files. please install them before running again!")
