@@ -22,6 +22,27 @@ import os
 ### py regex
 import re
 
+###
+dee_strs = {
+	'attempt':  	["let's give it a shot","computing it", "scanning it like a robot","attempting it","here i go","let me try that out","triangulating"],
+	'greeting': 	["hi","hello","hi-there","what-up","what's up","hayy","hey-ya","hey-youu"],
+	'frustrated': 	["hey", "dude","c'mon","man","really","for-realll"],
+	'pause': 		["hmm","mmm","hmph","uhh","uhh-huhh","thinking"],
+	'problem': 		["uhh-oh","eek","whoops","not good","sorry","err","mmmm","damn"],
+	'start': 		["ok","alright","**deep breath**","okokok","i'm ready", "cool", "neat","let's go","inizio"],
+	'error':		["i can't do that","that is not ok","we have to try that again","not sure what happened"],
+	'absent':		["wasn't able to","couldn't","was unable to","didn't","tried but was unable to"],
+	'what':			["what is", "what's", "so--what's"],
+	'puzzled':		["uhh","errr","umm","so--uhh","**exhale**"],
+	'require':		["need","require","--need--","--require--"],
+	'request':		["would you please","please","can you please","could you","would you","you need to","you gotta","can you"],
+	'confirm':		["you got it","sure thing","alright","done","consider it done","--tada--","whatever you say","sorted"],
+	'try':			["will attempt to","am going to try to","will try to","am going to try to","will attempt to try to"],
+	'store':		["save","store","package","place","send"],
+	'check':		["is that ok?","is that fine?","that's ok, right?","it's not a problem --right?"],
+	'semote':		["**exhale**","**sigh**", ""],
+	'located':		["nailed it","aced it","found it","gotcha","bam--found it","yewww. got it","i found it","looks like it's there","right where it was supposed to be","too easy. got it","stayin' ez; i found it"]
+}
 
 ### set localfile path
 __filepath__ = os.path.dirname(os.path.realpath('__file__'))
@@ -444,96 +465,133 @@ class Partner:
 
 
 	def __target__ (self):
-		self.__dee__("ok. what is the CSS selector i should use?")
+		self.__dee__(String().concat((dee_strs['start'][random.randrange(len(dee_strs['start']))] + "."), "what CSS selector should i use?"))
 
 		if self.__attr__("CSS selectors", "CSS selector", "CSSSelector"):
+
+			self.__dee__(String().concat(dee_strs['attempt'][random.randrange(len(dee_strs['attempt']))] + "."))
 
 			self.CSSPathElement = self.browser.driver.execute_script('return document.querySelector("'+ self.CSSSelector +'");')
 
 			if not self.CSSPathElement:
-				self.__dee__("i couldn't find that on the page..")
-				self.__dee__("do you want to try another selector?")
+				
+				self.__dee__(String().concat((dee_strs['puzzled'][random.randrange(len(dee_strs['puzzled']))] + ".."), "i", dee_strs['absent'][random.randrange(len(dee_strs['absent']))], "find any CSS selector on the page that matched your pattern."))
+				self.__dee__("wanna try again?")
 
 				if Request().open():
 					return self.__target__()
 				else:
 					return False
 			else:
-				self.__dee__("i {{found}} it!", {'color':'blue','weight':'bold'})
+				self.__dee__(String(dee_strs['located'][random.randrange(len(dee_strs['located']))]).tag() + "!", {'color':'green','weight':'bold'})
 
 				return True
 
 		else:	
-			self.__dee__("i can't target a blank element!")
+			self.__dee__(String().concat((dee_strs['frustrated'][random.randrange(len(dee_strs['frustrated']))] + "."), (dee_strs['puzzled'][random.randrange(len(dee_strs['puzzled']))] + "."), "i can't target an empty element like that!"))
 			return False
 
+	### fetch the webpage with the selenium webdriver
 	def __fetch__(self):
+		### use the user generated URL
 		self.browser.get(self.URL)
-
+		### test if the server returned 404; will only work if the DOMAIN does not exist, not a subpath on a page
 		self.found = self.browser.driver.execute_script('return (function () { return new RegExp("server DNS address could not be found.", "gmi").test(document.body.innerText); }())')
-
+		### if (as Chrome) the page returned the DNS error message, prompt the user to re-enter their provided URL
 		if self.found:
-			self.__dee__(String().concat("hmm. something's {{wrong}} the webpage.."))
+			### print output to user
+			self.__dee__(String().concat((dee_strs['problem'][random.randrange(len(dee_strs['problem']))] + "."), "something's {{wrong}} that webpage.."))
 			self.__dee__("should we try another url?")
-
+			### prompt user to retry the web request
 			if Request().open():
+				### close the selenium instance to prevent conflicts
 				self.browser.quit()
+				### recall process url
 				self.__purl__()
+				### reinitalise selenium browser
 				self.__browser__()
+				### recall function
 				return self.__fetch__()
 			else:
 				return False
 		else:
 			return True
 
+	### attempt to create a selenium webdriver
 	def __browser__ (self, attempted = False):
+		### avoid priting out double status messages if required
 		if not attempted:
-			self.__dee__(String().concat("ok. i'm gonna try open", String({'str':String(self.URL).tag(),'attr':{'color':'darkcyan'}}).get()))
+			### print the action required by dee
+			### notify user that the terminal might 'hang' if the request webpage takes awhile to laod
+			self.__dee__(String().concat((dee_strs['start'][random.randrange(len(dee_strs['start']))] + "."), "i'm gonna try open", String({'str':String(self.URL).tag(),'attr':{'color':'darkcyan'}}).get()))
 			self.__sys__(String().concat("** this terminal will wait for", self.deee.__name__(), "to finish loading the page", self.URL))
-			self.__sys__("** if this takes too long. try stop the browser from loading and it should resume **")
+			self.__sys__("** if this takes too long. try stop the browser from loading and the terminal should resume **")
+		### attempt to initialise selenium webdriver
 		try:
+			### set the engine to be Google Chrome (FireFox not currently stable)
 			self.browser = Browser(engine = "Chrome")
 		except:
 			self.browser = None
+		### handler error as system if the webdriver package did not initalise
 		if not self.browser:
 			self.__sys__("there was an error creating the required item {{web-browser}}", {'color':'red','weight':'bold'})
 			return False
 		else:
 			return True
 
+	### request the url to access with selenium
 	def __purl__ (self):
-		self.__dee__(String().concat("ok. what is the url for", String({'str':String(self.name).tag(), 'attr':{'weight':'bold'}}).get()) + "?")
+		### request the user to input a valid url
+		self.__dee__(String().concat((dee_strs['start'][random.randrange(len(dee_strs['start']))] + "."), dee_strs['what'][random.randrange(len(dee_strs['what']))], "the URL for", String({'str':String(self.name).tag() + "?", 'attr':{'weight':'bold'}}).get()))
+		### request user to supply the URL for the selenium browser
+		### fetch data through the generic response handler
 		if self.__attr__(String().concat(self.name + "'s",  "website URL"), "URL", "URL"):
 			return True
 		else:
-			self.__dee__("no URL. really? so. how do i get things then?")
+			### print the issue to the user
+			self.__dee__(String().concat("i", dee_strs['require'][random.randrange(len(dee_strs['require']))], "a page URL to do any of this!"))
+			self.__dee__(String().concat(dee_strs['request'][random.randrange(len(dee_strs['request']))], "try again, but next time remember to input a website URL"))
 			return False
 
+	### request the directory to save files
 	def __dirs__ (self):
+		### non corrupted file path (does not include string colour)
 		path = str(self.dirs) + "/" + str(self.name)
+		### edited file path (contains string colour)
 		path_string = String({'str':String(str(self.dirs) + "/").tag(),'attr':{'weight':'bold'}}).get() + String({'str':String(str(self.name)).tag(), 'attr':{'color':'blue','weight':'bold'}}).get()
-
-		self.__dee__(String().concat("alright. now, i'm gonna try save stuff here:", path_string))
-		self.__dee__("is that ok? if not just let me know and we can move it to somewhere else.")
-
+		### request user to confirm whether the program can save the created files in the directory the script is being run from
+		self.__dee__(String().concat((dee_strs['start'][random.randrange(len(dee_strs['start']))] + "."), "i", dee_strs['try'][random.randrange(len(dee_strs['try']))], dee_strs['store'][random.randrange(len(dee_strs['store']))], "files here:", path_string))
+		self.__dee__(String().concat(dee_strs['check'][random.randrange(len(dee_strs['check']))], "if not just tell me and i'll move it somewhere else."))
+		### if the user does not allow the program to save in the selected directory, prompt for a change request
 		if not Request().open():
-			self.__dee__("ok. what do you wanna change it to?")
+			self.__dee__(String().concat((dee_strs['start'][random.randrange(len(dee_strs['start']))] + "."), dee_strs['what'][random.randrange(len(dee_strs['what']))], "the correct file path?"))
+			### request user to supply the folder path for the generated files
+			### fetch data through the generic response handler
 			if self.__attr__("New full folder path", "Folder path", "dirs"):
 				return True
 			else:
-				self.__dee__("cmon! how can i do this without a place to save your things?")
+				### print the issue to the user
+				self.__dee__(String().concat((dee_strs['frustrated'][random.randrange(len(dee_strs['frustrated']))] + "!"), dee_strs['require'][random.randrange(len(dee_strs['require']))], "a place to", dee_strs['store'][random.randrange(len(dee_strs['store']))], "things.", dee_strs['semote'][random.randrange(len(dee_strs['semote']))]))
 				return False
 		else:
+			### replace the defined path with the new user input
 			self.dirs = path
 			return True
 
+	### request the name of the partner page
 	def __name__ (self):
-		self.__dee__("ok. first. what's the name of the gemini partner?")
-
+		### print request to user
+		self.__dee__(String().concat((dee_strs['start'][random.randrange(len(dee_strs['start']))] + "."), dee_strs['what'][random.randrange(len(dee_strs['what']))], "the name of the {{Gemini Partner}} we're setting up?"), {'weight':'bold'})
+		### request user to supply the name of the partner
+		### fetch data through the generic response handler
 		if self.__attr__("Gemini partners name", "Partners name", "name"):
+			### print the formulated partner
+			self.__dee__(String().concat("it's called", self.name + ".", dee_strs['confirm'][random.randrange(len(dee_strs['puzzled']))] + "."))
 			return True
-		else:	
-			self.__dee__("i need a name! please do it again, with a name!")
+		else:
+			### print the issue to the user	
+			self.__dee__(String().concat((dee_strs['puzzled'][random.randrange(len(dee_strs['puzzled']))] + "."), "i", dee_strs['require'][random.randrange(len(dee_strs['require']))], "a name to start the process."))
+			self.__dee__(String().concat(dee_strs['request'][random.randrange(len(dee_strs['request']))], "try again, but with a name this time!"))
 			return False
 
 	### assign attribute of class through input method
