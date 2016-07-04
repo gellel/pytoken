@@ -29,11 +29,11 @@ dee_strs = {
 	'frustrated': 	["hey", "dude","c'mon","man","really","for-realll"],
 	'pause': 		["hmm","mmm","hmph","uhh","uhh-huhh","thinking"],
 	'problem': 		["uhh-oh","eek","whoops","not good","sorry","err","mmmm","damn"],
-	'start': 		["ok","alright","**deep breath**","okokok","i'm ready", "cool", "neat","let's go","inizio"],
+	'start': 		["ok","alright","okokok","ready", "cool", "neat","let's go","inizio","all-set"],
 	'error':		["i can't do that","that is not ok","we have to try that again","not sure what happened"],
 	'absent':		["wasn't able to","couldn't","was unable to","didn't","tried but was unable to"],
 	'what':			["what is", "what's", "so--what's"],
-	'puzzled':		["uhh","errr","umm","so--uhh","**exhale**"],
+	'puzzled':		["uhh","errr","umm","so--uhh"],
 	'require':		["need","require","--need--","--require--"],
 	'request':		["would you please","please","can you please","could you","would you","you need to","you gotta","can you"],
 	'confirm':		["you got it","sure thing","alright","done","consider it done","--tada--","whatever you say","sorted"],
@@ -41,7 +41,7 @@ dee_strs = {
 	'store':		["save","store","package","place","send"],
 	'check':		["is that ok?","is that fine?","that's ok, right?","it's not a problem --right?"],
 	'semote':		["**exhale**","**sigh**", ""],
-	'located':		["nailed it","aced it","found it","gotcha","bam--found it","yewww. got it","i found it","looks like it's there","right where it was supposed to be","too easy. got it","stayin' ez; i found it"]
+	'located':		["nailed it","aced it","found it","gotcha","bam--found it","yewww. got it","i found it","looks like it's there","right where it was supposed to be","too easy. got it","stay ez; i found it"]
 }
 
 ### set localfile path
@@ -443,24 +443,39 @@ class File:
 
 
 class Partner:
+
+	def __printHTML__ (self):
+		print self.HTMLElement
+
 	def __child__ (self):
 		self.__dee__(String().concat((dee_strs['start'][random.randrange(len(dee_strs['start']))] + "."), "should be able to get the first-child element of", String({'str':String(self.CSSSelector).tag(),'attr':{'weight':'bold'}}).get()))
 		self.__dee__(String().concat("should i attempt to locate that for you?"))
 
 		if not Request().open():
-			self.__dee__("ok. type out the HTML element or the CSS selector you want to use.")
-			self.__attr__("HTML Element/CSS selector", "Element/CSS", "HTMLElement")
+			self.__dee__(String().concat((dee_strs['start'][random.randrange(len(dee_strs['start']))] + "."), "type out the CSS selector you want to use."))
+			self.__attr__("HTML Element/CSS selector", "Element/CSS", "CSSChild")
 		else:
-			self.HTMLElement = "> *:first-child"
+			self.CSSChild = "> *:first-child"
 
-		if self.HTMLElement:
-			
-			h = self.browser.driver.execute_script('return document.querySelector("'+ String().concat(self.CSSSelector, self.HTMLElement) +'");')
+		if hasattr(self, "CSSChild"):
+		
+			self.HTMLElement = self.browser.driver.execute_script('return document.querySelector("'+ String().concat(self.CSSSelector, self.CSSChild) +'");')
 
-			print h
+			if not self.HTMLElement:
+				self.__dee__(String().concat((dee_strs['puzzled'][random.randrange(len(dee_strs['puzzled']))] + ".."), "i", dee_strs['absent'][random.randrange(len(dee_strs['absent']))], "find any CSS selector on the page that matched your pattern."))
+				self.__dee__(String().concat("would you like to try again?"))
+				if Request().open():
+					return self.__child__()
+				else:
+					self.__dee__(String().concat((dee_strs['problem'][random.randrange(len(dee_strs['problem']))] + "."), "i", dee_strs['absent'][random.randrange(len(dee_strs['absent']))], "that. so i can't go any further without it."))
+					return False
+			else:
+				self.__dee__(String(dee_strs['located'][random.randrange(len(dee_strs['located']))] + "!").tag(), {'color':'green','weight':'bold'})
+				return True
 		else:
 			self.__dee__("hey! i need to use something man!")
 			return False
+		
 
 
 	### attempt to locate the closets possible CSS element to the HTML target
@@ -488,8 +503,7 @@ class Partner:
 			### notify user that the element was found on the page
 			else:
 				### write success message
-				self.__dee__(String(dee_strs['located'][random.randrange(len(dee_strs['located']))]).tag() + "!", {'color':'green','weight':'bold'})
-
+				self.__dee__(String(dee_strs['located'][random.randrange(len(dee_strs['located']))] + "!").tag(), {'color':'green','weight':'bold'})
 				return True
 		### notify user that CSS selector is required 
 		else:	
@@ -663,6 +677,7 @@ class Partner:
 		self.__fetch__()
 		self.__target__()
 		self.__child__()
+		self.__printHTML__()
 	### return self object
 	def __self__ (self):
 		return self
