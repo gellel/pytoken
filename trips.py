@@ -13,6 +13,8 @@ import tempfile
 import getpass
 ### py urllib2 class package
 import urllib2
+### py random class package
+import random
 ### py system class package
 import sys
 ### py os class package
@@ -119,6 +121,7 @@ class String:
 
 ### creates a responder class used to prompt people contextually
 class Responder (String):
+	
 	### returns a string (optionally filtered) prefixed by the name of the responder
 	def response (self, message = "destory all humans!", attr = {}):
 		return (self.__name__() + self.seperator) + (" " + self.__message__(message, attr))
@@ -153,8 +156,9 @@ class Browser:
 		return self.driver
 	### constructor
 	def __init__ (self, engine = "Chrome"):
+		### import the webdriver package if absent
 		from selenium import webdriver
-
+		### create a webdriver instance
 		self.driver = getattr(webdriver, engine, "Chrome")()
 		self.url = ""
 
@@ -174,7 +178,6 @@ class Request:
 		### prompt user that the supplied input wasn't considered valid
 		else:
 			print self.__response__(String().concat("command", String({'str':String(str(self.response)).tag(),'attr':{'weight':'bold'}}).get(), "unrecognised"))
-	
 			### recall the function
 			return self.open()
 	### format the strings defining the options available for the user
@@ -219,25 +222,36 @@ class Package:
 			return False
 	### test the existence of the package
 	def __test__ (self):
+		### check if class is to be run as a import or executable script
 		if not self.exe:
+			### try import the required package
 			try:
 				__import__(self.name)
+				### return True if asset can be imported
 				return True
 			except:
+				### return False if unable to manage import
 				return False
+		### operate as a command subprocess
 		else:
+			### set a temp variable for simplier subprocess caller
 			cmd = self.name
+			### check if user wishes to put in a more complex command
 			if self.cmd:
+				### set the class command as the temp variable
 				cmd = self.cmd
+			### attempt to run the subprocess
 			try:
-			    subprocess.check_call(cmd, stdout=open(os.devnull, 'w'), stderr=subprocess.STDOUT)
+				### echo/print out output to a hidden terminal
+			    subprocess.check_call(cmd, stdout = open(os.devnull, 'w'), stderr = subprocess.STDOUT)
+			    ### return True if command worked
 			    return True
+			### catch subprocess error if there was a command issue
 			except subprocess.CalledProcessError:
 			    return False
+			### catch OSError if there was an issue running a operating system command
 			except OSError:
 			    return False
-				
-	
 	### constructor
 	def __init__ (self, name, source = None, exe = False, cmd = False):
 		self.name = name
@@ -293,14 +307,11 @@ class Install:
 		print self.__response__(String().concat("trying to install", String({'str': String(package['name']).tag(), 'attr':{'weight':'bold'}}).get()))
 		### try and call the supplied package installer
 		if hasattr(package['installer'], '__call__'):
-
 			### this is the response that comes back from the file installer!!!
 			install_success = package['installer']()
-
 			### if successfully installed set installed status from False to True
 			if install_success:
 				package['installed'] = True
-
 			### send the entire package back with new data
 			return package
 		### notify user that a package installer wasn't provided for this package
@@ -316,30 +327,27 @@ class Install:
 		for i in range(0, len(self.packages)):
 			### attempt to import package through class method of get from "Package"
 			self.packages[i]['installed'] = True if self.__attempt__(self.packages[i]['package']) else False
-
+			### if package is determined to be installed print formatted package name
 			if self.packages[i]['installed']:
 				print self.__response__(String().concat(String({'str': String(self.packages[i]['name']).tag(), 'attr':{'weight':'bold'}}).get(), "is", String({'str':'{{installed}}','attr':{'color':'green','weight':'bold'}}).get()))
-
-		#print len(self.packages)
 		### return reduced array
 		return self.packages
-		
 	### substitute array item to be a dict with a class instance
 	def __package__ (self, packages):
 		for i in range(0, len(packages)):
-
+			### add to dict if dict is absent of attribute 'exe'
 			if 'exe' not in packages[i]:
 				packages[i].update({'exe': False})
-
+			### add to dict if dict is absent of attribute 'cmd'
 			if 'cmd' not in packages[i]:
 				packages[i].update({'cmd': False})
-
+			### call "Package" class and initialise a dict key value with class instance
 			packages[i]['package'] = Package(
 				name = packages[i]['name'], 
 				source = packages[i]['source'], 
 				exe = packages[i]['exe'],
 				cmd = packages[i]['cmd'])
-
+		### return reformatted dict
 		return packages
 	### format a Responder response
 	def __response__ (self, string):
@@ -352,6 +360,7 @@ class Install:
 
 ### creates either a temporary or permanently write file
 class File:
+	### add new string to the end of the file
 	def append (self, string):
 		self.file.seek(0, 2)
 		self.file.write("\n")
@@ -415,35 +424,44 @@ class File:
 class Partner:
 
 	def __child__ (self):
-		self.__dee__("now, should i grab the first child element for your match?")
+		self.__dee__("i can try find the HTML matching element for you. should i?")
 
-		if Request().open():
-
-			#print dir(self.CSSPathElement)
-			self.CSSChild = self.browser.driver.execute_script('return document.querySelector("'+ self.CSSSelector +' > *:first-child");')
-
-			print self.CSSChild.get_attribute('innerHTML')
-
+		if not Request().open():
+			self.__dee__("ok. type out the HTML element or the CSS selector you want to use.")
+			self.__attr__("HTML Element/CSS selector", "Element/CSS", "HTMLElement")
 		else:
-			pass
+			self.HTMLElement = "> *:first-child"
+
+		if self.HTMLElement:
+			
+			h = self.browser.driver.execute_script('return document.querySelector("'+ String().concat(self.CSSSelector, self.HTMLElement) +'");')
+
+			print h
+		else:
+			self.__dee__("hey! i need to use something man!")
+			return False
+
+
 
 	def __target__ (self):
-		self.__dee__("ok. what is the CSS target?")
+		self.__dee__("ok. what is the CSS selector i should use?")
 
 		if self.__attr__("CSS selectors", "CSS selector", "CSSSelector"):
 
 			self.CSSPathElement = self.browser.driver.execute_script('return document.querySelector("'+ self.CSSSelector +'");')
 
 			if not self.CSSPathElement:
-				self.__dee__("i couldn't find that CSS element")
-				self.__dee__("want to try something else?")
+				self.__dee__("i couldn't find that on the page..")
+				self.__dee__("do you want to try another selector?")
 
 				if Request().open():
 					return self.__target__()
 				else:
 					return False
+			else:
+				self.__dee__("i {{found}} it!", {'color':'blue','weight':'bold'})
 
-			return True
+				return True
 
 		else:	
 			self.__dee__("i can't target a blank element!")
@@ -496,7 +514,7 @@ class Partner:
 		path_string = String({'str':String(str(self.dirs) + "/").tag(),'attr':{'weight':'bold'}}).get() + String({'str':String(str(self.name)).tag(), 'attr':{'color':'blue','weight':'bold'}}).get()
 
 		self.__dee__(String().concat("alright. now, i'm gonna try save stuff here:", path_string))
-		self.__dee__("is that cool?")
+		self.__dee__("is that ok? if not just let me know and we can move it to somewhere else.")
 
 		if not Request().open():
 			self.__dee__("ok. what do you wanna change it to?")
@@ -518,42 +536,61 @@ class Partner:
 			self.__dee__("i need a name! please do it again, with a name!")
 			return False
 
+	### assign attribute of class through input method
 	def __attr__ (self, input_message, confirm_message, attr):
+		### attempt to set the attribute of the class
 		def __setattribute__ ():
-			temp = raw_input(self.__sys__(String().concat("please enter", String({'str':String(str(input_message)).tag(),'attr':{'weight':'bold'}}).get()) + ": ", pprint = False)) or None
+			### prompt user to input a string based on supplied criteria
+			temp = raw_input(self.__sys__(String().concat("please enter", String({'str':String(str(input_message)).tag(),'attr':{'weight':'bold'}}).get()) + ": ", printt = False)) or None
+			### confirm that the input was not None Type
 			if not temp:
+				### inform user that input was not considered valid
 				self.__sys__(String().concat(
 					String({'str':String(input_message).tag(),'attr':{'weight':'bold'}}).get(), "cannot be",
 					String({'str':String(str(temp)).tag(),'attr':{'weight':'bold'}}).get()))
+				### prompt user to reattempt input
 				if Request(prompt = "try again?").open():
+					### recall function
 					return __setattribute__()
 				else:
+					### return None of second attempt was not requested
 					return None
+			### if type was not None confirm the input of the user
 			else:
 				return __changeattribute__(temp)
-
+		### confirm whether typed input was intended
 		def __changeattribute__ (temp):
+			### print the previous input (defined in __setattribute__)
 			self.__sys__(String().concat("is", String({'str':String(str(temp)).tag(),'attr':{'weight':'bold'}}).get(), "the correct value for", String({'str':String(confirm_message).tag() + "?",'attr':{'weight':'bold'}}).get()))
+			### if input is correct set as class attribute
 			if Request().open():
+				### set attribute
 				setattr(self, attr, temp)
+				### return self object
 				return self
+			### if the input entered was incorrect
 			else:
+				### prompt user to attempt to recall function and reset value
 				if Request(prompt = "change value?").open():
+					### recall primary function
 					return __setattribute__()
-
+		### return attribute
 		return __setattribute__()
-			
-	def __rop__ (self, message = "Test", pprint = True):
-		if pprint:
+	### return text (used for functions) or print text to console	
+	def __rop__ (self, message = "Test", printt = True):
+		### if printt 
+		if printt:
+			### print message to console
 			print message
+		### return formatted message
 		return message
-
-	def __sys__ (self, message = "", attr = {}, pprint = True):
-		return self.__rop__(self.system.response(message, attr), pprint)
-
-	def __dee__ (self, message = "", attr = {}, pprint = True):
-		return self.__rop__(self.deee.response(message, attr), pprint)
-
+	### print message as "system"
+	def __sys__ (self, message = "", attr = {}, printt = True):
+		return self.__rop__(self.system.response(message, attr), printt)
+	### print message as "dee"
+	def __dee__ (self, message = "", attr = {}, printt = True):
+		return self.__rop__(self.deee.response(message, attr), printt)
+	### primary function handler for class
 	def __main__ (self):
 		self.__name__()
 		self.__dirs__()
@@ -562,10 +599,10 @@ class Partner:
 		self.__fetch__()
 		self.__target__()
 		self.__child__()
-	
+	### return self object
 	def __self__ (self):
 		return self
-
+	### constructor
 	def __init__ (self, dirs = __filepath__, deee = Responder(name = "dee"), system = Responder()):
 		self.dirs = dirs
 		self.deee = deee
