@@ -443,9 +443,9 @@ class File:
 
 
 class Partner:
-
 	def __child__ (self):
-		self.__dee__("i can try find the HTML matching element for you. should i?")
+		self.__dee__(String().concat((dee_strs['start'][random.randrange(len(dee_strs['start']))] + "."), "should be able to get the first-child element of", String({'str':String(self.CSSSelector).tag(),'attr':{'weight':'bold'}}).get()))
+		self.__dee__(String().concat("should i attempt to locate that for you?"))
 
 		if not Request().open():
 			self.__dee__("ok. type out the HTML element or the CSS selector you want to use.")
@@ -463,31 +463,37 @@ class Partner:
 			return False
 
 
-
+	### attempt to locate the closets possible CSS element to the HTML target
 	def __target__ (self):
+		### prompt users to input a valid CSS selector
 		self.__dee__(String().concat((dee_strs['start'][random.randrange(len(dee_strs['start']))] + "."), "what CSS selector should i use?"))
-
+		### request user to supply CSS selector for the selenium browser
+		### fetch data through the generic response handler
 		if self.__attr__("CSS selectors", "CSS selector", "CSSSelector"):
-
+			### notify user that 'dee' will try and locate the specified selector
 			self.__dee__(String().concat(dee_strs['attempt'][random.randrange(len(dee_strs['attempt']))] + "."))
-
+			### assign attempted match the the self object
 			self.CSSPathElement = self.browser.driver.execute_script('return document.querySelector("'+ self.CSSSelector +'");')
-
+			### test if selenium found the requested element on the page
 			if not self.CSSPathElement:
-				
+				### notify user that the browser was unable to locate the element on the page
 				self.__dee__(String().concat((dee_strs['puzzled'][random.randrange(len(dee_strs['puzzled']))] + ".."), "i", dee_strs['absent'][random.randrange(len(dee_strs['absent']))], "find any CSS selector on the page that matched your pattern."))
 				self.__dee__("wanna try again?")
-
+				### prompt user to resupply their CSS selector
 				if Request().open():
+					### recall function
 					return self.__target__()
 				else:
 					return False
+			### notify user that the element was found on the page
 			else:
+				### write success message
 				self.__dee__(String(dee_strs['located'][random.randrange(len(dee_strs['located']))]).tag() + "!", {'color':'green','weight':'bold'})
 
 				return True
-
+		### notify user that CSS selector is required 
 		else:	
+			### print error message to the user
 			self.__dee__(String().concat((dee_strs['frustrated'][random.randrange(len(dee_strs['frustrated']))] + "."), (dee_strs['puzzled'][random.randrange(len(dee_strs['puzzled']))] + "."), "i can't target an empty element like that!"))
 			return False
 
@@ -522,7 +528,7 @@ class Partner:
 		### avoid priting out double status messages if required
 		if not attempted:
 			### print the action required by dee
-			### notify user that the terminal might 'hang' if the request webpage takes awhile to laod
+			### notify user that the terminal might 'hang' if the request webpage takes awhile to load
 			self.__dee__(String().concat((dee_strs['start'][random.randrange(len(dee_strs['start']))] + "."), "i'm gonna try open", String({'str':String(self.URL).tag(),'attr':{'color':'darkcyan'}}).get()))
 			self.__sys__(String().concat("** this terminal will wait for", self.deee.__name__(), "to finish loading the page", self.URL))
 			self.__sys__("** if this takes too long. try stop the browser from loading and the terminal should resume **")
