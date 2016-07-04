@@ -44,10 +44,10 @@ class String:
 	def tag (self):
 		return "{{" + self.object + "}}"
 	### prints a multiple line string with formatting
-	def line (self, width = 60):
+	def wrap (self, width = 60):
 		print '\n'.join(line.strip() for line in re.findall(r'.{1,'+ str(width) +'}(?:\s+|$)', self.__prcs__()) )
 	### prints a single line formatted string
-	def wrap (self):
+	def line (self):
 		print self.__prcs__()
 	### return entire formatted string using supplied styling
 	def get (self, object = {}):
@@ -461,7 +461,6 @@ def pip_install ():
 		temp.write(content)
 		### close the file so it can be executed (this was the bain of my existence.)
 		temp.file.close()
-
 		### if file was successfully test or installed
 		### remove file and exit installer
 		if __exec__(temp):
@@ -520,70 +519,63 @@ def main (resp = Responder()):
 
 	def __core__ (main_required):
 		print resp.response("i'm checking installed files")
-
 		return Install(main_packages).get()
-		"""
-		for i in range(0, len(main_required)):
-			main_required[i]['installed'] = Install([main_required[i]]).get()
-			if not main_required[i]['installed']:
-				return False
-		return True
-		"""
 
-	def __hglg__ (browser):
-		try:
-			browser.driver.execute_script('document.querySelector("'+ browser.cssSelector +'").parentElement.style.boxShadow = "0px 0px 100px aquamarine";')
-		except:
-			pass
+	def __selectChildElement__ (browser, attempted = False):
+		return browser.cssSelectorElement.find_elements_by_tag_name(str(raw_input("enter html tag: ")))
 
+	def __selectFirstChild__ (browser, attempted = False):
+		pass
 
-	def __sfrc__ (browser, attempted = False):
+	def __matchChild__ (browser, attempted = False):
 		if not attempted:
 			print resp.response("should i try and match the direct child of that element?")
 
-		if Request().open():
-			print True
-		else:
-			return False
+		return __selectChildElement__(browser)
 
-
-	def __slel__ (browser, attempted = False):
+	def __selectElement__ (browser, attempted = False):
 		if not attempted:
 			print resp.response("i think that url's okay. what element should i try and find on the page?")
 		
-		browser.cssSelector = raw_input("please type a valid CSS: ") or None
+		browser.cssSelector = raw_input("please type a valid CSS selector: ") or None
 
 		try:
-			browser.cssSelectorElement = browser.driver.find_elements_by_css_selector(browser.cssSelector)
-			__hglg__(browser)
-			__sfrc__(browser)
+			browser.cssSelectorElement = browser.driver.find_elements_by_css_selector(str(browser.cssSelector))
+
+			return __matchChild__(browser)
+
 		except:
-			print resp.response("sorry! i couldn't find that for you..")
+			print resp.response("sorry! i couldn't find {{"+ browser.cssSelectorElement +"}} for you..", {'weight':'bold'})
 			if Request(prompt = "try again?").open():
-				__slel__(browser, attempted = True)
+				return __selectElement__(browser, attempted = True)
 			else:
 				return False
 
 
 
-	def __brws__ (browser, attempted = False):
+	def __browse__ (browser, attempted = False):
 		if not attempted:
 			print resp.response("i'm going to open my own web-browser. what page should i go to?")
+		
 		browser.url = raw_input("please type a correct url: ") or None
+		
+		if not attempted:
+			String({'str':'**terminal will wait for your webpage to finish loading. if this is taking too long, try stop the page from loading and the terminal should resume.**', 'attr':{}}).wrap()
+
 		try: 
-			browser.get()
-			__slel__(browser)
+			browser.get(str(browser.url))
+			return __selectElement__(browser)
 		except:
 			print resp.response("uh oh. there's something wrong with that url. try again?")
 			if Request(prompt = "try again?").open():
-				__brws__(browser, attempted = True)
+				__browse__(browser, attempted = True)
 			else:
 				return False
 
-	def __impt__ ():
+	def __importRequired__ ():
 		from selenium import webdriver
 		try:
-			__brws__(Browser())
+			return __browse__(Browser())
 		except:
 			print resp.response("something's wrong with my web-browser! i need repairs i think")
 			return False
@@ -593,7 +585,7 @@ def main (resp = Responder()):
 	def __main__ ():
 		if __core__(main_packages):
 			print resp.response(String({'str':"{{looks like everything's here. nice!}}",'attr':{'color':'green', 'weight':'bold'}}).get())
-			__impt__()
+			return __importRequired__()
 		else:
 			print resp.response("uh oh. i'm missing files. please install them before running again!")
 			return False
@@ -603,7 +595,7 @@ def main (resp = Responder()):
 
 	
 if __name__ == "__main__":
-	main(resp = Responder(name = "dee"))
+	print main(resp = Responder(name = "dee"))
 	#print brew_package_install("chromedriver")
 
 	#print pip_package_install("test")
