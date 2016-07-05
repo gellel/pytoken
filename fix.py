@@ -1,12 +1,14 @@
-file_str = ""
+if __name__ == "__main__":
 
-with open("fixed.txt") as f:
-    file_str = f.read()
+	file_str = ""
 
-print type(file_str)
-#
-file_str = "".join(file_str.split())
+	with open("fixed.txt") as f:
+	    file_str = f.read()
 
-#
-with open("fixed.txt", 'w') as f:
-    f.write(file_str)
+	print type(file_str)
+	#
+	file_str = "".join(file_str.split())
+
+	#
+	with open("fixed.txt", 'w') as f:
+	    f.write(file_str)

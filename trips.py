@@ -13,6 +13,8 @@ import tempfile
 import getpass
 ### py urllib2 class package
 import urllib2
+### py urllib class pacakge
+import urllib
 ### py random class package
 import random
 ### py system class package
@@ -141,8 +143,7 @@ class String:
 
 
 ### creates a responder class used to prompt people contextually
-class Responder (String):
-	
+class Responder (String):	
 	### returns a string (optionally filtered) prefixed by the name of the responder
 	def response (self, message = "destory all humans!", attr = {}):
 		return (self.__name__() + self.seperator) + (" " + self.__message__(message, attr))
@@ -262,17 +263,7 @@ class Package:
 				### set the class command as the temp variable
 				cmd = self.cmd
 			### attempt to run the subprocess
-			try:
-				### echo/print out output to a hidden terminal
-			    subprocess.check_call(cmd, stdout = open(os.devnull, 'w'), stderr = subprocess.STDOUT)
-			    ### return True if command worked
-			    return True
-			### catch subprocess error if there was a command issue
-			except subprocess.CalledProcessError:
-			    return False
-			### catch OSError if there was an issue running a operating system command
-			except OSError:
-			    return False
+			return Command(command = cmd).process()
 	### constructor
 	def __init__ (self, name, source = None, exe = False, cmd = False):
 		self.name = name
@@ -321,7 +312,6 @@ class Install:
 				return True
 			### return false if user chose not to install packages
 			return False
-
 	### attempt to install the package through the supplied installer
 	def __install__ (self, package):
 		### notify user that the package is attempting to be installed
@@ -404,6 +394,10 @@ class File:
 			self.file.write(contents)
 		else:
 			print "file mode doesn't allow writing"
+	### close the file
+	def close (self):
+		self.file.close()
+	### sets seeker on the file
 	def seek (self):
 		self.file.seek(0)
 	### creates file as a temporary file
@@ -438,6 +432,81 @@ class File:
 		self.temporary = temporary
 		self.file = self.__create__()
 
+
+### fetches a web resource
+class HTTPResource:
+	### request the resource
+	def fetch (self):
+		return self.__open__()
+	### close the connection to the resource
+	def close (self):
+		self.request_open.close()
+	### read and return the content of the webpage
+	def __content__(self):
+		self.request_content = self.request_open.read()
+		self.close()
+		return self.request_content
+	### opens the supplied webpage with formatted headers through urllib2 
+	def __open__ (self):
+		### attempt to fetch the URL resource
+		try:
+			### set the request_open object to the connection point
+			self.request_open = urllib2.urlopen(self.request_object)
+		except:
+			self.request_open = None
+		### if request was successful read the content of the page
+		if self.request_open:
+			### return the read content
+			return self.__content__()
+		### return None if connection failed
+		else:
+			return None
+	### construct the http request object for fetching the webpage
+	def __format__ (self):
+		### confirm that the constructor has a URL
+		if self.request_url:
+			### check if the http headers dict is not empty
+			if bool(self.request_headers):
+				### if dict has at least one key pair value accept as http headers
+				return urllib2.Request(self.request_url, urllib.urlencode(self.request_headers))
+			else:
+				### use standard http request object
+				return urllib2.Request(self.request_url)
+		else:
+			return None
+	### constructor
+	def __init__ (self, URL = None, headers = {}):
+		self.request_url = URL
+		self.request_headers = headers
+		self.request_object = self.__format__()
+
+### operates a subprocess for checking terminal commands
+class Command:
+	### return the result of the attempted command
+	def process (self):
+		return self.__exec__()
+	### attempt to call function; uses either subprocess.call or subprocess.check_call
+	def __exec__ (self):
+		try:
+			### return True if function ran
+			self.function(self.command, stdout = self.stdout, stderr = self.stderr, shell = self.shell)
+			return True
+		### handle the subprocessor command error if command was found but not executabe
+		except subprocess.CalledProcessError:
+			return False
+		### handle the subprocessor command error if command not found
+		except OSError:
+			return False
+	### return the appropriate subprocess
+	def __funct__ (self):
+		return subprocess.call if self.shell else subprocess.check_call
+	### constructor
+	def __init__ (self, command = "", stdout = open(os.devnull, 'w'), stderr = subprocess.STDOUT, shell = False):
+		self.command = command
+		self.shell = shell
+		self.stdout = stdout
+		self.stderr = stderr
+		self.function = self.__funct__()
 
 
 
@@ -510,7 +579,6 @@ class Partner:
 			### print error message to the user
 			self.__dee__(String().concat((dee_strs['frustrated'][random.randrange(len(dee_strs['frustrated']))] + "."), (dee_strs['puzzled'][random.randrange(len(dee_strs['puzzled']))] + "."), "i can't target an empty element like that!"))
 			return False
-
 	### fetch the webpage with the selenium webdriver
 	def __fetch__(self):
 		### use the user generated URL
@@ -536,14 +604,13 @@ class Partner:
 				return False
 		else:
 			return True
-
 	### attempt to create a selenium webdriver
 	def __browser__ (self, attempted = False):
 		### avoid priting out double status messages if required
 		if not attempted:
 			### print the action required by dee
 			### notify user that the terminal might 'hang' if the request webpage takes awhile to load
-			self.__dee__(String().concat((dee_strs['start'][random.randrange(len(dee_strs['start']))] + "."), "i'm gonna try open", String({'str':String(self.URL).tag(),'attr':{'color':'darkcyan'}}).get()))
+			self.__dee__(String().concat((dee_strs['start'][random.randrange(len(dee_strs['start']))] + "."), "i'm gonna try open", String({'str':String(self.URL).tag(),'attr':{'color':'darkcyan','weight':'bold'}}).get()))
 			self.__sys__(String().concat("** this terminal will wait for", self.deee.__name__(), "to finish loading the page", self.URL))
 			self.__sys__("** if this takes too long. try stop the browser from loading and the terminal should resume **")
 		### attempt to initialise selenium webdriver
@@ -558,7 +625,6 @@ class Partner:
 			return False
 		else:
 			return True
-
 	### request the url to access with selenium
 	def __purl__ (self):
 		### request the user to input a valid url
@@ -572,13 +638,12 @@ class Partner:
 			self.__dee__(String().concat("i", dee_strs['require'][random.randrange(len(dee_strs['require']))], "a page URL to do any of this!"))
 			self.__dee__(String().concat(dee_strs['request'][random.randrange(len(dee_strs['request']))], "try again, but next time remember to input a website URL"))
 			return False
-
 	### request the directory to save files
 	def __dirs__ (self):
 		### non corrupted file path (does not include string colour)
 		path = str(self.dirs) + "/" + str(self.name)
 		### edited file path (contains string colour)
-		path_string = String({'str':String(str(self.dirs) + "/").tag(),'attr':{'weight':'bold'}}).get() + String({'str':String(str(self.name)).tag(), 'attr':{'color':'blue','weight':'bold'}}).get()
+		path_string = String({'str':String(str(self.dirs) + "/").tag(),'attr':{'weight':'bold'}}).get() + String({'str':String(str(self.name)).tag(), 'attr':{'color':'darkcyan','weight':'bold'}}).get()
 		### request user to confirm whether the program can save the created files in the directory the script is being run from
 		self.__dee__(String().concat((dee_strs['start'][random.randrange(len(dee_strs['start']))] + "."), "i", dee_strs['try'][random.randrange(len(dee_strs['try']))], dee_strs['store'][random.randrange(len(dee_strs['store']))], "files here:", path_string))
 		self.__dee__(String().concat(dee_strs['check'][random.randrange(len(dee_strs['check']))], "if not just tell me and i'll move it somewhere else."))
@@ -597,7 +662,6 @@ class Partner:
 			### replace the defined path with the new user input
 			self.dirs = path
 			return True
-
 	### request the name of the partner page
 	def __name__ (self):
 		### print request to user
@@ -606,14 +670,13 @@ class Partner:
 		### fetch data through the generic response handler
 		if self.__attr__("Gemini partners name", "Partners name", "name"):
 			### print the formulated partner
-			self.__dee__(String().concat("it's called", self.name + ".", dee_strs['confirm'][random.randrange(len(dee_strs['puzzled']))] + "."))
+			self.__dee__(String().concat("it's called", String({'str':String(self.name).tag(),'attr':{'color':'darkcyan','weight':'bold'}}).get() + ".", dee_strs['confirm'][random.randrange(len(dee_strs['puzzled']))] + "."))
 			return True
 		else:
 			### print the issue to the user	
 			self.__dee__(String().concat((dee_strs['puzzled'][random.randrange(len(dee_strs['puzzled']))] + "."), "i", dee_strs['require'][random.randrange(len(dee_strs['require']))], "a name to start the process."))
 			self.__dee__(String().concat(dee_strs['request'][random.randrange(len(dee_strs['request']))], "try again, but with a name this time!"))
 			return False
-
 	### assign attribute of class through input method
 	def __attr__ (self, input_message, confirm_message, attr):
 		### attempt to set the attribute of the class
@@ -688,5 +751,89 @@ class Partner:
 		self.system = system
 
 
+### shared function for installing pip-main from url
+def install_pip ():
+	### check if pip command isn't available
+	if not Command(command = ["pip"]).process():
+		### create a temporary file to hold the contents of the main pip python file
+		temp = File(name = "get-pip", ext = "py", temporary = False)
+		### fetch the contents of the package from pip distribution url
+		content = HTTPResource("https://bootstrap.pypa.io/get-pip.py").fetch()
+		### check if the http resource was found
+		if content:
+			### write to the temporary file if the contents were found
+			temp.write(content)
+			### close the file so it can be interpreted by a subprocessor
+			temp.close()
+			### check if the pip installer was successful
+			if Command(command = [String().concat("sudo", "-H", "python", temp.file.name)], shell = True, stdout = None).process():
+				### cleanup the created file
+				temp.remove()
+				return True
+			else:
+				### leave the downloaded file incase the user wishes to run it manually
+				return False
+	### return True if the user already has pip installed
+	else:
+		return True
 
-Partner().__main__()
+
+### shared function for uninstalling packages for pip
+def pip_uninstall (package):
+	### uninstall packages as sudo
+	return Command(command = [String().concat("sudo", "-H", "pip", "uninstall", "package")], shell = True, stdout = None).process()
+
+### shared function for installing packages for pip
+def pip_install (package):
+	### install the package as sudo
+	return Command(command = [String().concat("sudo", "-H", "pip", "install", package)], shell = True, stdout = None).process()
+
+### shared function for installing selenium
+def install_selenium ():
+	return pip_install("selenium")
+
+### shared function for installing beautifulsoup4
+def install_beautifulsoup4 ():
+	return pip_install("beautifulsoup4")
+
+### shared function for installing chromedriver
+def install_chromedriver ():
+	return pip_install("chromedriver_installer")
+
+def dependencies (system = Responder()):
+	main_packages = [
+	{'name':'pip','source':'https://bootstrap.pypa.io/get-pip.py', 'installer':install_pip},
+	{'name':'bs4','source':'https://www.crummy.com/software/BeautifulSoup/bs4/download/', 'installer':install_beautifulsoup4},
+	{'name':'selenium','source':'https://pypi.python.org/pypi/selenium', 'installer':install_selenium},
+	{'name':'chromedriver_installer','source':'https://sites.google.com/a/chromium.org/chromedriver/', 'installer':install_chromedriver}]
+
+	def attempt_installed (packages):
+		return Install(packages).get()
+
+	def confirm_installed (packages):
+		print system.response("checking installed packages")
+		if attempt_installed(packages):
+			print system.response("{{checks passed}}. all dependencies are installed", {'color':'green','weight':'bold'}), "\n"
+			return True
+		else:
+			print system.response("{{checks failed}}. there a missing packages. program will not continue", {'color':'red','weight':'bold'})
+			return False
+
+	return confirm_installed(main_packages)
+
+def main ():
+	if dependencies():
+		partner = Partner().__main__()
+		if partner:
+			return True
+		else:
+			return False
+	else:
+		return False
+
+
+
+if __name__ == '__main__':
+
+	main()
+
