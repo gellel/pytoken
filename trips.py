@@ -800,30 +800,43 @@ def install_beautifulsoup4 ():
 def install_chromedriver ():
 	return pip_install("chromedriver_installer")
 
+### installer for all required packages for program
 def dependencies (system = Responder()):
+	### list of the packages and where to access them from
 	main_packages = [
 	{'name':'pip','source':'https://bootstrap.pypa.io/get-pip.py', 'installer':install_pip},
 	{'name':'bs4','source':'https://www.crummy.com/software/BeautifulSoup/bs4/download/', 'installer':install_beautifulsoup4},
 	{'name':'selenium','source':'https://pypi.python.org/pypi/selenium', 'installer':install_selenium},
 	{'name':'chromedriver_installer','source':'https://sites.google.com/a/chromium.org/chromedriver/', 'installer':install_chromedriver}]
-
+	### attempt to install the required files automatically
 	def attempt_installed (packages):
+		### return the result of the installation
 		return Install(packages).get()
-
+	### confirm the required packages were successfully installed on the OS
 	def confirm_installed (packages):
+		### notify user that the program is checking for installed dependencies
 		print system.response("checking installed packages")
+		### check if the installed packages were loaded
 		if attempt_installed(packages):
+			### notify user of successful outcome
 			print system.response("{{checks passed}}. all dependencies are installed", {'color':'green','weight':'bold'}), "\n"
 			return True
 		else:
+			### notify user that the packages failed to install
 			print system.response("{{checks failed}}. there a missing packages. program will not continue", {'color':'red','weight':'bold'})
 			return False
-
+	### return universal result of the installed packages
 	return confirm_installed(main_packages)
 
+### primary script operator function
 def main ():
+	### continue of all dependencies for Partner script were found
 	if dependencies():
+		### initialse partner script
 		partner = Partner().__main__()
+		###
+		print ""
+
 		if partner:
 			return True
 		else:
@@ -831,9 +844,8 @@ def main ():
 	else:
 		return False
 
-
-
+### initialise the python script
 if __name__ == '__main__':
-
+	### call main function
 	main()
 
