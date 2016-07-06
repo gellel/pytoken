@@ -24,27 +24,74 @@ import os
 ### py regex
 import re
 
+#self.__dee__(String().concat((dee_strs['puzzled'][random.randrange(len(dee_strs['puzzled']))] + ".."), "i", dee_strs['absent'][random.randrange(len(dee_strs['absent']))], "find any CSS selector on the page that matched your pattern."))
+				#self.__dee__("wanna try again?")
+
+
+#self.__dee__(String().concat((dee_strs['frustrated'][random.randrange(len(dee_strs['frustrated']))] + "."), (dee_strs['puzzled'][random.randrange(len(dee_strs['puzzled']))] + "."), "i can't target an empty element like that!"))
+
+
+
+
+
+
+
+
+
 ###
-dee_strs = {
-	'attempt':  	["let's give it a shot","computing it", "scanning it like a robot","attempting it","here i go","let me try that out","triangulating"],
-	'greeting': 	["hi","hello","hi-there","what-up","what's up","hayy","hey-ya","hey-youu"],
-	'frustrated': 	["hey", "dude","c'mon","man","really","for-realll"],
-	'pause': 		["hmm","mmm","hmph","uhh","uhh-huhh","thinking"],
-	'problem': 		["uhh-oh","eek","whoops","not good","sorry","err","mmmm","damn"],
-	'start': 		["ok","alright","okokok","ready", "cool", "neat","let's go","inizio","all-set"],
-	'error':		["i can't do that","that is not ok","we have to try that again","not sure what happened"],
-	'absent':		["wasn't able to","couldn't","was unable to","didn't","tried but was unable to"],
-	'what':			["what is", "what's", "so--what's"],
-	'puzzled':		["uhh","errr","umm","so--uhh"],
-	'require':		["need","require","--need--","--require--"],
-	'request':		["would you please","please","can you please","could you","would you","you need to","you gotta","can you"],
-	'confirm':		["you got it","sure thing","alright","done","consider it done","--tada--","whatever you say","sorted"],
-	'try':			["will attempt to","am going to try to","will try to","am going to try to","will attempt to try to"],
-	'store':		["save","store","package","place","send"],
-	'check':		["is that ok?","is that fine?","that's ok, right?","it's not a problem --right?"],
-	'semote':		["**exhale**","**sigh**", ""],
-	'located':		["nailed it","aced it","found it","gotcha","bam--found it","yewww. got it","i found it","looks like it's there","right where it was supposed to be","too easy. got it","stay ez; i found it"]
+dee_complete = {
+	'attempt': ["trying that", "let's try that", "giving it a shot", "here i go", "lemme try that", "gotcha--here i go", "got it--trying now", "computing that", "i'm analysing that right now", "let's see if it computes", "triangulating", "bzz--comput--ing--bzz", "let's see what i can do", "alright. i'll try that", "you got it. trying now", "yup. trying now"],
+	'check': ["is that alright?", "is it ok if i do that?", "would you mind if i did that?", "is that ok?", "you don't mind if i do that, right?", "i'm fine to do that --right?", "can you let me know if that's ok?", "that's cool with you, right?", "it's ok for me to do that, right?", "should i do that?", "should i continue with this?", "you'll allow me to do that, right?", "should i proceed?"],
+	'connect_success': ["connected", "all patched in", "i was able to connect", "connection established", "yep. me and that website are friends now", "i guess that website was a real url after all", "got-cha. connection established", "all connected. ready", "ready and waiting"],
+	'error': ["woah! that wasn't supposed to happen", "there's a problem here", "uh oh", "oops", "uh-oh. problem", "err-rorr-bzz", "there's a problem with that command", "i couldn't process that properly", "unexpected result encountered", "what happened is not was supposed to happen", "pretty sure there's a problem here", "problem", "hmm. we have a problem", "not sure what happened. there's an error though"],
+	'found_success': ["gotcha", "bam. found it", "right there", "grabbed it", "found what you were after", "nailed it", "no problem. found it", "aced it", "found it", "gotcha", "bam--found it", "yewww. got it", "i found it", "looks like it's there", "right where it was supposed to be", "too easy. got it", "stay easy", "right there --gotcha", "man, easy. found it", "i'm so good", "no problem; here it is"],
+	'found_failure': ["must've missed it", "can't see it", "can't find that", "wasn't able to find it", "checked. can't find it", "am unable to find it", "can't find it", "guess my scanners aren't working"],
+	'frustrated': ["gah", "ugh--really", "uhh--what", "mhmmm", "c'mon", "ugh--cmon", "for-real", "really", "dude. really", "ughh--no-way"],
+	'pause': ["uh", "err", "--uhh--", "--err--"],
+	'proceed': ["got it", "you got it", "understood", "i understand", "makes sense here", "command understood", "as you wish", "no problem", "right", "sure thing", "sure", "ok", "alright", "okokok", "gotcha"],
+	'proceed_end': ["gotcha", "got it", "no problem", "neat", "i like the sound of it", "ok", "sure thing"],
+	'puzzled': ["eh", "uh-what", "hey--wait--what", "um. huh", "huh", "wait, what", "that's--umm. huh", "ummmm", "ahhhh--umm", "umm--ahh"],
+	'start': ["ready", "i'm ready", "ready if you are", "let's do it", "let's go", "gogogo", "coolio. i'm ready", "you cool? alright let's go", "let's rock", "aiight fam. you ready", "i am ready", "all--systems--online", "powering up to maximum", "ok. focus", "scanning. complete"],
+	'request': ["would you please", "please", "can you please", "could you", "would you", "you need to", "you gotta", "can you", "would you kindly"]
 }
+dee_fragment = {
+	'act_perform': ["would you", "do you", "would you like"],
+	'act_start': ["start", "begin","launch"],
+	'act_storage': ["store", "save", "stash", "commit", "place"],
+	'act_try': ["try", "attempt"],
+	'act_want': ["want to", "would like to", "hope to"],
+	'name_files': ["files", "stuff", "code"],
+	'name_storage': ["directory", "folder"],
+	'name_search': ["look for", "search for", "locate"],
+	'self_attempt': ["should i", "can i"],
+	'self_attempt_unable': ["can't", "cannot"],
+	'self_attempt_difference': ["a different", "another"],
+	'self_assign': ["it's", "it is"],
+	'self_website_open': ["open", "connect to", "reach", "fetch", "open up", "launch"],
+	'self_i': ["so, i", "i", "so--i"],
+	'self_im': ["so, i'm", "i'm", "i'm"],
+	'self_find': ["find", "locate", "get", "fetch", "grab"],
+	'self_might': ["might", "should", "could"],
+	'self_pause': ["so","ok","hmm","right","alright"],
+	'self_problem': ["issue", "problem"],
+	'self_require': ["need", "require", "--need--", "--require--", "depend on"],
+	'self_retry': ["try again", "do it again", "try it again please", "please try that again", "give it another try"],
+	'self_what': ["what is", "what's", "so--what's", "uh--what's", "what is"],
+	'self_action': ["method", "action", "logic"]
+}
+dee_punct = {
+	'self_end': ["!","."],
+	'self_end_all': ["?", "!", "."],
+	'self_trailing': [".", "..", "..."]
+}
+
+
+def str_random (str_object, key):
+	return str_object[key][random.randrange(len(str_object[key]))]
+
+
+
+
 
 ### set localfile path
 __filepath__ = os.path.dirname(os.path.realpath('__file__'))
@@ -517,11 +564,19 @@ class Partner:
 		print self.HTMLElement
 
 	def __child__ (self):
-		self.__dee__(String().concat((dee_strs['start'][random.randrange(len(dee_strs['start']))] + "."), "should be able to get the first-child element of", String({'str':String(self.CSSSelector).tag(),'attr':{'weight':'bold'}}).get()))
-		self.__dee__(String().concat("should i attempt to locate that for you?"))
+
+		self.__dee__(String().concat(str_random(dee_fragment, "self_pause"), "what", str_random(dee_fragment, "self_action"), "should i use to", str_random(dee_fragment, "self_find"), "the target element?"))
+
+		
+
+
+		"""
+		#self.__dee__(String().concat((dee_strs['next'][random.randrange(len(dee_strs['next']))] + "."), "i should be able to grab the direct first-child element of", String({'str':String(self.CSSSelector).tag(),'attr':{'weight':'bold'}}).get()))
+		#self.__dee__(String().concat("do you want me to do that?"))
 
 		if not Request().open():
-			self.__dee__(String().concat((dee_strs['start'][random.randrange(len(dee_strs['start']))] + "."), "type out the CSS selector you want to use."))
+			pass
+			#self.__dee__(String().concat((dee_strs['next'][random.randrange(len(dee_strs['next']))] + "."), "type out the CSS selector you want to use."))
 			self.__attr__("HTML Element/CSS selector", "Element/CSS", "CSSChild")
 		else:
 			self.CSSChild = "> *:first-child"
@@ -531,53 +586,57 @@ class Partner:
 			self.HTMLElement = self.browser.driver.execute_script('return document.querySelector("'+ String().concat(self.CSSSelector, self.CSSChild) +'");')
 
 			if not self.HTMLElement:
-				self.__dee__(String().concat((dee_strs['puzzled'][random.randrange(len(dee_strs['puzzled']))] + ".."), "i", dee_strs['absent'][random.randrange(len(dee_strs['absent']))], "find any CSS selector on the page that matched your pattern."))
-				self.__dee__(String().concat("would you like to try again?"))
+				print 'z'
+				#	self.__dee__(String().concat((dee_strs['puzzled'][random.randrange(len(dee_strs['puzzled']))] + ".."), "i", dee_strs['absent'][random.randrange(len(dee_strs['absent']))], "find any CSS selector on the page that matched your pattern."))
+				#self.__dee__(String().concat("would you like to try again?"))
 				if Request().open():
 					return self.__child__()
 				else:
-					self.__dee__(String().concat((dee_strs['problem'][random.randrange(len(dee_strs['problem']))] + "."), "i", dee_strs['absent'][random.randrange(len(dee_strs['absent']))], "that. so i can't go any further without it."))
+					#self.__dee__(String().concat((dee_strs['problem'][random.randrange(len(dee_strs['problem']))] + "."), "i", dee_strs['absent'][random.randrange(len(dee_strs['absent']))], "that. so i can't go any further without it."))
 					return False
 			else:
-				self.__dee__(String(dee_strs['located'][random.randrange(len(dee_strs['located']))] + "!").tag(), {'color':'green','weight':'bold'})
+				#self.__dee__(String(dee_strs['located'][random.randrange(len(dee_strs['located']))] + "!").tag(), {'color':'green','weight':'bold'})
 				return True
 		else:
-			self.__dee__("hey! i need to use something man!")
+			#self.__dee__("hey! i need to use something man!")
 			return False
+		"""
 		
 
 
 	### attempt to locate the closets possible CSS element to the HTML target
-	def __target__ (self):
+	def __CSS__ (self):
 		### prompt users to input a valid CSS selector
-		self.__dee__(String().concat((dee_strs['start'][random.randrange(len(dee_strs['start']))] + "."), "what CSS selector should i use?"))
+		self.__dee__(String().concat((str_random(dee_fragment, "self_pause") + "."), 
+			str_random(dee_fragment, "self_what"), "the", String({'str':"{{CSS}}",'attr':{'weight':'bold'}}).get(), "selector for the parent container on this webpage?"))
 		### request user to supply CSS selector for the selenium browser
 		### fetch data through the generic response handler
 		if self.__attr__("CSS selectors", "CSS selector", "CSSSelector"):
 			### notify user that 'dee' will try and locate the specified selector
-			self.__dee__(String().concat(dee_strs['attempt'][random.randrange(len(dee_strs['attempt']))] + "."))
+			self.__dee__(String().concat( str_random(dee_complete, "attempt") + str_random(dee_punct, "self_end")))
 			### assign attempted match the the self object
 			self.CSSPathElement = self.browser.driver.execute_script('return document.querySelector("'+ self.CSSSelector +'");')
 			### test if selenium found the requested element on the page
 			if not self.CSSPathElement:
 				### notify user that the browser was unable to locate the element on the page
-				self.__dee__(String().concat((dee_strs['puzzled'][random.randrange(len(dee_strs['puzzled']))] + ".."), "i", dee_strs['absent'][random.randrange(len(dee_strs['absent']))], "find any CSS selector on the page that matched your pattern."))
-				self.__dee__("wanna try again?")
+				self.__dee__(String().concat(str_random(dee_fragment, "self_i"), str_random(dee_complete, "pause"), (str_random(dee_complete, "found_failure") + ".")))
+				
+				self.__dee__(String().concat(str_random(dee_fragment, "act_perform"), "to try again?"))
 				### prompt user to resupply their CSS selector
 				if Request().open():
 					### recall function
-					return self.__target__()
+					return self.__CSS__()
 				else:
 					return False
 			### notify user that the element was found on the page
 			else:
 				### write success message
-				self.__dee__(String(dee_strs['located'][random.randrange(len(dee_strs['located']))] + "!").tag(), {'color':'green','weight':'bold'})
+				self.__dee__(String().concat(String({'str':String(str_random(dee_complete, "found_success") + str_random(dee_punct, "self_end") ).tag(),'attr':{'color':'green','weight':'bold'}}).get()))
 				return True
 		### notify user that CSS selector is required 
 		else:	
 			### print error message to the user
-			self.__dee__(String().concat((dee_strs['frustrated'][random.randrange(len(dee_strs['frustrated']))] + "."), (dee_strs['puzzled'][random.randrange(len(dee_strs['puzzled']))] + "."), "i can't target an empty element like that!"))
+			self.__dee__(String().concat((str_random(dee_complete, "frustrated") + str_random(dee_punct, "self_end")), str_random(dee_fragment, "self_i"), str_random(dee_fragment, "self_attempt_unable"), "target blank elements!"))
 			return False
 	### fetch the webpage with the selenium webdriver
 	def __fetch__(self):
@@ -588,21 +647,23 @@ class Partner:
 		### if (as Chrome) the page returned the DNS error message, prompt the user to re-enter their provided URL
 		if self.found:
 			### print output to user
-			self.__dee__(String().concat((dee_strs['problem'][random.randrange(len(dee_strs['problem']))] + "."), "something's {{wrong}} that webpage.."))
-			self.__dee__("should we try another url?")
+			self.__dee__(String().concat((str_random(dee_complete, "puzzled") + str_random(dee_punct, "self_end_all")), "there's an {{issue}} reaching that webpage."), {'color':'red','weight':'bold'})
+			self.__dee__(String().concat(str_random(dee_fragment, "self_attempt"), "try", str_random(dee_fragment, "self_attempt_difference"), "URL?"))
 			### prompt user to retry the web request
 			if Request().open():
 				### close the selenium instance to prevent conflicts
 				self.browser.quit()
 				### recall process url
-				self.__purl__()
+				self.__page__()
 				### reinitalise selenium browser
 				self.__browser__()
 				### recall function
 				return self.__fetch__()
 			else:
+				self.__dee__(String().concat("well. i'm not sure what caused that problem. try again later?"))
 				return False
 		else:
+			self.__dee__(String().concat(str_random(dee_complete, "connect_success") + str_random(dee_punct, "self_end")))
 			return True
 	### attempt to create a selenium webdriver
 	def __browser__ (self, attempted = False):
@@ -610,9 +671,9 @@ class Partner:
 		if not attempted:
 			### print the action required by dee
 			### notify user that the terminal might 'hang' if the request webpage takes awhile to load
-			self.__dee__(String().concat((dee_strs['start'][random.randrange(len(dee_strs['start']))] + "."), "i'm gonna try open", String({'str':String(self.URL).tag(),'attr':{'color':'darkcyan','weight':'bold'}}).get()))
+			self.__dee__(String().concat(str_random(dee_fragment, "self_im"), "going to", str_random(dee_fragment, "act_try"), "to", str_random(dee_fragment, "self_website_open"), "that website for you."))
 			self.__sys__(String().concat("** this terminal will wait for", self.deee.__name__(), "to finish loading the page", self.URL))
-			self.__sys__("** if this takes too long. try stop the browser from loading and the terminal should resume **")
+			self.__sys__("** if this is taking too long try stop the browser from loading, and the terminal should resume **")
 		### attempt to initialise selenium webdriver
 		try:
 			### set the engine to be Google Chrome (FireFox not currently stable)
@@ -626,17 +687,17 @@ class Partner:
 		else:
 			return True
 	### request the url to access with selenium
-	def __purl__ (self):
+	def __page__ (self):
 		### request the user to input a valid url
-		self.__dee__(String().concat((dee_strs['start'][random.randrange(len(dee_strs['start']))] + "."), dee_strs['what'][random.randrange(len(dee_strs['what']))], "the URL for", String({'str':String(self.name).tag() + "?", 'attr':{'weight':'bold'}}).get()))
+		self.__dee__(String().concat((str_random(dee_fragment, "self_pause") + "."), str_random(dee_fragment, "self_what"), "the", String({'str':"{{website url}}",'attr':{'weight':'bold'}}).get(), "for", String({'str':String(self.name).tag(),'attr':{'color':'darkcyan','weight':'bold'}}).get() + "?"))
 		### request user to supply the URL for the selenium browser
 		### fetch data through the generic response handler
 		if self.__attr__(String().concat(self.name + "'s",  "website URL"), "URL", "URL"):
 			return True
 		else:
 			### print the issue to the user
-			self.__dee__(String().concat("i", dee_strs['require'][random.randrange(len(dee_strs['require']))], "a page URL to do any of this!"))
-			self.__dee__(String().concat(dee_strs['request'][random.randrange(len(dee_strs['request']))], "try again, but next time remember to input a website URL"))
+			self.__dee__(String().concat((str_random(dee_complete, "frustrated") + str_random(dee_punct, "self_trailing")), str_random(dee_fragment, "self_i"), 
+				str_random(dee_fragment, "self_require"), "a webpage url to operate any further.", str_random(dee_complete, "request"), "include one!"))
 			return False
 	### request the directory to save files
 	def __dirs__ (self):
@@ -645,38 +706,54 @@ class Partner:
 		### edited file path (contains string colour)
 		path_string = String({'str':String(str(self.dirs) + "/").tag(),'attr':{'weight':'bold'}}).get() + String({'str':String(str(self.name)).tag(), 'attr':{'color':'darkcyan','weight':'bold'}}).get()
 		### request user to confirm whether the program can save the created files in the directory the script is being run from
-		self.__dee__(String().concat((dee_strs['start'][random.randrange(len(dee_strs['start']))] + "."), "i", dee_strs['try'][random.randrange(len(dee_strs['try']))], dee_strs['store'][random.randrange(len(dee_strs['store']))], "files here:", path_string))
-		self.__dee__(String().concat(dee_strs['check'][random.randrange(len(dee_strs['check']))], "if not just tell me and i'll move it somewhere else."))
+		self.__dee__(String().concat(str_random(dee_fragment, "self_i"), "will", 
+			str_random(dee_fragment, "act_try"), "to", str_random(dee_fragment, "act_storage"), 
+			str_random(dee_fragment, "name_files"), "here:", path_string))
+
+		self.__dee__(String().concat(str_random(dee_complete, "check"), "if not", 
+			str_random(dee_complete, "request"), "tell me and i'll move it somewhere else."))
+
 		### if the user does not allow the program to save in the selected directory, prompt for a change request
 		if not Request().open():
-			self.__dee__(String().concat((dee_strs['start'][random.randrange(len(dee_strs['start']))] + "."), dee_strs['what'][random.randrange(len(dee_strs['what']))], "the correct file path?"))
+			self.__dee__(String().concat(str_random(dee_complete, "proceed"), 
+				str_random(dee_fragment, "self_what"), "the correct folder path?"))
 			### request user to supply the folder path for the generated files
 			### fetch data through the generic response handler
 			if self.__attr__("New full folder path", "Folder path", "dirs"):
+				self.__dee__(str_random(dee_complete, "proceed") + str_random(dee_punct, "self_end"))
 				return True
 			else:
 				### print the issue to the user
-				self.__dee__(String().concat((dee_strs['frustrated'][random.randrange(len(dee_strs['frustrated']))] + "!"), dee_strs['require'][random.randrange(len(dee_strs['require']))], "a place to", dee_strs['store'][random.randrange(len(dee_strs['store']))], "things.", dee_strs['semote'][random.randrange(len(dee_strs['semote']))]))
+				self.__dee__(String().concat(str_random(dee_complete, "pause"), str_random(dee_fragment, "self_i"), 
+					str_random(dee_fragment, "self_require"), "a", str_random(dee_fragment, "name_storage"), "to", 
+					str_random(dee_fragment, "act_storage"), str_random(dee_fragment, "name_files"), "to" + str_random(dee_punct, "self_end")))
+
 				return False
 		else:
 			### replace the defined path with the new user input
 			self.dirs = path
 			return True
+
 	### request the name of the partner page
 	def __name__ (self):
 		### print request to user
-		self.__dee__(String().concat((dee_strs['start'][random.randrange(len(dee_strs['start']))] + "."), dee_strs['what'][random.randrange(len(dee_strs['what']))], "the name of the {{Gemini Partner}} we're setting up?"), {'weight':'bold'})
+		self.__dee__(String().concat(str_random(dee_complete, "start") + str_random(dee_punct, "self_end"), 
+			str_random(dee_fragment, "self_what"), "the name of the", String({'str':"{{Gemini Partner}}",'attr':{'weight':'bold'}}).get(), "we're setting up?"))
+
 		### request user to supply the name of the partner
 		### fetch data through the generic response handler
 		if self.__attr__("Gemini partners name", "Partners name", "name"):
 			### print the formulated partner
-			self.__dee__(String().concat("it's called", String({'str':String(self.name).tag(),'attr':{'color':'darkcyan','weight':'bold'}}).get() + ".", dee_strs['confirm'][random.randrange(len(dee_strs['puzzled']))] + "."))
+			self.__dee__(String().concat(str_random(dee_fragment, "self_assign"), "called", String({'str':String(self.name).tag(),'attr':{'color':'darkcyan','weight':'bold'}}).get() + ".", (str_random(dee_complete, "proceed_end") + str_random(dee_punct, "self_end"))))
 			return True
 		else:
 			### print the issue to the user	
-			self.__dee__(String().concat((dee_strs['puzzled'][random.randrange(len(dee_strs['puzzled']))] + "."), "i", dee_strs['require'][random.randrange(len(dee_strs['require']))], "a name to start the process."))
-			self.__dee__(String().concat(dee_strs['request'][random.randrange(len(dee_strs['request']))], "try again, but with a name this time!"))
+			self.__dee__(String().concat(str_random(dee_fragment, "self_i"), str_random(dee_fragment, "self_require"), "a name to", str_random(dee_fragment, "act_start"), ("the process" + str_random(dee_punct, "self_end"))))
+			### notify the user that they should reattemp the process
+			self.__dee__(String().concat(str_random(dee_fragment, "self_retry"), "but include a name this time" + str_random(dee_punct, "self_end")))
 			return False
+
+
 	### assign attribute of class through input method
 	def __attr__ (self, input_message, confirm_message, attr):
 		### attempt to set the attribute of the class
@@ -735,12 +812,12 @@ class Partner:
 	def __main__ (self):
 		self.__name__()
 		self.__dirs__()
-		self.__purl__()
+		self.__page__()
 		self.__browser__()
 		self.__fetch__()
-		self.__target__()
+		self.__CSS__()
 		self.__child__()
-		self.__printHTML__()
+		#self.__printHTML__()
 	### return self object
 	def __self__ (self):
 		return self
