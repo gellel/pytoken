@@ -29,7 +29,7 @@ import re
 dee_complete = {
 	'act_attempt': ["here i go", "processing now", "running that command now", "computing", "searching", "let's see if that computes", "let's see if it works", "bzz--comp-uti-ng", "fingers crossed! oh. i don't have fingers", "triangulating", "scanning"],
 	'attempt': ["trying that", "let's try that", "giving it a shot", "here i go", "lemme try that", "gotcha--here i go", "got it--trying now", "computing that", "i'm analysing that right now", "let's see if it computes", "triangulating", "bzz--comput--ing--bzz", "let's see what i can do", "alright. i'll try that", "you got it. trying now", "yup. trying now"],
-	'celebrate_combined': ["good job", "go us", "nice work", "too easy", "fantastic", "brilliant", "that's just perfect", "not surprised though", "alright nice", "pretty sweet if you ask me", "celebration-response-initiated"],
+	'celebrate_combined': ["good job", "go us", "nice work", "too easy", "fantastic", "brilliant", "that's just perfect", "not surprised though", "nice", "pretty sweet if you ask me", "celebration-response-initiated"],
 	'check': ["is that alright?", "is it ok if i do that?", "would you mind if i did that?", "is that ok?", "you don't mind if i do that, right?", "i'm fine to do that --right?", "can you let me know if that's ok?", "that's cool with you, right?", "it's ok for me to do that, right?", "should i do that?", "should i continue with this?", "you'll allow me to do that, right?", "should i proceed?"],
 	'connect_success': ["connected", "all patched in", "i was able to connect", "connection established", "yep. me and that website are friends now", "i guess that website was a real url after all", "got-cha. connection established", "all connected. ready", "ready and waiting"],
 	'error': ["woah! that wasn't supposed to happen", "there's a problem here", "uh oh", "oops", "uh-oh. problem", "err-rorr-bzz", "there's a problem with that command", "i couldn't process that properly", "unexpected result encountered", "what happened is not was supposed to happen", "pretty sure there's a problem here", "problem", "hmm. we have a problem", "not sure what happened. there's an error though"],
@@ -554,74 +554,37 @@ class Command:
 
 class Partner:
 
-	def __printhtml__ (self):
-		self.__dee__("do you want to review the found html?")
 
-		if Request().open():
+	def __edit__ (self):
+		self.__dee__(String().concat((str_random(dee_fragment, "self_pause") + "."), str_random(dee_fragment, "self_i"), "can", str_random(dee_fragment, "act_try"), "to edit this for you.", (str_random(dee_fragment, "self_attempt") + "?")))
+
+		if Request(prompt = String().concat("allow", self.deee.name, "to perform automatic edits?")).open():
+			anchor_hyperlinks = self.soup.select('a[href]')
+
+			#print anchor_hyperlinks, "\n"
+
+			for anchor in anchor_hyperlinks:
+
+				anchor["href"] = "{{clickUrl}}"
+				anchor["title"] = "{{headline}}"
+				anchor["target"] = "_blank"
+
+				#print String().CYAN + anchor["href"] + String().END
+
+			#print anchor_hyperlinks
+			print self.soup.prettify()
+
+	### notify user that they have HTML for review
+	def __display__ (self):
+		if 'BeautifulSoup' not in sys.modules:
 			from bs4 import BeautifulSoup
-			self.soup = BeautifulSoup(self.HTML.get_attribute("innerHTML"), "html.parser")
-			print ""
-			print String().BLUE + self.soup.prettify() + String().END
-			print ""
 
-			self.__dee__(String().concat("was this the", str_random(dee_fragment, "name_html"), "you wanted?"))
+		self.soup = BeautifulSoup(self.HTML.get_attribute("innerHTML"), "html.parser")
 
-			if Request().open():
-				return True
-			else:
-				self.__dee__(String().concat((str_random(dee_fragment, "self_pause") + "."), str_random(dee_fragment, "act_perform"), "to try again?"))
-				
-				if Request().open():
-					if self.__node__():
-						return self.__extract__()
-					else:
-						self.__dee__(String().concat(str_random(dee_complete, "frustrated") + ".", "i don't know what to do now."))
-						return False
-				else:
-					self.__dee__(String().concat(str_random(dee_complete, "frustrated") + ".", "i don't know what to do now."))
-					return False
-		else:
-			return True
+		if Request(prompt = "do you want to review the HTML snippet?").open():
+			print "\n", (String().BLUE + self.soup.prettify() + String().END), "\n"
 
-	### attempt to find the HTML on the page that matches the full css selector
-	def __extract__ (self):
-		### notify user that dee is attempting to find the provided css selector
-		self.__dee__(String().concat(str_random(dee_complete, "act_attempt") + str_random(dee_punct, "self_end")))
-		### handler any issues with the javascript execution
-		try:
-			### assign if the element was found on the page
-			self.HTML = self.browser.driver.execute_script('return document.querySelector("'+ String().concat(self.CSSPath, self.Node) +'");')
-		except:
-			### assign None Type if there was an issue finding the node or an error occured
-			self.HTML = None
-		### if the HTML element was not found on the page
-		if not self.HTML:
-			### print error message stating that there was an issue locating the element
-			self.__dee__(String().concat((str_random(dee_complete, "puzzled") + str_random(dee_punct, "self_end_all")), (str_random(dee_complete, "found_failure") + ".")))
-			### prompt user if they wish to redefine their selector
-			self.__dee__(String().concat(str_random(dee_fragment, "act_perform"), "to try again?"))
-			### prompt user to resupply their CSS selector
-			if Request().open():
-				### recall node assignment function
-				if self.__node__():
-					### recall function
-					return self.__extract__()
-				### if no element was reassigned handle as user has exited program
-				else:
-					### notify user that the program is ending
-					self.__dee__(String().concat("we're giving up?", str_random(dee_complete, "frustrated") + "."))
-					return False
-			### if user has chosen not attempt a nth match
-			else:
-				### notify user that the program is ending
-				self.__dee__(String().concat("we're giving up?", str_random(dee_complete, "frustrated") + "."))
-				return False
-		### if the HTML element was found on the page
-		else:
-			### notify user that the action was successful
-			self.__dee__(String().concat(String({'str':String(str_random(dee_complete, "found_success") + str_random(dee_punct, "self_end")).tag(),'attr':{'color':'green','weight':'bold'}}).get(), str_random(dee_complete, "celebrate_combined") + str_random(dee_punct, "self_end")))
-			return True
-	### assign the correct child node selector for the extraction attempt
+	### attempt to locate the child node of the parent
 	def __node__ (self):
 		### prompt user to choose a css selection method for the child node
 		self.__dee__(String().concat((str_random(dee_fragment, "self_pause") + "."), "what", str_random(dee_fragment, "name_logic"), "should i use to", str_random(dee_fragment, "self_find"), "the child", str_random(dee_fragment, "name_html") + "?"))
@@ -637,7 +600,35 @@ class Partner:
 				self.__dee__(String().concat(str_random(dee_fragment, "self_reference_you_want"), "to try", str_random(dee_fragment, "self_find"), "the", str_random(dee_fragment, "name_html"), str_random(dee_fragment, "self_reference_you_self_end") + str_random(dee_punct, "self_end_all"), str_random(dee_complete, "proceed_end") + str_random(dee_punct, "self_end")))
 				### prompt user to input their selector
 				self.__attr__("a HTML/CSS selector", "HTML/CSS", "Node")
-			return True
+
+			### notify user that dee is attempting to find the provided css selector
+			self.__dee__(String().concat(str_random(dee_complete, "act_attempt") + str_random(dee_punct, "self_end")))
+			### handler any issues with the javascript execution
+			try:
+				### assign if the element was found on the page
+				self.HTML = self.browser.driver.execute_script('return document.querySelector("'+ String().concat(self.CSSPath, self.Node) +'");')
+			except:
+				### assign None Type if there was an issue finding the node or an error occured
+				self.HTML = None
+			### if the HTML element was not found on the page
+			if not self.HTML:
+				### print error message stating that there was an issue locating the element
+				self.__dee__(String().concat((str_random(dee_complete, "puzzled") + str_random(dee_punct, "self_end_all")), (str_random(dee_complete, "found_failure") + ".")))
+				### prompt user if they wish to redefine their selector
+				self.__dee__(String().concat("would you like to try again?"))
+				### prompt user to resupply their CSS selector
+				if Request().open():
+					return self.__node__()
+				else:
+					self.__dee__(String().concat("we're giving up?", str_random(dee_complete, "frustrated") + "."))
+					return False
+			### if the HTML element was found on the page
+			else:
+				### notify user that the action was successful
+				self.__dee__(String().concat(String({'str':String(str_random(dee_complete, "found_success") + str_random(dee_punct, "self_end")).tag(),'attr':{'color':'green','weight':'bold'}}).get(), str_random(dee_complete, "celebrate_combined") + str_random(dee_punct, "self_end")))
+				return True
+
+		### exit program
 		else:
 			### notify user that the input must been one or the other and that it will not work without a binary selection
 			self.__dee__(String().concat(str_random(dee_fragment, "self_pause") + str_random(dee_punct, "self_end"), "sorry.", "i", str_random(dee_fragment, "self_attempt_unable"), str_random(dee_fragment, "self_find"), "anything without a selection method."))
@@ -871,8 +862,8 @@ class Partner:
 		self.__fetch__()
 		self.__css__()
 		self.__node__()
-		self.__extract__()
-		self.__printhtml__()
+		self.__display__()
+		self.__edit__()
 	### return self object
 	def __self__ (self):
 		return self
