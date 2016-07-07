@@ -24,23 +24,12 @@ import os
 ### py regex
 import re
 
-#self.__dee__(String().concat((dee_strs['puzzled'][random.randrange(len(dee_strs['puzzled']))] + ".."), "i", dee_strs['absent'][random.randrange(len(dee_strs['absent']))], "find any CSS selector on the page that matched your pattern."))
-				#self.__dee__("wanna try again?")
 
-
-#self.__dee__(String().concat((dee_strs['frustrated'][random.randrange(len(dee_strs['frustrated']))] + "."), (dee_strs['puzzled'][random.randrange(len(dee_strs['puzzled']))] + "."), "i can't target an empty element like that!"))
-
-
-
-
-
-
-
-
-
-###
+### grammar full
 dee_complete = {
+	'act_attempt': ["here i go", "processing now", "running that command now", "computing", "searching", "let's see if that computes", "let's see if it works", "bzz--comp-uti-ng", "fingers crossed! oh. i don't have fingers", "triangulating", "scanning"],
 	'attempt': ["trying that", "let's try that", "giving it a shot", "here i go", "lemme try that", "gotcha--here i go", "got it--trying now", "computing that", "i'm analysing that right now", "let's see if it computes", "triangulating", "bzz--comput--ing--bzz", "let's see what i can do", "alright. i'll try that", "you got it. trying now", "yup. trying now"],
+	'celebrate_combined': ["good job", "go us", "nice work", "too easy", "fantastic", "brilliant", "that's just perfect", "not surprised though", "alright nice", "pretty sweet if you ask me", "celebration-response-initiated"],
 	'check': ["is that alright?", "is it ok if i do that?", "would you mind if i did that?", "is that ok?", "you don't mind if i do that, right?", "i'm fine to do that --right?", "can you let me know if that's ok?", "that's cool with you, right?", "it's ok for me to do that, right?", "should i do that?", "should i continue with this?", "you'll allow me to do that, right?", "should i proceed?"],
 	'connect_success': ["connected", "all patched in", "i was able to connect", "connection established", "yep. me and that website are friends now", "i guess that website was a real url after all", "got-cha. connection established", "all connected. ready", "ready and waiting"],
 	'error': ["woah! that wasn't supposed to happen", "there's a problem here", "uh oh", "oops", "uh-oh. problem", "err-rorr-bzz", "there's a problem with that command", "i couldn't process that properly", "unexpected result encountered", "what happened is not was supposed to happen", "pretty sure there's a problem here", "problem", "hmm. we have a problem", "not sure what happened. there's an error though"],
@@ -54,6 +43,7 @@ dee_complete = {
 	'start': ["ready", "i'm ready", "ready if you are", "let's do it", "let's go", "gogogo", "coolio. i'm ready", "you cool? alright let's go", "let's rock", "aiight fam. you ready", "i am ready", "all--systems--online", "powering up to maximum", "ok. focus", "scanning. complete"],
 	'request': ["would you please", "please", "can you please", "could you", "would you", "you need to", "you gotta", "can you", "would you kindly"]
 }
+### grammar partial
 dee_fragment = {
 	'act_perform': ["would you", "do you", "would you like"],
 	'act_start': ["start", "begin","launch"],
@@ -61,8 +51,11 @@ dee_fragment = {
 	'act_try': ["try", "attempt"],
 	'act_want': ["want to", "would like to", "hope to"],
 	'name_files': ["files", "stuff", "code"],
+	'name_html': ["element", "HTML", "HTML element", "HTML node", "DOM node"], 
+	'name_logic': ["method", "action", "logic"],
 	'name_storage': ["directory", "folder"],
 	'name_search': ["look for", "search for", "locate"],
+	'name_website': ["website", "url", "webpage", "site"],
 	'self_attempt': ["should i", "can i"],
 	'self_attempt_unable': ["can't", "cannot"],
 	'self_attempt_difference': ["a different", "another"],
@@ -74,23 +67,24 @@ dee_fragment = {
 	'self_might': ["might", "should", "could"],
 	'self_pause': ["so","ok","hmm","right","alright"],
 	'self_problem': ["issue", "problem"],
-	'self_require': ["need", "require", "--need--", "--require--", "depend on"],
+	'self_reference_you': ["you", "y'all"],
+	'self_reference_you_want': ["you want", "y'all want", "you would like", "you wish"],
+	'self_reference_you_self_end': ["on your own", "by yourself", "without me", "independently"],
+	'self_require': ["need", "require", "--need--", "--require--"],
 	'self_retry': ["try again", "do it again", "try it again please", "please try that again", "give it another try"],
-	'self_what': ["what is", "what's", "so--what's", "uh--what's", "what is"],
-	'self_action': ["method", "action", "logic"]
+	'self_what': ["what is", "what's", "so--what's", "uh--what's", "what is"]
 }
+### grammar punctuation
 dee_punct = {
 	'self_end': ["!","."],
 	'self_end_all': ["?", "!", "."],
 	'self_trailing': [".", "..", "..."]
 }
 
+ 
 
 def str_random (str_object, key):
 	return str_object[key][random.randrange(len(str_object[key]))]
-
-
-
 
 
 ### set localfile path
@@ -110,7 +104,7 @@ class String:
 	UNDERLINE = '\033[4m'
 	END = '\033[0m'
 	### regexp for matching "{{string}}"
-	REG = "\{\{(?:(?:\w*|\s*)|(?:\d*|[$&+,\:\;\=\?@#\|'<>.^*\(\)%!-\/]))+\}\}"
+	REG = "\{\{(?:[\w\s\d]*|[$&\+,\:\;\=\?@#\|'\<\>\.^\*\(\)%!-\/]*)*\}\}"
 	def concat (self, *args):
 		return " ".join(args)
 	def tag (self):
@@ -560,64 +554,108 @@ class Command:
 
 class Partner:
 
-	def __printHTML__ (self):
-		print self.HTMLElement
+	def __printhtml__ (self):
+		self.__dee__("do you want to review the found html?")
 
-	def __child__ (self):
+		if Request().open():
+			from bs4 import BeautifulSoup
+			self.soup = BeautifulSoup(self.HTML.get_attribute("innerHTML"), "html.parser")
+			print ""
+			print String().BLUE + self.soup.prettify() + String().END
+			print ""
 
-		self.__dee__(String().concat(str_random(dee_fragment, "self_pause"), "what", str_random(dee_fragment, "self_action"), "should i use to", str_random(dee_fragment, "self_find"), "the target element?"))
+			self.__dee__(String().concat("was this the", str_random(dee_fragment, "name_html"), "you wanted?"))
 
-		
-
-
-		"""
-		#self.__dee__(String().concat((dee_strs['next'][random.randrange(len(dee_strs['next']))] + "."), "i should be able to grab the direct first-child element of", String({'str':String(self.CSSSelector).tag(),'attr':{'weight':'bold'}}).get()))
-		#self.__dee__(String().concat("do you want me to do that?"))
-
-		if not Request().open():
-			pass
-			#self.__dee__(String().concat((dee_strs['next'][random.randrange(len(dee_strs['next']))] + "."), "type out the CSS selector you want to use."))
-			self.__attr__("HTML Element/CSS selector", "Element/CSS", "CSSChild")
-		else:
-			self.CSSChild = "> *:first-child"
-
-		if hasattr(self, "CSSChild"):
-		
-			self.HTMLElement = self.browser.driver.execute_script('return document.querySelector("'+ String().concat(self.CSSSelector, self.CSSChild) +'");')
-
-			if not self.HTMLElement:
-				print 'z'
-				#	self.__dee__(String().concat((dee_strs['puzzled'][random.randrange(len(dee_strs['puzzled']))] + ".."), "i", dee_strs['absent'][random.randrange(len(dee_strs['absent']))], "find any CSS selector on the page that matched your pattern."))
-				#self.__dee__(String().concat("would you like to try again?"))
-				if Request().open():
-					return self.__child__()
-				else:
-					#self.__dee__(String().concat((dee_strs['problem'][random.randrange(len(dee_strs['problem']))] + "."), "i", dee_strs['absent'][random.randrange(len(dee_strs['absent']))], "that. so i can't go any further without it."))
-					return False
-			else:
-				#self.__dee__(String(dee_strs['located'][random.randrange(len(dee_strs['located']))] + "!").tag(), {'color':'green','weight':'bold'})
+			if Request().open():
 				return True
+			else:
+				self.__dee__(String().concat((str_random(dee_fragment, "self_pause") + "."), str_random(dee_fragment, "act_perform"), "to try again?"))
+				
+				if Request().open():
+					if self.__node__():
+						return self.__extract__()
+					else:
+						self.__dee__(String().concat(str_random(dee_complete, "frustrated") + ".", "i don't know what to do now."))
+						return False
+				else:
+					self.__dee__(String().concat(str_random(dee_complete, "frustrated") + ".", "i don't know what to do now."))
+					return False
 		else:
-			#self.__dee__("hey! i need to use something man!")
+			return True
+
+	### attempt to find the HTML on the page that matches the full css selector
+	def __extract__ (self):
+		### notify user that dee is attempting to find the provided css selector
+		self.__dee__(String().concat(str_random(dee_complete, "act_attempt") + str_random(dee_punct, "self_end")))
+		### handler any issues with the javascript execution
+		try:
+			### assign if the element was found on the page
+			self.HTML = self.browser.driver.execute_script('return document.querySelector("'+ String().concat(self.CSSPath, self.Node) +'");')
+		except:
+			### assign None Type if there was an issue finding the node or an error occured
+			self.HTML = None
+		### if the HTML element was not found on the page
+		if not self.HTML:
+			### print error message stating that there was an issue locating the element
+			self.__dee__(String().concat((str_random(dee_complete, "puzzled") + str_random(dee_punct, "self_end_all")), (str_random(dee_complete, "found_failure") + ".")))
+			### prompt user if they wish to redefine their selector
+			self.__dee__(String().concat(str_random(dee_fragment, "act_perform"), "to try again?"))
+			### prompt user to resupply their CSS selector
+			if Request().open():
+				### recall node assignment function
+				if self.__node__():
+					### recall function
+					return self.__extract__()
+				### if no element was reassigned handle as user has exited program
+				else:
+					### notify user that the program is ending
+					self.__dee__(String().concat("we're giving up?", str_random(dee_complete, "frustrated") + "."))
+					return False
+			### if user has chosen not attempt a nth match
+			else:
+				### notify user that the program is ending
+				self.__dee__(String().concat("we're giving up?", str_random(dee_complete, "frustrated") + "."))
+				return False
+		### if the HTML element was found on the page
+		else:
+			### notify user that the action was successful
+			self.__dee__(String().concat(String({'str':String(str_random(dee_complete, "found_success") + str_random(dee_punct, "self_end")).tag(),'attr':{'color':'green','weight':'bold'}}).get(), str_random(dee_complete, "celebrate_combined") + str_random(dee_punct, "self_end")))
+			return True
+	### assign the correct child node selector for the extraction attempt
+	def __node__ (self):
+		### prompt user to choose a css selection method for the child node
+		self.__dee__(String().concat((str_random(dee_fragment, "self_pause") + "."), "what", str_random(dee_fragment, "name_logic"), "should i use to", str_random(dee_fragment, "self_find"), "the child", str_random(dee_fragment, "name_html") + "?"))
+		### prompt user to enter either automatic or manual
+		if self.__attr__("automatic or manual", "method", "method", {'a':"automatic",'b':"manual"}):
+			### notifer user that they have selected the automatic selection method
+			if str.upper(self.method) == str.upper("automatic"):
+				self.__dee__(String().concat(str_random(dee_fragment, "self_im"), "to", str_random(dee_fragment, "self_find"), "the", (str_random(dee_fragment, "name_html") + str_random(dee_punct, "self_end_all")) , (str_random(dee_complete, "proceed_end") + str_random(dee_punct, "self_end"))))
+				### set the selection method to select a wildcard element that is the first child of the parent element
+				self.Node = "> *:first-child"
+			else:
+				### prompt user to define their CSS selector
+				self.__dee__(String().concat(str_random(dee_fragment, "self_reference_you_want"), "to try", str_random(dee_fragment, "self_find"), "the", str_random(dee_fragment, "name_html"), str_random(dee_fragment, "self_reference_you_self_end") + str_random(dee_punct, "self_end_all"), str_random(dee_complete, "proceed_end") + str_random(dee_punct, "self_end")))
+				### prompt user to input their selector
+				self.__attr__("a HTML/CSS selector", "HTML/CSS", "Node")
+			return True
+		else:
+			### notify user that the input must been one or the other and that it will not work without a binary selection
+			self.__dee__(String().concat(str_random(dee_fragment, "self_pause") + str_random(dee_punct, "self_end"), "sorry.", "i", str_random(dee_fragment, "self_attempt_unable"), str_random(dee_fragment, "self_find"), "anything without a selection method."))
 			return False
-		"""
-		
-
-
 	### attempt to locate the closets possible CSS element to the HTML target
-	def __CSS__ (self):
+	def __css__ (self):
 		### prompt users to input a valid CSS selector
 		self.__dee__(String().concat((str_random(dee_fragment, "self_pause") + "."), 
-			str_random(dee_fragment, "self_what"), "the", String({'str':"{{CSS}}",'attr':{'weight':'bold'}}).get(), "selector for the parent container on this webpage?"))
+			str_random(dee_fragment, "self_what"), "the", String({'str':"{{CSS}}",'attr':{'weight':'bold'}}).get(), "selector for the", String({'str':"{{parent container}}",'attr':{'weight':'bold'}}).get(), "on this webpage?"))
 		### request user to supply CSS selector for the selenium browser
 		### fetch data through the generic response handler
-		if self.__attr__("CSS selectors", "CSS selector", "CSSSelector"):
+		if self.__attr__("CSS selectors", "CSS selector", "CSSPath"):
 			### notify user that 'dee' will try and locate the specified selector
 			self.__dee__(String().concat( str_random(dee_complete, "attempt") + str_random(dee_punct, "self_end")))
 			### assign attempted match the the self object
-			self.CSSPathElement = self.browser.driver.execute_script('return document.querySelector("'+ self.CSSSelector +'");')
+			self.CSS = self.browser.driver.execute_script('return document.querySelector("'+ self.CSSPath +'");')
 			### test if selenium found the requested element on the page
-			if not self.CSSPathElement:
+			if not self.CSS:
 				### notify user that the browser was unable to locate the element on the page
 				self.__dee__(String().concat(str_random(dee_fragment, "self_i"), str_random(dee_complete, "pause"), (str_random(dee_complete, "found_failure") + ".")))
 				
@@ -625,7 +663,7 @@ class Partner:
 				### prompt user to resupply their CSS selector
 				if Request().open():
 					### recall function
-					return self.__CSS__()
+					return self.__css__()
 				else:
 					return False
 			### notify user that the element was found on the page
@@ -671,7 +709,7 @@ class Partner:
 		if not attempted:
 			### print the action required by dee
 			### notify user that the terminal might 'hang' if the request webpage takes awhile to load
-			self.__dee__(String().concat(str_random(dee_fragment, "self_im"), "going to", str_random(dee_fragment, "act_try"), "to", str_random(dee_fragment, "self_website_open"), "that website for you."))
+			self.__dee__(String().concat(str_random(dee_fragment, "self_im"), "going to", str_random(dee_fragment, "act_try"), "to", str_random(dee_fragment, "self_website_open"), "that", str_random(dee_fragment, "name_website"), "for you."))
 			self.__sys__(String().concat("** this terminal will wait for", self.deee.__name__(), "to finish loading the page", self.URL))
 			self.__sys__("** if this is taking too long try stop the browser from loading, and the terminal should resume **")
 		### attempt to initialise selenium webdriver
@@ -755,7 +793,7 @@ class Partner:
 
 
 	### assign attribute of class through input method
-	def __attr__ (self, input_message, confirm_message, attr):
+	def __attr__ (self, input_message, confirm_message, attr, binary = {}):
 		### attempt to set the attribute of the class
 		def __setattribute__ ():
 			### prompt user to input a string based on supplied criteria
@@ -773,6 +811,22 @@ class Partner:
 				else:
 					### return None of second attempt was not requested
 					return None
+			### optional handler for accepting binary responses
+			elif bool(binary):
+				### confirm is string matches one of two conditions
+				if (str.upper(temp) == str.upper(binary['a'])) or ( str.upper(temp) == str.upper(binary['b'])):
+					### handle change response
+					return __changeattribute__(temp)
+				else:
+					### notify user that the input provided did not match either pattern
+					self.__sys__(String().concat("input must match either", String({'str':"{{"+ binary['a'] +"}} or {{"+ binary['b'] +"}}",'attr':{'weight':'bold'}}).get()))
+					### prompt user to reattempt input
+					if Request(prompt = "try again?").open():
+						### recall function
+						return __setattribute__()
+					else:
+						### return None of second attempt was not requested
+						return None
 			### if type was not None confirm the input of the user
 			else:
 				return __changeattribute__(temp)
@@ -815,9 +869,10 @@ class Partner:
 		self.__page__()
 		self.__browser__()
 		self.__fetch__()
-		self.__CSS__()
-		self.__child__()
-		#self.__printHTML__()
+		self.__css__()
+		self.__node__()
+		self.__extract__()
+		self.__printhtml__()
 	### return self object
 	def __self__ (self):
 		return self
@@ -923,6 +978,11 @@ def main ():
 
 ### initialise the python script
 if __name__ == '__main__':
+
+	#print String({'str':"{{.myclass #id > #memes}}",'attr':{'color':'red'}}).get()
+
+	#print String({'str':"{{div asd}} {{13131%$W$%&}}", 'attr':{'color':'red'}}).get()
+
 	### call main function
 	main()
 
