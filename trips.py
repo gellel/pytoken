@@ -67,6 +67,7 @@ dee_fragment = {
 	'self_might': ["might", "should", "could"],
 	'self_pause': ["so","ok","hmm","right","alright"],
 	'self_problem': ["issue", "problem"],
+	'self_reference_title': ["called", "named"],
 	'self_reference_you': ["you", "y'all"],
 	'self_reference_you_want': ["you want", "y'all want", "you would like", "you wish"],
 	'self_reference_you_self_end': ["on your own", "by yourself", "without me", "independently"],
@@ -83,8 +84,8 @@ dee_punct = {
 
  
 
-def str_random (str_object, key):
-	return str_object[key][random.randrange(len(str_object[key]))]
+def str_random (str__object, key):
+	return str__object[key][random.randrange(len(str__object[key]))]
 
 
 ### set localfile path
@@ -108,7 +109,7 @@ class String:
 	def concat (self, *args):
 		return " ".join(args)
 	def tag (self):
-		return "{{" + self.object + "}}"
+		return "{{" + self._object + "}}"
 	### prints a multiple line string with formatting
 	def wrap (self, width = 60):
 		print '\n'.join(line.strip() for line in re.findall(r'.{1,'+ str(width) +'}(?:\s+|$)', self.__process__()) )
@@ -116,9 +117,9 @@ class String:
 	def line (self):
 		print self.__process__()
 	### return entire formatted string using supplied styling
-	def get (self, object = {}):
-		### fetch returned processed object
-		return self.__process__(object)
+	def get (self, _object = {}):
+		### fetch returned processed _object
+		return self.__process__(_object)
 	### return substring/string with styling attached
 	def __format__ (self, string, attributes):
 		### iterate through attribute dict and try to match value to formatting
@@ -144,43 +145,43 @@ class String:
 			string = re.sub(matches[i]['original'], matches[i]['formatted'], string)
 		### return string with formatting replacing any "{{" or "}}" that exists in original string
 		return re.sub("{{|}}", "", string)
-	### return formatted string or strings depending on config object supplied (list or dict)
-	def __process__ (self, object = {}):
-		### check if object isn't a default
-		if not bool(object):
+	### return formatted string or strings depending on config _object supplied (list or dict)
+	def __process__ (self, _object = {}):
+		### check if _object isn't a default
+		if not bool(_object):
 			### check if Class was give a constructor dict
-			if self.object:
+			if self._object:
 				### use constructor dict
-				object = self.object
+				_object = self._object
 			else:
 				### use a sample instead
-				object = [{'str':'{{Sample}}', 'attr':{'color':'cyan'}}, {'str':'{{Text}}', 'attr':{'color':'purple'}}]
-		### check if object is either a list or dict
-		if type(object) is list:
+				_object = [{'str':'{{Sample}}', 'attr':{'color':'cyan'}}, {'str':'{{Text}}', 'attr':{'color':'purple'}}]
+		### check if _object is either a list or dict
+		if type(_object) is list:
 			### temp list for holding formatted strings
 			strs = []
 			### iterate through items to be formatted
-			for i in range(0, len(object)):
+			for i in range(0, len(_object)):
 				### append formatted strings to temp list
-				strs.append(self.__substitute__(object[i]['str'], object[i]['attr']))
+				strs.append(self.__substitute__(_object[i]['str'], _object[i]['attr']))
 			### return the complete string with formatting
 			return " ".join(strs)
 		else:
 			### return the complete string with formatting
-			return self.__substitute__(object['str'], object['attr'])
-	### return the type of the object
+			return self.__substitute__(_object['str'], _object['attr'])
+	### return the type of the _object
 	def __type__ (self):
-		return type(self.object)
-	### return the object supplied
+		return type(self._object)
+	### return the _object supplied
 	def __self__ (self):
-		return self.object
+		return self._object
 	### constructor 
-	### @object: 
+	### @_object: 
 		### [{'str':"{{string}}", 'attr':{'color':'red','style':'underline','weight':'bold'}}] 
 		### or
 		### {'str':'{{str}}', 'attr':{'color':'red'}}
-	def __init__ (self, object = {}):
-		self.object = object
+	def __init__ (self, _object = {}):
+		self._object = _object
 
 
 ### creates a responder class used to prompt people contextually
@@ -214,7 +215,7 @@ class Browser:
 		if not self.url:
 			self.url = url
 		self.driver.get(self.url)
-	### returns the object created from selenium
+	### returns the _object created from selenium
 	def __self__ (self):
 		return self.driver
 	### constructor
@@ -491,8 +492,8 @@ class HTTPResource:
 	def __open__ (self):
 		### attempt to fetch the URL resource
 		try:
-			### set the request_open object to the connection point
-			self.request_open = urllib2.urlopen(self.request_object)
+			### set the request_open _object to the connection point
+			self.request_open = urllib2.urlopen(self.request__object)
 		except:
 			self.request_open = None
 		### if request was successful read the content of the page
@@ -502,7 +503,7 @@ class HTTPResource:
 		### return None if connection failed
 		else:
 			return None
-	### construct the http request object for fetching the webpage
+	### construct the http request _object for fetching the webpage
 	def __format__ (self):
 		### confirm that the constructor has a URL
 		if self.request_url:
@@ -511,7 +512,7 @@ class HTTPResource:
 				### if dict has at least one key pair value accept as http headers
 				return urllib2.Request(self.request_url, urllib.urlencode(self.request_headers))
 			else:
-				### use standard http request object
+				### use standard http request _object
 				return urllib2.Request(self.request_url)
 		else:
 			return None
@@ -519,7 +520,7 @@ class HTTPResource:
 	def __init__ (self, URL = None, headers = {}):
 		self.request_url = URL
 		self.request_headers = headers
-		self.request_object = self.__format__()
+		self.request__object = self.__format__()
 
 ### operates a subprocess for checking terminal commands
 class Command:
@@ -554,6 +555,20 @@ class Command:
 
 class Partner:
 
+	def __handlebars__(self):
+		self.__dee__(String().concat("your handlebars files is ready. what do you want to call it?"))
+
+		if self.__attr__("a template name", "your handlebars file", "handlebars_name"):
+			self.handlebars_name = self.handlebars_name
+		else:
+			self.__dee__(String().concat("you didn't give it a name. i'll create a temporary one"))
+			self.handlebars_name = self.name + "_temp"
+
+		if not re.compile(".+\.{1}handlebars").match(self.handlebars_name):
+			self.handlebars_name = self.handlebars_name + ".handlebars"
+
+		self.__dee__(String().concat("your file is", str_random(dee_fragment, "self_reference_title"), String({'str':String(self.handlebars_name).tag(),'attr':{'color':'darkcyan','weight':'bold'}}).get() + "." ))
+
 
 	def __edit__ (self):
 		self.__dee__(String().concat((str_random(dee_fragment, "self_pause") + "."), str_random(dee_fragment, "self_i"), "can", str_random(dee_fragment, "act_try"), "to edit this for you.", (str_random(dee_fragment, "self_attempt") + "?")))
@@ -571,15 +586,18 @@ class Partner:
 
 				#print String().CYAN + anchor["href"] + String().END
 
-			#print anchor_hyperlinks
-			print self.soup.prettify()
+			if Request(prompt = String().concat("do you want to review", self.deee.name + "'s", "edits?")).open():
+				#print anchor_hyperlinks
+				print "\n" + self.soup.prettify() + "\n"
 
 	### notify user that they have HTML for review
 	def __display__ (self):
 		if 'BeautifulSoup' not in sys.modules:
 			from bs4 import BeautifulSoup
 
-		self.soup = BeautifulSoup(self.HTML.get_attribute("innerHTML"), "html.parser")
+
+
+		self.soup = BeautifulSoup(self.HTML.get_attribute("outerHTML"), "html.parser")
 
 		if Request(prompt = "do you want to review the HTML snippet?").open():
 			print "\n", (String().BLUE + self.soup.prettify() + String().END), "\n"
@@ -643,7 +661,7 @@ class Partner:
 		if self.__attr__("CSS selectors", "CSS selector", "CSSPath"):
 			### notify user that 'dee' will try and locate the specified selector
 			self.__dee__(String().concat( str_random(dee_complete, "attempt") + str_random(dee_punct, "self_end")))
-			### assign attempted match the the self object
+			### assign attempted match the the self _object
 			self.CSS = self.browser.driver.execute_script('return document.querySelector("'+ self.CSSPath +'");')
 			### test if selenium found the requested element on the page
 			if not self.CSS:
@@ -765,6 +783,12 @@ class Partner:
 
 	### request the name of the partner page
 	def __name__ (self):
+
+		#self.__dee__()
+
+		#self.__grammar__([{'key':dee_complete,'value':'start'}, {'key':dee_punct,'value':'self_end'}])
+
+
 		### print request to user
 		self.__dee__(String().concat(str_random(dee_complete, "start") + str_random(dee_punct, "self_end"), 
 			str_random(dee_fragment, "self_what"), "the name of the", String({'str':"{{Gemini Partner}}",'attr':{'weight':'bold'}}).get(), "we're setting up?"))
@@ -829,7 +853,7 @@ class Partner:
 			if Request().open():
 				### set attribute
 				setattr(self, attr, temp)
-				### return self object
+				### return self _object
 				return self
 			### if the input entered was incorrect
 			else:
@@ -839,6 +863,19 @@ class Partner:
 					return __setattribute__()
 		### return attribute
 		return __setattribute__()
+
+	def __lexicon__ (self, str__object, key):
+		return str__object[key][random.randrange(len(str__object[key]))]
+
+	def __grammar__ (self, responses):
+		for i in range(0, len(responses)):
+			if type(responses[i]) is dict:
+				responses[i] = self.__lexicon__(responses[i]['key'], responses[i]['value'])
+
+
+		return "".join(responses)
+		
+
 	### return text (used for functions) or print text to console	
 	def __rop__ (self, message = "Test", printt = True):
 		### if printt 
@@ -864,7 +901,8 @@ class Partner:
 		self.__node__()
 		self.__display__()
 		self.__edit__()
-	### return self object
+		self.__handlebars__()
+	### return self _object
 	def __self__ (self):
 		return self
 	### constructor
