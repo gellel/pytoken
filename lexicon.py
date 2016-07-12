@@ -2,7 +2,7 @@
 ### py selenium browser package
 ### from selenium import webdriver
 #http://selenium-python.readthedocs.io/api.html
-
+import collections
 ### py subprocess class package
 import subprocess
 ### py textwrap class package
@@ -118,185 +118,297 @@ class String:
 
 
 
+### short lexical class
+class LX:
+	### return formatted self object
+	def get (self, rtype = '__dict__'):
+		return getattr(self, rtype)
+	### return self as dictonary (to be integrated with class Lexicon)
+	def __dict__ (self):
+		return {'key':self.key, 'value':self.value, 'pause':self.pause,	'attr':self.attr, 'punctuate':self.punctuate, 'optional':self.optional}
+	def __format__ (self, _object):
+		if type(_object) is dict:
+			return _object
+		elif type(_object) is list:
+			return {'t':_object}
+	### constructor
+	def __init__ (self, **kwargs):
+		self.key = self.__format__(kwargs.pop('key', {'t':["test"]}))
+		self.value = kwargs.pop('value', 't')
+		self.pause = kwargs.pop('pause', None)
+		self.attr = kwargs.pop('attr', {})
+		self.punctuate = kwargs.pop('punctuate', None)
+		self.optional = kwargs.pop('optional', False)
 
-partials = {
-	'action_notify_self': ["tell me", "notify me", "advise me"],
-	'reference_name_location_other': ["elsewhere", "somewhere else", "to another place"]
-}
-fragments = {
-	'action_attempt': ["try", "attempt"],
-	'action_attempt_check': ["check", "see", "find out", "test"],
-	'action_attempt_confirm_before': ["ok", "alright", "fine", "not a problem", "cool", "all-good"],
-	'action_attempt_connect': ["open", "connect", "reach", "render"],
-	'action_attempt_start': ["begin", "start"],
-	'action_attempt_works': ["works", "processes", "computes"],
-	'action_discovery': ["see", "find out", "test"],
-	'action_working_creating': ["creating", "setting up", "working on", "putting together", "registering"],
-	'action_save': ["store", "save", "commit", "place", "stash", "leave"],
-	'action_search': ["search for", "look for", "locate", "find", "poke around for"],
-	'action_want_perform': ["want to", "would like to"],
-	'action_want_obtain': ["get", "find", "grab", "snatch", "pick up"],
-	'reference_correct_decleration': ["correct", "right", "ideal", "desired", "new"],
-	'reference_depend': ["need", "require"],
-	'reference_name_code': ["code", "stuff", "files"],
-	'reference_name_complete': ["ready", "compiled", "finished", "done"],
-	'reference_name_directory': ["folder", "directory"],
-	'reference_name_empty': ["empty", "blank", "undefined", "nameless"],
-	'reference_name_file_single': ["file", "document"],
-	'reference_name_file_plural': ["files", "documents"],
-	'reference_name_html': ["DOM node", "HTML", "element", "code", "source"],
-	'reference_name_html_element': ["node", "element", "container"],
-	'reference_name_move': ["move", "place", "store", "relocate"],
-	'reference_name_name': ["name", "title"],
-	'reference_name_path': ["location", "path"],
-	'reference_name_proceedure': ["method", "logic", "action"],
-	'reference_name_reference': ["named", "called", "titled"],
-	'reference_name_title': ["name", "title"],
-	'reference_name_website': ["website", "webpage"],
-	'reference_name_inclusive_or': ["we're", "you are", "we are", "you're"]
-}
-reference = {
-	'it_is': ["it is", "it's"],
-	'how': ["how is", "how's"],
-	'what': ["what is","what's"],
-	'when': ["when is", "when's"],
-	'who': ["who is", "who's"],
-	'i_will': ["i will", "i'll"]
-}
-end_fragments = {
-	'end_action_understood': ["gotcha", "got it", "no problem", "neat", "i like the sound of it", "ok", "sure thing"],
-	'end_fragment': ["right"]
-}
-mid_fragments = {
-	'pause': ["uh", "uhh", "um--ah"]
-}
-start_fragments = {
-	'greet': ["hi", "hello", "greetings", "yo", "hey", "heyheyhey", "what up", "what's up"],
-	'pause': ["hm", "hmm", "mmm", "hmph", "ahh", "uh", "hmmm", "eeh"],
-	'begin_fragment': ["ok", "right", "alright"],
-	'follow_fragment': ["nice", "cool", "sure"]
-}
-punctuation = {
-	'no_context': [".", "?", "!"],
-	'period_end': ["."],
-	'pause_break': ["--", ",", "..", "..."],
-	'period_exclaim': [".", "!"],
-	'period_trailing': [".", "..", "..."],
-	'period_trailing_exclaim': ["!", ".", "..", "..."]
-}
-
-
-# key = {}, value = "test", pause = False, pause_at = None, attr = {}, optional = False)
-
+### produces concatenated string with random partial strings
 class Lexicon:
-
-
+	def pprint (self):
+		get_str = self.get()
+		### confirm if not empty returned string
+		if not bool(re.search("^$", get_str)):
+			### print returned string
+			print get_str
+	### return completely formatted string
 	def get (self):
+		### call packaging method to return string
 		return self.__package__()
-
+	### convert list of dict or single dict to string response
 	def __package__ (self):
-		for i in range(0, len(self._object)):
-			if type(self._object[i]) is tuple:
-				if bool(self._object[i]):
-					self._object[i] = self.__encode__(*self._object[i])
-
-		return self.__construct__()
-
-	def __encode__ (self, key = {}, value = "test", pause = False, pause_at = None, attr = {}, punctuate = None, optional = False):
-		return {'key':key,'value':value,'pause':pause,'pause_at':pause_at,'punctuate':punctuate,'optional':optional}
-
-
-	def __lexical__ (self, key, value):
-		return key[value][random.randrange(len(key[value]))]
-
-	def __process__ (self, _object):
-		_object['formatted'] = self.__lexical__(_object['key'], _object['value'])
-		
-		if 'tag' in _object:
-			if _object['tag']:
-				if 'attr' in _object:
-					if bool(_object['attr']):
-						_object['formatted'] = String({'str':String(_object['formatted']).tag(),'attr':_object['attr']})
-		if 'pause' in _object:
-			if _object['pause']:
-
-				pause_punctionation = self.__lexical__(punctuation, "pause_break")
-
-				if random.randrange(0, 3) == 0:
-					if 'pause_at' in _object:
-
-						pause_string = self.__lexical__(mid_fragments, "pause")
-
-						if _object['pause_at'] == 'before':
-							if random.randrange(0, 2) == 0:
-								_object['formatted'] = pause_string + pause_punctionation + " " + _object['formatted']
-							else:
-								_object['formatted'] = pause_string + " " + _object['formatted']
-
-						elif _object['pause_at'] == 'after':
-							if random.randrange(0, 2) == 0:
-								_object['formatted'] = _object['formatted'] + " " + pause_string + pause_punctionation
-							else:
-								_object['formatted'] = _object['formatted'] + " " + pause_string
-
-		if 'punctuate' in _object:
-			if _object['punctuate']:		
-				_object['formatted'] = _object['formatted'] + _object['punctuate']
-
-		return _object['formatted']
-
+		### check if object type is a dictonary (assumes it is a single entity)
+		if type(self._object) is dict:
+			### return formatted
+			return self.__construct__(self._object)
+		### iterate over list item; evaluate all items but assume it will receive strings or dict
+		elif type(self._object) is list:
+			### temporary list to hold formatted or strings
+			constructed = []
+			### iterate over encapsulated objects
+			for i in range(0, len(self._object)):
+				### confirm type of item
+				if type(self._object[i]) is dict:
+					### check if the dict provided is an optional item
+					if self.__optional__(self._object[i]):
+						### format string
+						constructed.append(self.__construct__(self._object[i]))
+				### assume other type supplied is a string
+				elif not type(self._object[i]) is None:
+					constructed.append(self._object[i])
+			### return joined string, seperated by whitespace
+			return " ".join(constructed)
+	### confirm if dict item is to be evaluated
 	def __optional__ (self, _object):
-		if 'optional' in _object:
-			if _object['optional']:
-				if random.randrange(0, 2) == 0:
-					return False
-
+		if _object['optional']:
+			### generate pseudo random number 
+			if random.randrange(0, self._random['optional']) == 0:
+				return False
+		### if no optional paramater supplied return True
 		return True
+	### convert dictionary to string 
+	def __construct__ (self, _object):
+		### return the substring from the supplied dict and key
+		_object['formatted'] = self.__lexical__(_object['key'], _object['value'])
+		### apply string formatting if the dict supplied isn't empty
+		if bool(_object['attr']):
+			### replace formatted string with the prettified variant
+			_object['formatted'] = String({'str':String(_object['formatted']).tag(),'attr':_object['attr']}).get()
+		### confirm if the substring is to be punctuated with a english pause
+		if _object['pause']:
+			### format substring before main text
+			pause_str = self.__lexical__({'t':["uh", "uhh", "um--ah", "err"]}, 't')
+			### constructs for sentence
+			if _object['pause'] == 'before':
+				### determine if the string should include intenation lines
+				if random.randrange(0,  self._random['punctuation']) == 0:
 
-	def __construct__ (self):
-		constructed = []
-		for i in range(0, len(self._object)):
+					punct_str = self.__lexical__({'t':["--", "..", "..."]}, 't')
+					### include intenation
+					_object['formatted'] = String().concat((pause_str + punct_str), _object['formatted'])
+				else:
+					_object['formatted'] = String().concat(pause_str, _object['formatted'])
+			### constructs after sentence
+			elif _object['pause'] == 'after':
+				### determine if the string should include intenation lines
+				if random.randrange(0, self._random['punctuation']) == 0:
+					punct_str = self.__lexical__({'t':["--", ",", "..", "..."]}, 't')
+					### include intenation
+					_object['formatted'] = String().concat(_object['formatted'], (pause_str + punct_str))
+				else:
+					_object['formatted'] = String().concat(_object['formatted'], pause_str)
+		### confirm if the substring should be punctuated at the end of the string
+		if _object['punctuate']:
+			### allow dictonaries to be converted to substrings using self.__lexical__
+			if type(_object['punctuate']) is dict:
+				_object['punctuate'] = self.__lexical__(_object['punctuate'], 't')
+			### allow lists to be converted to substrings using self.__lexical__
+			elif type(_object['punctuate']) is list:
+				_object['punctuate'] = self.__lexical__({'t': _object['punctuate']}, 't')
+			### return string with punctuation
+			return _object['formatted'] + _object['punctuate']
+		### return substring without formatting	
+		else:
+			return _object['formatted']
+	### retrieve string from substring list in dict with pseudo number generator from range of list length
+	def __lexical__ (self, key, value):
+		return key[value][random.randrange(len(key[value]))] 
+	### construct dict from LX.get method or dict to LX then calling .get
+	def __format__ (self, _object):
+		if isinstance(_object, LX):
+			return _object.get()
+		elif type(_object) is dict:
+			return LX(**_object).get()
+		elif type(_object) is list:
+			return LX(key = _object).get()
+		else:
+			return _object
+	### process the object supplied to the constructor
+	def __process__ (self, _object):
+		## if object is a list iterate over all elements and attempt to format
+		if type(_object) is list:
+			for i in range(0, len(_object)):
+				### replace instances with foramtted dict
+				_object[i] = self.__format__(_object[i])
+		else:
+			### replace instances with formatted dict
+			_object = self.__format__(_object)
+		### return formatted dict
+		return _object
+	### constructor
+	def __init__ (self, _object, _random = {'optional':2, 'punctuation': 2}):
+		self._object = self.__process__(_object)
+		self._random = _random
 
-			if type(self._object[i]) is dict:
-				if self.__optional__(self._object[i]):
-					constructed.append(self.__process__(self._object[i]))
-			elif type(self._object[i]) is str:
-				constructed.append(self._object[i])
-
-		return " ".join(constructed)
 
 
-	def __init__ (self, _object):
-		self._object = _object
+print "\n"
 
+### gemini partner creation string
+Lexicon([
+	LX(key = ["hi", "hello", "yo", "hey", "heyheyhey", "what up"], punctuate = ["!","."], optional = True),
+	["what's", "what is"],
+	"the",
+	["name", "title"],
+	"of the",
+	String({'str':"{{Gemini Partner}}",'attr':{'weight':'bold'}}).get(),
+	["we're", "you are", "we are", "you're"],
+	LX(key = ["creating", "setting up", "working on", "putting together", "registering"], punctuate = "?")
+]).pprint()
 
-
-
-print Lexicon([
-	(start_fragments, "greet", False, None, {}, Lexicon([(punctuation, "period_trailing_exclaim")]).get(), True),
-	(reference, "what", True, "after"), "the", 
-	(fragments, "reference_name_title"), "of the", 
-	String({'str':"{{Gemini Partner}}",'attr':{'weight':'bold'}}).get(), 
-	(fragments, "reference_name_inclusive_or"), 
-	(fragments, "action_working_creating", False, None, {}, "?", False) 
-]).get()
-
-print Lexicon([
+### gemini partner name missing string
+Lexicon([
+	LX(key = ["dude", "man", "hey"], punctuate = "!", optional = True),
 	"i",
-	(fragments, "reference_depend", True, "before"),
+	LX(key = ["need", "require"], pause = "before"),
 	"a",
-	(fragments, "reference_name_title"),
+	["name", "title"],
 	"to",
-	(fragments, "action_attempt_start"),
-	"the buid process.",
-	({'frustrated':["gah", "jeez", "bleh", "eesh"]}, "frustrated", False, None, {}, ".", True)
-]).get()
+	["begin", "start"],
+	"the build process."
+]).pprint()
+
+### gemini name entered string
+Lexicon([
+	LX(key = ["so"], punctuate = ["--", "..", ","], optional = True),
+	LX(key = ["your new partner"], punctuate = ",", optional = True),
+	"it's",
+	["called", "named"],
+	"thewhoot.",
+	LX(key = ["got it", "gotcha", "no problem", "cool", "neat", "nice", "uh-huh"], punctuate = ".")
+
+]).pprint()
 
 
-#key = {}, value = "test", pause = False, pause_at = None, attr = {}, punctuate = None, optional = False
+print "\n"
 
-#print Lexicon(["please", (fragments, "action_save", False, None, {}, ".", False), ()]).get()
+### gemini save path
+Lexicon([
+	LX(key = ["so", "alright"], pause = 'after', punctuate = ",", optional = True),
+	"i'm going to",
+	["attempt", "try"],
+	"to",
+	["save", "store", "commit", "stash", "place"],
+	["files", "code", "stuff"],
+	"in this",
+	LX(key = ["folder", "directory"], punctuate = "."),
+	"is that",
+	LX(key = ["alright", "ok", "fine", "cool"], punctuate = "?")
+]).pprint()
 
-#print (fragments, "action_save", False, None, {}, False)
+### gemini save not allowed
+Lexicon([
+	LX(key = ["oops", "sorry", "alright"], pause = "after", punctuate = ["!", "...", "."], optional = True),
+	LX(key = ["ok", "fine"], optional = True),
+	["where's the", "what's the"],
+	["new", "correct", "adjusted", "right"],
+	LX(key = ["path", "directory"], punctuate = "?")
 
+]).pprint()
+
+### gemini save missing
+Lexicon([
+	"i",
+	LX(key = ["can't"], pause = "before"),
+	["store", "save"],
+	["files", "code", "stuff"],
+	"in",
+	["an empty", "a blank", "a missing"],
+	LX(key = ["directory"], punctuate = ["!", ".", "..."])
+]).pprint()
+
+### gemini save is ok
+Lexicon([
+	LX(key = ["alright", "cool"], punctuate = ".", optional = True),
+	["check", "visit", "open"],
+	"that",
+	["folder", "directory"],
+	"at the end.",
+	"that's where i'll",
+	["save", "store", "publish"],
+	"everything."
+]).pprint()	
+
+
+print "\n"
+
+### gemini partner website
+Lexicon([
+	LX(key = ["ok", "cool", "alright"], punctuate = ".", optional = True),
+	"what's the URL for",
+	"thewhoot?"
+]).pprint()
+
+### gemini partner website missing
+Lexicon([
+	LX(key = ["hmm"], punctuate = "..", optional = True),
+	LX(key = ["well"], optional = True),
+	LX(key = ["i"], pause = "after", optional = True), 
+	"i can't",
+	["function", "operate", "work"],
+	"without a",
+	LX(key = ["website", "webpage"], punctuate = "."),
+	LX(key = ["ah well", "too bad"], punctuate = ".", optional = True)
+]).pprint()
+
+### gemini website open
+Lexicon([
+	LX(key = ["ok", "alright"], punctuate = ",", optional = True),
+	"i'm going to",
+	["attempt", "try"],
+	"to",
+	["reach", "open", "connect to", "access"],
+	"that",
+	["website", "webpage"],
+	"for you."
+]).pprint()
+
+
+print "\n"
+
+### css selector
+Lexicon([
+	LX(key = ["so", "right", "alright"], punctuate = [",", ".", "--"], optional = True),
+	["what's", "what is"],
+	"the CSS selector for the parent container on this",
+	LX(key = ["webpage", "website"], punctuate = "?")
+]).pprint()
+
+### no selector supplied
+Lexicon([
+	LX(key = ["gah", "c'mon", "dude", "man"], punctuate = [".", "!"], optional = True),
+	"i can't",
+	["locate", "find", "fetch", "target", "select"],
+	["blank", "missing", "undefined"],
+	"HTML",
+	LX(key = ["nodes", "elements"], punctuate = ["!", "."]),
+	LX(key = ["sorry"], punctuate = [".", "..."], optional = True)
+
+]).pprint()
+
+### checking
+Lexicon([
+	LX(key = ["ok", "alrig"])
+]).pprint()
+
+print "\n"
+
+#key = {}, value = 't', pause = False, pause_at = None, attr = {}, punctuate = "??", optional = False
 
