@@ -25,65 +25,6 @@ import os
 import re
 
 
-### grammar full
-dee_complete = {
-	'act_attempt': ["here i go", "processing now", "running that command now", "computing", "searching", "let's see if that computes", "let's see if it works", "bzz--comp-uti-ng", "fingers crossed! oh. i don't have fingers", "triangulating", "scanning"],
-	'attempt': ["trying that", "let's try that", "giving it a shot", "here i go", "lemme try that", "gotcha--here i go", "got it--trying now", "computing that", "i'm analysing that right now", "let's see if it computes", "triangulating", "bzz--comput--ing--bzz", "let's see what i can do", "alright. i'll try that", "you got it. trying now", "yup. trying now"],
-	'celebrate_combined': ["good job", "go us", "nice work", "too easy", "fantastic", "brilliant", "that's just perfect", "not surprised though", "nice", "pretty sweet if you ask me", "celebration-response-initiated"],
-	'check': ["is that alright?", "is it ok if i do that?", "would you mind if i did that?", "is that ok?", "you don't mind if i do that, right?", "i'm fine to do that --right?", "can you let me know if that's ok?", "that's cool with you, right?", "it's ok for me to do that, right?", "should i do that?", "should i continue with this?", "you'll allow me to do that, right?", "should i proceed?"],
-	'connect_success': ["connected", "all patched in", "i was able to connect", "connection established", "yep. me and that website are friends now", "i guess that website was a real url after all", "got-cha. connection established", "all connected. ready", "ready and waiting"],
-	'error': ["woah! that wasn't supposed to happen", "there's a problem here", "uh oh", "oops", "uh-oh. problem", "err-rorr-bzz", "there's a problem with that command", "i couldn't process that properly", "unexpected result encountered", "what happened is not was supposed to happen", "pretty sure there's a problem here", "problem", "hmm. we have a problem", "not sure what happened. there's an error though"],
-	'found_success': ["gotcha", "bam. found it", "right there", "grabbed it", "found what you were after", "nailed it", "no problem. found it", "aced it", "found it", "gotcha", "bam--found it", "yewww. got it", "i found it", "looks like it's there", "right where it was supposed to be", "too easy. got it", "stay easy", "right there --gotcha", "man, easy. found it", "i'm so good", "no problem; here it is"],
-	'found_failure': ["must've missed it", "can't see it", "can't find that", "wasn't able to find it", "checked. can't find it", "am unable to find it", "can't find it", "guess my scanners aren't working"],
-	'frustrated': ["gah", "ugh--really", "uhh--what", "mhmmm", "c'mon", "ugh--cmon", "for-real", "really", "dude. really", "ughh--no-way"],
-	'pause': ["uh", "err", "--uhh--", "--err--"],
-	'proceed': ["got it", "you got it", "understood", "i understand", "makes sense here", "command understood", "as you wish", "no problem", "right", "sure thing", "sure", "ok", "alright", "okokok", "gotcha"],
-	'proceed_end': ["gotcha", "got it", "no problem", "neat", "i like the sound of it", "ok", "sure thing"],
-	'puzzled': ["eh", "uh-what", "hey--wait--what", "um. huh", "huh", "wait, what", "that's--umm. huh", "ummmm", "ahhhh--umm", "umm--ahh"],
-	'start': ["ready", "i'm ready", "ready if you are", "let's do it", "let's go", "gogogo", "coolio. i'm ready", "you cool? alright let's go", "let's rock", "aiight fam. you ready", "i am ready", "all--systems--online", "powering up to maximum", "ok. focus", "scanning. complete"],
-	'request': ["would you please", "please", "can you please", "could you", "would you", "you need to", "you gotta", "can you", "would you kindly"]
-}
-### grammar partial
-dee_fragment = {
-	'act_perform': ["would you", "do you", "would you like"],
-	'act_start': ["start", "begin","launch"],
-	'act_storage': ["store", "save", "stash", "commit", "place"],
-	'act_try': ["try", "attempt"],
-	'act_want': ["want to", "would like to", "hope to"],
-	'name_files': ["files", "stuff", "code"],
-	'name_html': ["element", "HTML", "HTML element", "HTML node", "DOM node"], 
-	'name_logic': ["method", "action", "logic"],
-	'name_storage': ["directory", "folder"],
-	'name_search': ["look for", "search for", "locate"],
-	'name_website': ["website", "url", "webpage", "site"],
-	'self_attempt': ["should i", "can i"],
-	'self_attempt_unable': ["can't", "cannot"],
-	'self_attempt_difference': ["a different", "another"],
-	'self_assign': ["it's", "it is"],
-	'self_website_open': ["open", "connect to", "reach", "fetch", "open up", "launch"],
-	'self_i': ["so, i", "i", "so--i"],
-	'self_im': ["so, i'm", "i'm", "i'm"],
-	'self_find': ["find", "locate", "get", "fetch", "grab"],
-	'self_might': ["might", "should", "could"],
-	'self_pause': ["so","ok","hmm","right","alright"],
-	'self_problem': ["issue", "problem"],
-	'self_reference_title': ["called", "named"],
-	'self_reference_you': ["you", "y'all"],
-	'self_reference_you_want': ["you want", "y'all want", "you would like", "you wish"],
-	'self_reference_you_self_end': ["on your own", "by yourself", "without me", "independently"],
-	'self_require': ["need", "require", "--need--", "--require--"],
-	'self_retry': ["try again", "do it again", "try it again please", "please try that again", "give it another try"],
-	'self_what': ["what is", "what's", "so--what's", "uh--what's", "what is"]
-}
-### grammar punctuation
-dee_punct = {
-	'self_end': ["!","."],
-	'self_end_all': ["?", "!", "."],
-	'self_trailing': [".", "..", "..."]
-}
-
- 
-
 def str_random (str__object, key):
 	return str__object[key][random.randrange(len(str__object[key]))]
 
@@ -182,6 +123,169 @@ class String:
 		### {'str':'{{str}}', 'attr':{'color':'red'}}
 	def __init__ (self, _object = {}):
 		self._object = _object
+
+### short lexical class
+class LX:
+	### return formatted self object
+	def get (self, rtype = '__dict__'):
+		return getattr(self, rtype)
+	### return self as dictonary (to be integrated with class Lexicon)
+	def __dict__ (self):
+		return {'key':self.key, 'value':self.value, 'pause':self.pause,	'attr':self.attr, 'punctuate':self.punctuate, 'optional':self.optional}
+	### format the provided object to the Lexicon readible format
+	def __formatkey__ (self, _object):
+		if type(_object) is dict:
+			return _object
+		elif type(_object) is list:
+			### iterate over supplied list
+			for i in range(0, len(_object)):
+				### if instance is a Lexicon class get Lexicon data
+				if isinstance(_object[i], Lexicon):
+					_object[i] = _object[i].get()
+			return {'t':_object}
+		elif isinstance(_object, Lexicon):
+			return {'t':[_object.get()]}
+	def __formatrandom__ (self, _object):
+		if type(_object) is dict:
+			if not 'optional' in _object:
+				_object['optional'] = 2
+			if not 'punctuate' in _object:
+				_object['punctuate'] = 2
+		return _object
+	### constructor
+	def __init__ (self, **kwargs):
+		self.key = self.__formatkey__(kwargs.pop('key', {'t':["test"]}))
+		self.value = kwargs.pop('value', 't')
+		self.pause = kwargs.pop('pause', None)
+		self.attr = kwargs.pop('attr', {})
+		self.punctuate = kwargs.pop('punctuate', None)
+		self.optional = kwargs.pop('optional', False)
+
+### produces concatenated string with random partial strings
+class Lexicon:
+	def pprint (self):
+		get_str = self.get()
+		### confirm if not empty returned string
+		if not bool(re.search("^$", get_str)):
+			### print returned string
+			print get_str
+	### return completely formatted string
+	def get (self):
+		### call packaging method to return string
+		return self.__package__()
+	### convert list of dict or single dict to string response
+	def __package__ (self):
+		### check if object type is a dictonary (assumes it is a single entity)
+		if type(self._object) is dict:
+			### return formatted
+			return self.__construct__(self._object)
+		### iterate over list item; evaluate all items but assume it will receive strings or dict
+		elif type(self._object) is list:
+			### temporary list to hold formatted or strings
+			constructed = []
+			### iterate over encapsulated objects
+			for i in range(0, len(self._object)):
+				### confirm type of item
+				if type(self._object[i]) is dict:
+					### check if the dict provided is an optional item
+					if not self.__optional__(self._object[i]):
+						### format string
+						constructed.append(self.__construct__(self._object[i]))
+				### assume other type supplied is a string
+				elif not type(self._object[i]) is None:
+					constructed.append(self._object[i])
+			### return joined string, seperated by whitespace
+			return " ".join(constructed)
+	### confirm if dict item is to be evaluated
+	def __optional__ (self, _object):
+		if bool(_object['optional']) and type(_object['optional']) is int:
+			_randvalue = random.randrange(0, _object['optional'])
+			if _randvalue == 0:
+				return True
+			else:
+				return False
+		else:
+			return False
+	### convert dictionary to string 
+	def __construct__ (self, _object):
+		### retrieve unformatted string
+		_object['original'] = self.__lexical__(_object['key'], _object['value'])
+		### assign new string to dict item for formatting
+		_object['formatted'] = _object['original']
+		### return the substring from the supplied dict and key
+		### apply string formatting if the dict supplied isn't empty
+		if bool(_object['attr']):
+			### replace formatted string with the prettified variant
+			_object['formatted'] = String({'str':String(_object['formatted']).tag(),'attr':_object['attr']}).get()
+		### confirm if the substring is to be punctuated with a english pause
+		if _object['pause']:
+			### format substring before main text
+			pause_str = self.__lexical__({'t':["uh", "uhh", "um--ah", "err"]}, 't')
+			### constructs for sentence
+			if _object['pause'] == 'before':
+				### determine if the string should include intenation lines
+				if random.randrange(0, 3) == 0:
+					punct_str = self.__lexical__({'t':["--", "..", "..."]}, 't')
+					### include intenation
+					_object['formatted'] = String().concat((pause_str + punct_str), _object['formatted'])
+				else:
+					_object['formatted'] = String().concat(pause_str, _object['formatted'])
+			### constructs after sentence
+			elif _object['pause'] == 'after':
+				### determine if the string should include intenation lines
+				if random.randrange(0, 3) == 0:
+					punct_str = self.__lexical__({'t':["--", ",", "..", "..."]}, 't')
+					### include intenation
+					_object['formatted'] = String().concat(_object['formatted'], (pause_str + punct_str))
+				else:
+					_object['formatted'] = String().concat(_object['formatted'], pause_str)
+
+		if len(_object['original']) == 0:
+			_object['formatted'] = "".join(_object['formatted'].split())
+
+		### confirm if the substring should be punctuated at the end of the string
+		if _object['punctuate']:
+			### allow dictonaries to be converted to substrings using self.__lexical__
+			if type(_object['punctuate']) is dict:
+				_object['punctuate'] = self.__lexical__(_object['punctuate'], 't')
+			### allow lists to be converted to substrings using self.__lexical__
+			elif type(_object['punctuate']) is list:
+				_object['punctuate'] = self.__lexical__({'t': _object['punctuate']}, 't')
+			### return string with punctuation
+			return _object['formatted'] + _object['punctuate']
+		### return substring without formatting	
+		else:
+			return _object['formatted']
+	### retrieve string from substring list in dict with pseudo number generator from range of list length
+	def __lexical__ (self, key, value):
+		return key[value][random.randrange(len(key[value]))] 
+	### construct dict from LX.get method or dict to LX then calling .get
+	def __format__ (self, _object):
+		if isinstance(_object, LX):
+			return _object.get()
+		elif isinstance(_object, Lexicon):
+			return _object.get()
+		elif type(_object) is dict:
+			return LX(**_object).get()
+		elif type(_object) is list:
+			return LX(key = _object).get()
+		else:
+			return _object
+	### process the object supplied to the constructor
+	def __process__ (self, _object):
+		## if object is a list iterate over all elements and attempt to format
+		if type(_object) is list:
+			for i in range(0, len(_object)):
+				### replace instances with foramtted dict
+				_object[i] = self.__format__(_object[i])
+		else:
+			### replace instances with formatted dict
+			_object = self.__format__(_object)
+		### return formatted dict
+		return _object
+	### constructor
+	def __init__ (self, _object):
+		self._object = self.__process__(_object)
 
 
 ### creates a responder class used to prompt people contextually
@@ -783,27 +887,246 @@ class Partner:
 
 	### request the name of the partner page
 	def __name__ (self):
-
-		#self.__dee__()
-
-		#self.__grammar__([{'key':dee_complete,'value':'start'}, {'key':dee_punct,'value':'self_end'}])
-
-
 		### print request to user
-		self.__dee__(String().concat(str_random(dee_complete, "start") + str_random(dee_punct, "self_end"), 
-			str_random(dee_fragment, "self_what"), "the name of the", String({'str':"{{Gemini Partner}}",'attr':{'weight':'bold'}}).get(), "we're setting up?"))
+
+		### greeting
+		self.__dee__(
+			Lexicon([
+				### subject
+				LX(key = [
+					Lexicon([
+						LX(key = [
+							Lexicon([
+								LX(key = [
+									Lexicon([
+										LX(key = ["hey", "hayy", "hello"]),
+										LX(key = ["y'all", "there"], optional = 4)
+									])
+
+								], punctuate = ".")	
+							]),
+
+							Lexicon([
+								LX(key = [
+									Lexicon([
+										LX(key = ["what-up"]),
+										LX(key = [getpass.getuser()])
+									])
+								], punctuate = "."),
+
+								LX(key = [
+									Lexicon([
+										LX(key = [
+											Lexicon([
+												LX(key = ["how are you"]),
+												LX(key = ["going", "feeling"], punctuate = "?"),
+												LX(key = [
+													Lexicon([
+														LX(key = ["i'm feeling"]),
+														LX(key = ["good", "not bad", "pretty good", "fine", "alright"], punctuate = ".")
+													])
+												])
+											])
+										], optional = 5)
+									])
+								])
+							])
+						])
+					]),
+
+					Lexicon([
+						LX(key = ["i'm"]),
+						LX(key = ["operational", "alive", "all-systems-go", "ready"], punctuate = ["!", "."]),
+						LX(key = ["yeww", "wicked", "neat"], punctuate = ["!", "."])
+					])
+					
+				], optional = 4)
+			])
+		)
+		### prompt name
+		self.__dee__(
+
+			Lexicon([
+				### tplvl
+				LX(key = [
+					Lexicon([
+						LX(key = ["firstly"], punctuate = ",")
+					]),
+					
+					Lexicon([
+						LX(key = ["first step"], punctuate = ";")
+					]),
+
+					Lexicon([
+						LX(key = ["step"]),
+						LX(key = [
+							Lexicon([
+								LX(key = ["one"], punctuate = ";")
+							]),
+							Lexicon([
+								LX(key = ["uhh"], punctuate = ",", optional = 3),
+								LX(key = ["uno"], punctuate = ","),
+								LX(key = [
+									Lexicon([
+										LX(key = ["i"]),
+										LX(key = ["guess", "think"]),
+										LX(key = ["that's"]),
+										LX(key = ["right", "correct"], punctuate = "?"),
+										LX(key = ["anyway"], punctuate = ",")
+									])
+								], optional = 7)
+								
+							])
+						])
+					])
+				], optional = 6),
+				### tplvl
+				LX(key = [
+					Lexicon([
+						LX(key = ["what's", "what is"]),
+						LX(key = ["the"]),
+						LX(key = ["name", "title"]),
+						LX(key = ["of the"]),
+						LX(key = ["new"], optional = 3)
+					])
+				]),
+				### tplvl
+				LX(key = ["Gemini Partner"], attr = {'weight':'bold'}),
+				LX(key = [
+					Lexicon([
+						LX(key = ["we're"]),
+						LX(key = ["setting up", "creating", "building", "making"])
+					])
+				], punctuate = "?")
+			])
+
+		)
 
 		### request user to supply the name of the partner
 		### fetch data through the generic response handler
 		if self.__attr__("Gemini partners name", "Partners name", "name"):
 			### print the formulated partner
-			self.__dee__(String().concat(str_random(dee_fragment, "self_assign"), "called", String({'str':String(self.name).tag(),'attr':{'color':'darkcyan','weight':'bold'}}).get() + ".", (str_random(dee_complete, "proceed_end") + str_random(dee_punct, "self_end"))))
+			### gemini partner name missing string
+			self.__dee__(
+				### name acceptance
+				Lexicon([
+					### subject
+					LX(key = [
+						### constructor
+						Lexicon([
+							LX(key = ["you're"]),
+							LX(key = ["building", "creating", "setting up", "developing"]),
+							LX(key = [self.name], attr = {'weight':'bold'})
+						]),
+						### constructor
+						Lexicon([
+							LX(key = ["the partner is"]),
+							LX(key = ["going to be"], optional = 4),
+							LX(key = ["titled", "named", "called"]),
+							LX(key = [self.name], attr = {'weight':'bold'})
+						]),
+						### constructor
+						Lexicon([
+							LX(key = ["you're"]),
+							LX(key = ["initializing", "starting"]),
+							LX(key = [self.name], attr = {'weight':'bold'})
+						])
+					], punctuate = "."),
+					### predicate
+					LX(key = [
+						### constructor
+						Lexicon([
+							LX(key = ["strange", "interesting", "odd", "cool", "neat"]),
+							LX(key = ["name"])
+						]),
+						### constructor
+						Lexicon([
+							LX(key = ["i"]),
+							LX(key = ["like it", "approve"])
+						]),
+						### constructor
+						Lexicon([
+							LX(key = ["gotcha", "got it", "you got it", "ok", "no problem"])
+						])
+					], punctuate = ".", optional = 4)
+				])
+			)
+
 			return True
 		else:
 			### print the issue to the user	
-			self.__dee__(String().concat(str_random(dee_fragment, "self_i"), str_random(dee_fragment, "self_require"), "a name to", str_random(dee_fragment, "act_start"), ("the process" + str_random(dee_punct, "self_end"))))
+			self.__dee__(
+				Lexicon([
+
+					LX(key = [
+
+						Lexicon([
+
+							LX(key = ["so"], punctuate = ",", optional = 10),
+
+							LX(key = [
+								Lexicon([
+									LX(key = ["it"]),
+									LX(key = ["seems that", "appears that", "looks like"]),
+									LX(key = ["you"])
+								]),
+								Lexicon([
+									LX(key = ["you"])
+								])
+							]),
+
+							LX(key = ["didn't"], attr = {'weight':'bold'}),
+							LX(key = ["type", "enter", "write", "input"]),
+							
+							LX(key = ["a name for the"]),
+							LX(key = ["Gemini Partner"], attr = {'weight':'bold'})
+						])
+
+					], punctuate = ".")
+
+				])
+
+			)
+			### notify reattempt
+			self.__dee__(
+
+				Lexicon([
+
+					LX(key = [
+						Lexicon([
+							LX(key = ["i use that name to"]),
+							LX(key = [
+								Lexicon([
+									LX(key = ["process", "format"]),
+									LX(key = ["my output"])
+								])
+							], punctuate = ".")
+						])
+					]),
+
+					LX(key = [
+						Lexicon([
+							LX(key = ["so"], punctuate = ",", optional = 3),
+							LX(key = ["that means you"]),
+							LX(key = ["need to", "have to"]),
+							LX(key = ["restart", "re-run"]),
+							LX(key = ["my program file", "the program", "the script"], punctuate = "."),
+							LX(key = ["sorry"], punctuate = [".", "..."], optional = 4)
+						]),
+						Lexicon([
+							LX(key = ["because of that"], punctuate = ","),
+							LX(key = ["can you please", "could you please"]),
+							LX(key = ["restart", "re-run"]),
+							LX(key = ["my program file", "the program", "the script"], punctuate = "?")
+						])
+					])
+
+				])
+
+			)
+			
 			### notify the user that they should reattemp the process
-			self.__dee__(String().concat(str_random(dee_fragment, "self_retry"), "but include a name this time" + str_random(dee_punct, "self_end")))
+			
 			return False
 
 
@@ -888,20 +1211,23 @@ class Partner:
 	def __sys__ (self, message = "", attr = {}, printt = True):
 		return self.__rop__(self.system.response(message, attr), printt)
 	### print message as "dee"
-	def __dee__ (self, message = "", attr = {}, printt = True):
-		return self.__rop__(self.deee.response(message, attr), printt)
+	def __dee__ (self, message, attr = {}, printt = True):
+		if isinstance(message, Lexicon):
+			message = message.get()
+		if not bool(re.search("^$", message)):
+			return self.__rop__(self.deee.response(message, attr), printt)
 	### primary function handler for class
 	def __main__ (self):
-		self.__name__()
-		self.__dirs__()
-		self.__page__()
-		self.__browser__()
-		self.__fetch__()
-		self.__css__()
-		self.__node__()
-		self.__display__()
-		self.__edit__()
-		self.__handlebars__()
+		if self.__name__():
+			if self.__dirs__():
+				if self.__page__():
+					if self.__browser__():
+						if self.__fetch__():
+							if self.__css__():
+								if self.__node__():
+									if self.__display__():
+										if self.__edit__():
+											self.__handlebars__()
 	### return self _object
 	def __self__ (self):
 		return self

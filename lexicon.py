@@ -126,14 +126,29 @@ class LX:
 	### return self as dictonary (to be integrated with class Lexicon)
 	def __dict__ (self):
 		return {'key':self.key, 'value':self.value, 'pause':self.pause,	'attr':self.attr, 'punctuate':self.punctuate, 'optional':self.optional}
-	def __format__ (self, _object):
+	### format the provided object to the Lexicon readible format
+	def __formatkey__ (self, _object):
 		if type(_object) is dict:
 			return _object
 		elif type(_object) is list:
+			### iterate over supplied list
+			for i in range(0, len(_object)):
+				### if instance is a Lexicon class get Lexicon data
+				if isinstance(_object[i], Lexicon):
+					_object[i] = _object[i].get()
 			return {'t':_object}
+		elif isinstance(_object, Lexicon):
+			return {'t':[_object.get()]}
+	def __formatrandom__ (self, _object):
+		if type(_object) is dict:
+			if not 'optional' in _object:
+				_object['optional'] = 2
+			if not 'punctuate' in _object:
+				_object['punctuate'] = 2
+		return _object
 	### constructor
 	def __init__ (self, **kwargs):
-		self.key = self.__format__(kwargs.pop('key', {'t':["test"]}))
+		self.key = self.__formatkey__(kwargs.pop('key', {'t':["test"]}))
 		self.value = kwargs.pop('value', 't')
 		self.pause = kwargs.pop('pause', None)
 		self.attr = kwargs.pop('attr', {})
@@ -167,7 +182,7 @@ class Lexicon:
 				### confirm type of item
 				if type(self._object[i]) is dict:
 					### check if the dict provided is an optional item
-					if self.__optional__(self._object[i]):
+					if not self.__optional__(self._object[i]):
 						### format string
 						constructed.append(self.__construct__(self._object[i]))
 				### assume other type supplied is a string
@@ -177,16 +192,20 @@ class Lexicon:
 			return " ".join(constructed)
 	### confirm if dict item is to be evaluated
 	def __optional__ (self, _object):
-		if _object['optional']:
-			### generate pseudo random number 
-			if random.randrange(0, self._random['optional']) == 0:
+		if bool(_object['optional']) and type(_object['optional']) is int:
+			if random.randrange(0, _object['optional']) == 0:
+				return True
+			else:
 				return False
-		### if no optional paramater supplied return True
-		return True
+		else:
+			return False
 	### convert dictionary to string 
 	def __construct__ (self, _object):
+		### retrieve unformatted string
+		_object['original'] = self.__lexical__(_object['key'], _object['value'])
+		### assign new string to dict item for formatting
+		_object['formatted'] = _object['original']
 		### return the substring from the supplied dict and key
-		_object['formatted'] = self.__lexical__(_object['key'], _object['value'])
 		### apply string formatting if the dict supplied isn't empty
 		if bool(_object['attr']):
 			### replace formatted string with the prettified variant
@@ -198,8 +217,7 @@ class Lexicon:
 			### constructs for sentence
 			if _object['pause'] == 'before':
 				### determine if the string should include intenation lines
-				if random.randrange(0,  self._random['punctuation']) == 0:
-
+				if random.randrange(0, 3) == 0:
 					punct_str = self.__lexical__({'t':["--", "..", "..."]}, 't')
 					### include intenation
 					_object['formatted'] = String().concat((pause_str + punct_str), _object['formatted'])
@@ -208,12 +226,16 @@ class Lexicon:
 			### constructs after sentence
 			elif _object['pause'] == 'after':
 				### determine if the string should include intenation lines
-				if random.randrange(0, self._random['punctuation']) == 0:
+				if random.randrange(0, 3) == 0:
 					punct_str = self.__lexical__({'t':["--", ",", "..", "..."]}, 't')
 					### include intenation
 					_object['formatted'] = String().concat(_object['formatted'], (pause_str + punct_str))
 				else:
 					_object['formatted'] = String().concat(_object['formatted'], pause_str)
+
+		if len(_object['original']) == 0:
+			_object['formatted'] = "".join(_object['formatted'].split())
+
 		### confirm if the substring should be punctuated at the end of the string
 		if _object['punctuate']:
 			### allow dictonaries to be converted to substrings using self.__lexical__
@@ -234,6 +256,8 @@ class Lexicon:
 	def __format__ (self, _object):
 		if isinstance(_object, LX):
 			return _object.get()
+		elif isinstance(_object, Lexicon):
+			return _object.get()
 		elif type(_object) is dict:
 			return LX(**_object).get()
 		elif type(_object) is list:
@@ -253,162 +277,51 @@ class Lexicon:
 		### return formatted dict
 		return _object
 	### constructor
-	def __init__ (self, _object, _random = {'optional':2, 'punctuation': 2}):
+	def __init__ (self, _object):
 		self._object = self.__process__(_object)
-		self._random = _random
 
 
 
-print "\n"
-
-### gemini partner creation string
 Lexicon([
-	LX(key = ["hi", "hello", "yo", "hey", "heyheyhey", "what up"], punctuate = ["!","."], optional = True),
-	["what's", "what is"],
-	"the",
-	["name", "title"],
-	"of the",
-	String({'str':"{{Gemini Partner}}",'attr':{'weight':'bold'}}).get(),
-	["we're", "you are", "we are", "you're"],
-	LX(key = ["creating", "setting up", "working on", "putting together", "registering"], punctuate = "?")
+	LX(key = [
+		Lexicon([
+			LX(key = ["you're"]),
+			LX(key = ["calling", "naming"]),
+			LX(key = ["it"]),
+			LX(key = ["thewhoot"], attr = {'weight':'bold'})
+		]),
+
+		Lexicon([
+			LX(key = ["it's"]),
+			LX(key = ["going to be"], optional = 4),
+			LX(key = ["titled", "named", "called"]),
+			LX(key = ["thewhoot"], attr = {'weight':'bold'})
+		]),
+
+		Lexicon([
+			LX(key = ["you've"]),
+			LX(key = ["chosen", "selected"]),
+			LX(key = ["thewhoot"], attr = {'weight':'bold'}),
+			LX(key = ["as it's"]),
+			LX(key = ["name", "title"])
+		])
+	], punctuate = "."),
+
+	LX(key = [
+		Lexicon([
+			LX(key = ["strange", "interesting", "odd", "cool", "neat"]),
+			LX(key = ["name"])
+		]),
+
+		Lexicon([
+			LX(key = ["i"]),
+			LX(key = ["like it", "approve"])
+		]),
+
+		Lexicon([
+			LX(key = ["gotcha", "got it", "you got it", "ok", "no problem"])
+		])
+	], punctuate = ".")
 ]).pprint()
 
-### gemini partner name missing string
-Lexicon([
-	LX(key = ["dude", "man", "hey"], punctuate = "!", optional = True),
-	"i",
-	LX(key = ["need", "require"], pause = "before"),
-	"a",
-	["name", "title"],
-	"to",
-	["begin", "start"],
-	"the build process."
-]).pprint()
-
-### gemini name entered string
-Lexicon([
-	LX(key = ["so"], punctuate = ["--", "..", ","], optional = True),
-	LX(key = ["your new partner"], punctuate = ",", optional = True),
-	"it's",
-	["called", "named"],
-	"thewhoot.",
-	LX(key = ["got it", "gotcha", "no problem", "cool", "neat", "nice", "uh-huh"], punctuate = ".")
-
-]).pprint()
-
-
-print "\n"
-
-### gemini save path
-Lexicon([
-	LX(key = ["so", "alright"], pause = 'after', punctuate = ",", optional = True),
-	"i'm going to",
-	["attempt", "try"],
-	"to",
-	["save", "store", "commit", "stash", "place"],
-	["files", "code", "stuff"],
-	"in this",
-	LX(key = ["folder", "directory"], punctuate = "."),
-	"is that",
-	LX(key = ["alright", "ok", "fine", "cool"], punctuate = "?")
-]).pprint()
-
-### gemini save not allowed
-Lexicon([
-	LX(key = ["oops", "sorry", "alright"], pause = "after", punctuate = ["!", "...", "."], optional = True),
-	LX(key = ["ok", "fine"], optional = True),
-	["where's the", "what's the"],
-	["new", "correct", "adjusted", "right"],
-	LX(key = ["path", "directory"], punctuate = "?")
-
-]).pprint()
-
-### gemini save missing
-Lexicon([
-	"i",
-	LX(key = ["can't"], pause = "before"),
-	["store", "save"],
-	["files", "code", "stuff"],
-	"in",
-	["an empty", "a blank", "a missing"],
-	LX(key = ["directory"], punctuate = ["!", ".", "..."])
-]).pprint()
-
-### gemini save is ok
-Lexicon([
-	LX(key = ["alright", "cool"], punctuate = ".", optional = True),
-	["check", "visit", "open"],
-	"that",
-	["folder", "directory"],
-	"at the end.",
-	"that's where i'll",
-	["save", "store", "publish"],
-	"everything."
-]).pprint()	
-
-
-print "\n"
-
-### gemini partner website
-Lexicon([
-	LX(key = ["ok", "cool", "alright"], punctuate = ".", optional = True),
-	"what's the URL for",
-	"thewhoot?"
-]).pprint()
-
-### gemini partner website missing
-Lexicon([
-	LX(key = ["hmm"], punctuate = "..", optional = True),
-	LX(key = ["well"], optional = True),
-	LX(key = ["i"], pause = "after", optional = True), 
-	"i can't",
-	["function", "operate", "work"],
-	"without a",
-	LX(key = ["website", "webpage"], punctuate = "."),
-	LX(key = ["ah well", "too bad"], punctuate = ".", optional = True)
-]).pprint()
-
-### gemini website open
-Lexicon([
-	LX(key = ["ok", "alright"], punctuate = ",", optional = True),
-	"i'm going to",
-	["attempt", "try"],
-	"to",
-	["reach", "open", "connect to", "access"],
-	"that",
-	["website", "webpage"],
-	"for you."
-]).pprint()
-
-
-print "\n"
-
-### css selector
-Lexicon([
-	LX(key = ["so", "right", "alright"], punctuate = [",", ".", "--"], optional = True),
-	["what's", "what is"],
-	"the CSS selector for the parent container on this",
-	LX(key = ["webpage", "website"], punctuate = "?")
-]).pprint()
-
-### no selector supplied
-Lexicon([
-	LX(key = ["gah", "c'mon", "dude", "man"], punctuate = [".", "!"], optional = True),
-	"i can't",
-	["locate", "find", "fetch", "target", "select"],
-	["blank", "missing", "undefined"],
-	"HTML",
-	LX(key = ["nodes", "elements"], punctuate = ["!", "."]),
-	LX(key = ["sorry"], punctuate = [".", "..."], optional = True)
-
-]).pprint()
-
-### checking
-Lexicon([
-	LX(key = ["ok", "alrig"])
-]).pprint()
-
-print "\n"
-
-#key = {}, value = 't', pause = False, pause_at = None, attr = {}, punctuate = "??", optional = False
 
