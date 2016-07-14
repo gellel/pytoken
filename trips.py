@@ -857,106 +857,272 @@ class Partner:
 		### edited file path (contains string colour)
 		path_string = String({'str':String(str(self.dirs) + "/").tag(),'attr':{'weight':'bold'}}).get() + String({'str':String(str(self.name)).tag(), 'attr':{'color':'darkcyan','weight':'bold'}}).get()
 		### request user to confirm whether the program can save the created files in the directory the script is being run from
-		self.__dee__(String().concat(str_random(dee_fragment, "self_i"), "will", 
-			str_random(dee_fragment, "act_try"), "to", str_random(dee_fragment, "act_storage"), 
-			str_random(dee_fragment, "name_files"), "here:", path_string))
+		self.__dee__(
+			Lexicon([
+				LX(key = [
+					Lexicon([
+						LX(key = ["ok"], punctuate = ".", optional = 3),
+						LX(key = [
+							Lexicon([
+								LX(key = ["next", "next steps"])
+							]),
+							Lexicon([
+								LX(key = ["so"], punctuate = ",", optional = 5),
+								LX(key = ["moving on"])
+							])
+						], punctuate = ".")
+					])
+				], optional = 4),
 
-		self.__dee__(String().concat(str_random(dee_complete, "check"), "if not", 
-			str_random(dee_complete, "request"), "tell me and i'll move it somewhere else."))
-
+				LX(key = [
+					Lexicon([
+						LX(key = ["i'm going to", "i'm gonna"]),
+						LX(key = ["create", "make", "build"]),
+						LX(key = ["some files", "a couple of files"]),
+						LX(key = ["for you and"]),
+						LX(key = ["save them", "store them"]),
+						LX(key = ["here", "in this directory", "in this folder", "in this location"], punctuate = ":")
+					])
+				])
+			])
+		)
+		### print directory path
+		self.__dee__(Lexicon([LX(key = [path_string])]))
+		### confirm if the directory is ok to be written to
+		self.__dee__(
+			Lexicon([
+				LX(key = ["is"]),
+				LX(key = [
+					Lexicon([
+						LX(key = ["that the"]),
+						LX(key = [
+							Lexicon([
+								LX(key = ["correct", "right"]),
+								LX(key = ["working"], optional = 4),
+								LX(key = ["directory", "folder", "path"])
+							])
+						], punctuate = "?")
+					]),
+					Lexicon([
+						LX(key = ["this"]),
+						LX(key = [
+							Lexicon([
+								LX(key = ["directory", "folder", "path"]),
+								LX(key = ["ok"])
+							]),
+							Lexicon([
+								LX(key = ["ok", "fine", "alright"])
+							]),
+							Lexicon([
+								LX(key = ["the correct", "the right"]),
+								LX(key = ["directory", "folder", "path"])
+							])
+						], punctuate = "?")
+					])
+				])
+			])
+		)
+		
 		### if the user does not allow the program to save in the selected directory, prompt for a change request
 		if not Request().open():
-			self.__dee__(String().concat(str_random(dee_complete, "proceed"), 
-				str_random(dee_fragment, "self_what"), "the correct folder path?"))
+			### print that path was acknowledged to be incorrect / changed
+			self.__dee__(
+				Lexicon([
+					LX(key = [
+						Lexicon([
+							LX(key = ["oh"], punctuate = ["!", "."]),
+							LX(key = ["sorry"], punctuate = ["!", "."], optional = 5)
+						]),
+						Lexicon([
+							LX(key = ["my"]),
+							LX(key = ["mistake", "bad"])
+						]),
+						Lexicon([
+							LX(key = ["that's"]),
+							LX(key = [
+								Lexicon([
+									LX(key = ["incorrect", "wrong", "not right"])
+								]),
+								Lexicon([
+									LX(key = ["not what you"]),
+									LX(key = ["wanted", "wanted to use"])
+								])
+							], punctuate = "?")
+						])
+					], optional = 6),
+					LX(key = [
+						Lexicon([
+							LX(key = ["ok", "alright"])
+						]),
+						Lexicon([
+							LX(key = ["no problem", "not a problem"])
+						])
+					], punctuate = ".", optional = 5),
+
+					LX(key = [
+						Lexicon([
+							LX(key = ["please"]),
+							LX(key = ["type", "write", "input"]),
+							LX(key = ["the new", "the updated", "the adjusted"]),
+							LX(key = ["path", "directory", "folder", "destination"], punctuate = ".")
+						]),
+						Lexicon([
+							LX(key = ["what is", "what's"]),
+							LX(key = ["the"]),
+							LX(key = ["uhh"], punctuate = [",", "..", "--"], optional = 6),
+							LX(key = ["new", "updated", "correct"]),
+							LX(key = ["path", "directory", "folder", "destination"], punctuate = "?")
+						]),
+						Lexicon([
+							LX(key = ["what do you want to", "what would you like to"]),
+							LX(key = ["change", "alter", "update"]),
+							LX(key = ["the new path to", "the path to"], punctuate = "?")
+						])
+					])
+				])
+			)
+			### print change directory response
+
 			### request user to supply the folder path for the generated files
 			### fetch data through the generic response handler
-			if self.__attr__("New full folder path", "Folder path", "dirs"):
-				self.__dee__(str_random(dee_complete, "proceed") + str_random(dee_punct, "self_end"))
+			if self.__attr__("your new {{Full Folder Path}}", "the {{folder path}}", "dirs"):
+				### print that path has been updated to the new directory 
+				self.__dee__(
+					Lexicon([
+						LX(key = [
+							Lexicon([
+								LX(key = ["ok", "alright", "cool"], punctuate = ",", optional = 3),
+								LX(key = ["your"]),
+								LX(key = [
+									Lexicon([
+										LX(key = ["folder", "folder path"])
+									]),
+									Lexicon([
+										LX(key = ["file path"])
+									])
+								]),
+								LX(key = ["has been", "was"]),
+								LX(key = ["edit", "updated", "changed"])
+							]),
+							Lexicon([
+								LX(key = ["you're the boss", "you got it", "got it"], punctuate = "."),
+								LX(key = ["folder path", "directory"]),
+								LX(key = ["edit", "updated", "changed"])
+							]),
+							Lexicon([
+								LX(key = ["understood", "gotcha", "no problem", "got it"], punctuate = ["!","."]),
+								LX(key = ["file path", "directory"]),
+								LX(key = ["changed", "updated", "modified"])
+							]),
+							Lexicon([
+								LX(key = ["cool", "alright", "nice"], punctuate = "."),
+								LX(key = ["that's been"]),
+								LX(key = [
+									Lexicon([
+										LX(key = ["changed", "edited", "replaced", "updated"]),
+										LX(key = ["for you"], optional = 3)
+									])
+								], punctuate = ".")
+							]),
+							Lexicon([
+								LX(key = ["ok"]),
+								LX(key = ["changed", "fixed it", "updated"], punctuate = "."),
+								LX(key = ["uhh, yeah"], punctuate = ","),
+								LX(key = ["that's"]),
+								LX(key = ["actually", "totally"]),
+								LX(Key = ["the"]),
+								LX(key = ["directory", "folder", "path"]),
+								LX(key = ["i meant"])
+							]),
+							Lexicon([
+								LX(key = ["okie dokie", "ok", "cool", "no problem", "no drama"]),
+								LX(key = ["everything will"]),
+								LX(key = ["go", "be stored", "be saved"]),
+								LX(key = ["there"])
+							])
+						], punctuate = ".")
+					])
+				)
+				### print newline to clean output
+				print ""
 				return True
 			else:
 				### print the issue to the user
-				self.__dee__(String().concat(str_random(dee_complete, "pause"), str_random(dee_fragment, "self_i"), 
-					str_random(dee_fragment, "self_require"), "a", str_random(dee_fragment, "name_storage"), "to", 
-					str_random(dee_fragment, "act_storage"), str_random(dee_fragment, "name_files"), "to" + str_random(dee_punct, "self_end")))
+				
 
 				return False
+			
 		else:
-			### replace the defined path with the new user input
+			### keep the default storage path
 			self.dirs = path
+			### print that files will be created in the automatically generated folder path
+			self.__dee__(
+				Lexicon([
+					LX(key = [
+						Lexicon([
+							LX(key = ["ok", "alright"], punctuate = ",", optional = 4),
+							LX(key = ["i'll"]),
+							LX(key = [
+								Lexicon([
+									LX(key = [
+										Lexicon([
+											LX(key = ["continue to"]),
+											LX(key = ["store", "write", "create", "make"]),
+											LX(key = ["files in the"]),
+											LX(key = ["same", "current", "default"], attr = {'weight':'bold'}),
+											LX(key = ["folder", "directory"])
+										]),
+										Lexicon([
+											LX(key = ["keep on"]),
+											LX(key = ["storing", "saving"]),
+											LX(key = ["my"], optional = 5),
+											LX(key = ["files", "code", "stuff"]),
+											LX(key = [
+												Lexicon([
+													LX(key = ["in"]),
+													LX(key = [
+														Lexicon([
+															LX(key = ["the"]),
+															LX(key = ["selected", "predefined"], attr = {'weight':'bold'})
+														]),
+														Lexicon([
+															LX(key = ["same", "current"], attr = {'weight':'bold'})
+														])
+													]),
+													LX(key = ["folder", "directory", "area"])
+												]),
+												Lexicon([
+													LX(key = ["there", "here"])
+												])
+											])
+										])
+									]),
+									
+								])
+							], punctuate = ".")
+						])
+					])
+				])
+			)
+			### print newline to clean output
+			print ""
+
 			return True
 
 	### request the name of the partner page
 	def __name__ (self):
 		### print request to user
-
-		### greeting
-		self.__dee__(
-			Lexicon([
-				### subject
-				LX(key = [
-					Lexicon([
-						LX(key = [
-							Lexicon([
-								LX(key = [
-									Lexicon([
-										LX(key = ["hey", "hayy", "hello"]),
-										LX(key = ["y'all", "there"], optional = 4)
-									])
-
-								], punctuate = ".")	
-							]),
-
-							Lexicon([
-								LX(key = [
-									Lexicon([
-										LX(key = ["what-up"]),
-										LX(key = [getpass.getuser()])
-									])
-								], punctuate = "."),
-
-								LX(key = [
-									Lexicon([
-										LX(key = [
-											Lexicon([
-												LX(key = ["how are you"]),
-												LX(key = ["going", "feeling"], punctuate = "?"),
-												LX(key = [
-													Lexicon([
-														LX(key = ["i'm feeling"]),
-														LX(key = ["good", "not bad", "pretty good", "fine", "alright"], punctuate = ".")
-													])
-												])
-											])
-										], optional = 5)
-									])
-								])
-							])
-						])
-					]),
-
-					Lexicon([
-						LX(key = ["i'm"]),
-						LX(key = ["operational", "alive", "all-systems-go", "ready"], punctuate = ["!", "."]),
-						LX(key = ["yeww", "wicked", "neat"], punctuate = ["!", "."])
-					])
-					
-				], optional = 4)
-			])
-		)
 		### prompt name
 		self.__dee__(
-
 			Lexicon([
 				### tplvl
 				LX(key = [
 					Lexicon([
 						LX(key = ["firstly"], punctuate = ",")
 					]),
-					
 					Lexicon([
-						LX(key = ["first step"], punctuate = ";")
+						LX(key = ["first step", "here we go", "let's start"], punctuate = ".")
 					]),
-
 					Lexicon([
 						LX(key = ["step"]),
 						LX(key = [
@@ -975,7 +1141,22 @@ class Partner:
 										LX(key = ["anyway"], punctuate = ",")
 									])
 								], optional = 7)
-								
+							])
+						])
+					]),
+					Lexicon([
+						LX(key = [
+							Lexicon([
+								LX(key = ["let's"]),
+								LX(key = ["get this started", "get started", "start", "do this", "go"], punctuate = ["!", "."])
+							]),
+							Lexicon([
+								LX(key = ["alright", "ok"]),
+								LX(key = ["time to make a partner"])
+							]),
+							Lexicon([
+								LX(key = ["time to make a something"], punctuate = "?"),
+								LX(key = ["ok", "alright", "neat", "cool"], punctuate = ".")
 							])
 						])
 					])
@@ -999,12 +1180,10 @@ class Partner:
 					])
 				], punctuate = "?")
 			])
-
-		)
-
+		) 
 		### request user to supply the name of the partner
 		### fetch data through the generic response handler
-		if self.__attr__("Gemini partners name", "Partners name", "name"):
+		if self.__attr__("the {{Gemini partner's name}}", "the {{partner's name}}", "name"):
 			### print the formulated partner
 			### gemini partner name missing string
 			self.__dee__(
@@ -1028,7 +1207,9 @@ class Partner:
 						### constructor
 						Lexicon([
 							LX(key = ["you're"]),
-							LX(key = ["initializing", "starting"]),
+							LX(key = ["setting up", "building", "making"]),
+							LX(key = ["content", "files", "code"]),
+							LX(key = ["for"]),
 							LX(key = [self.name], attr = {'weight':'bold'})
 						])
 					], punctuate = "."),
@@ -1036,8 +1217,13 @@ class Partner:
 					LX(key = [
 						### constructor
 						Lexicon([
-							LX(key = ["strange", "interesting", "odd", "cool", "neat"]),
-							LX(key = ["name"])
+							LX(key = ["let's do it", "alright, neat", "cool beans", "nice, man", "nice"]),
+						]),
+						### constructor
+						Lexicon([
+							LX(key = ["strange", "interesting", "odd", "cool", "decent", "i hate the"]),
+							LX(key = ["name"]),
+							LX(key = ["but, whatever"], optional = 8)
 						]),
 						### constructor
 						Lexicon([
@@ -1051,19 +1237,19 @@ class Partner:
 					], punctuate = ".", optional = 4)
 				])
 			)
-
+			### print newline to clean output
+			print ""
+			### continue proceedures 
 			return True
 		else:
-			### print the issue to the user	
+			### print the issue to the user	notifying that a string was not provided
 			self.__dee__(
+				### constructor
 				Lexicon([
-
+					### subject
 					LX(key = [
-
 						Lexicon([
-
 							LX(key = ["so"], punctuate = ",", optional = 10),
-
 							LX(key = [
 								Lexicon([
 									LX(key = ["it"]),
@@ -1074,24 +1260,19 @@ class Partner:
 									LX(key = ["you"])
 								])
 							]),
-
 							LX(key = ["didn't"], attr = {'weight':'bold'}),
 							LX(key = ["type", "enter", "write", "input"]),
-							
 							LX(key = ["a name for the"]),
 							LX(key = ["Gemini Partner"], attr = {'weight':'bold'})
 						])
-
 					], punctuate = ".")
-
 				])
-
 			)
-			### notify reattempt
+			### notify user to reattempt running the program
 			self.__dee__(
-
+				### constructor
 				Lexicon([
-
+					### subject
 					LX(key = [
 						Lexicon([
 							LX(key = ["i use that name to"]),
@@ -1103,7 +1284,7 @@ class Partner:
 							], punctuate = ".")
 						])
 					]),
-
+					### predicate
 					LX(key = [
 						Lexicon([
 							LX(key = ["so"], punctuate = ",", optional = 3),
@@ -1120,22 +1301,18 @@ class Partner:
 							LX(key = ["my program file", "the program", "the script"], punctuate = "?")
 						])
 					])
-
 				])
-
 			)
-			
-			### notify the user that they should reattemp the process
-			
+			### end process
 			return False
 
 
 	### assign attribute of class through input method
-	def __attr__ (self, input_message, confirm_message, attr, binary = {}):
+	def __attr__ (self, input_message, confirm_message, object_name, binary = {}):
 		### attempt to set the attribute of the class
 		def __setattribute__ ():
 			### prompt user to input a string based on supplied criteria
-			temp = raw_input(self.__sys__(String().concat("please enter", String({'str':String(str(input_message)).tag(),'attr':{'weight':'bold'}}).get()) + ": ", printt = False)) or None
+			temp = raw_input(self.__sys__(String().concat("please enter", (String({'str': String(str(input_message)).tag(), 'attr': {'weight':'bold'}}).get() + ": ")), printt = False)) or None
 			### confirm that the input was not None Type
 			if not temp:
 				### inform user that input was not considered valid
@@ -1175,7 +1352,7 @@ class Partner:
 			### if input is correct set as class attribute
 			if Request().open():
 				### set attribute
-				setattr(self, attr, temp)
+				setattr(self, object_name, temp)
 				### return self _object
 				return self
 			### if the input entered was incorrect
@@ -1264,7 +1441,6 @@ def install_pip ():
 	else:
 		return True
 
-
 ### shared function for uninstalling packages for pip
 def pip_uninstall (package):
 	### uninstall packages as sudo
@@ -1333,11 +1509,6 @@ def main ():
 
 ### initialise the python script
 if __name__ == '__main__':
-
-	#print String({'str':"{{.myclass #id > #memes}}",'attr':{'color':'red'}}).get()
-
-	#print String({'str':"{{div asd}} {{13131%$W$%&}}", 'attr':{'color':'red'}}).get()
-
 	### call main function
 	main()
 
