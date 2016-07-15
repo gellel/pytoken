@@ -136,6 +136,7 @@ class LX:
 				### if instance is a Lexicon class get Lexicon data
 				if isinstance(_object[i], Lexicon):
 					_object[i] = _object[i].get()
+			print type(_object), _object
 			return {'t':_object}
 		elif isinstance(_object, Lexicon):
 			return {'t':[_object.get()]}
@@ -281,3 +282,4 @@ class Lexicon:
 		self._object = self.__process__(_object)
 
 
+LX(key = [Lexicon([LX(key = ["test", "swag"])])]).get()

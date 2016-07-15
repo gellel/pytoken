@@ -1,8 +1,6 @@
-### python scripts dependencies
-### py selenium browser package
-### from selenium import webdriver
-#http://selenium-python.readthedocs.io/api.html
-
+###################################
+### python scripts dependencies ###
+###################################
 ### py subprocess class package
 import subprocess
 ### py textwrap class package
@@ -24,17 +22,11 @@ import os
 ### py regex
 import re
 
-
-def str_random (str__object, key):
-	return str__object[key][random.randrange(len(str__object[key]))]
-
-
-### set localfile path
+### script exe base file directory
 __filepath__ = os.path.dirname(os.path.realpath('__file__'))
 
-### prints prettier strs
 class String:
-	### formatting 
+	### formatting options
 	PURPLE = '\033[95m'
 	CYAN = '\033[96m'
 	DARKCYAN = '\033[36m'
@@ -47,10 +39,12 @@ class String:
 	END = '\033[0m'
 	### regexp for matching "{{string}}"
 	REG = "\{\{(?:[\w\s\d]*|[$&\+,\:\;\=\?@#\|'\<\>\.^\*\(\)%!-\/]*)*\}\}"
+	### concatenate multiple arguments to a single string
 	def concat (self, *args):
-		return " ".join(args)
+		return " ".join(filter(None, args))
+	### wrap string in constructor with formatting syntax
 	def tag (self):
-		return "{{" + self._object + "}}"
+		return "{{" + self.context + "}}"
 	### prints a multiple line string with formatting
 	def wrap (self, width = 60):
 		print '\n'.join(line.strip() for line in re.findall(r'.{1,'+ str(width) +'}(?:\s+|$)', self.__process__()) )
@@ -58,9 +52,9 @@ class String:
 	def line (self):
 		print self.__process__()
 	### return entire formatted string using supplied styling
-	def get (self, _object = {}):
-		### fetch returned processed _object
-		return self.__process__(_object)
+	def get (self, context = {}):
+		### fetch returned processed context
+		return self.__process__(context)
 	### return substring/string with styling attached
 	def __format__ (self, string, attributes):
 		### iterate through attribute dict and try to match value to formatting
@@ -86,270 +80,220 @@ class String:
 			string = re.sub(matches[i]['original'], matches[i]['formatted'], string)
 		### return string with formatting replacing any "{{" or "}}" that exists in original string
 		return re.sub("{{|}}", "", string)
-	### return formatted string or strings depending on config _object supplied (list or dict)
-	def __process__ (self, _object = {}):
-		### check if _object isn't a default
-		if not bool(_object):
+	### return formatted string or strings depending on config context supplied (list or dict)
+	def __process__ (self, context = {}):
+		### check if context isn't a default
+		if not bool(context):
 			### check if Class was give a constructor dict
-			if self._object:
+			if self.context:
 				### use constructor dict
-				_object = self._object
+				context = self.context
 			else:
 				### use a sample instead
-				_object = [{'str':'{{Sample}}', 'attr':{'color':'cyan'}}, {'str':'{{Text}}', 'attr':{'color':'purple'}}]
-		### check if _object is either a list or dict
-		if type(_object) is list:
+				context = [{'str':'{{Sample}}', 'attr':{'color':'cyan'}}, {'str':'{{Text}}', 'attr':{'color':'purple'}}]
+		### check if context is either a list or dict
+		if type(context) is list:
 			### temp list for holding formatted strings
 			strs = []
 			### iterate through items to be formatted
-			for i in range(0, len(_object)):
+			for i in range(0, len(context)):
 				### append formatted strings to temp list
-				strs.append(self.__substitute__(_object[i]['str'], _object[i]['attr']))
+				strs.append(self.__substitute__(context[i]['str'], context[i]['attr']))
 			### return the complete string with formatting
-			return " ".join(strs)
+			return self.concat(strs)
 		else:
 			### return the complete string with formatting
-			return self.__substitute__(_object['str'], _object['attr'])
-	### return the type of the _object
+			return self.__substitute__(context['str'], context['attr'])
+	### return the type of the context
 	def __type__ (self):
-		return type(self._object)
-	### return the _object supplied
+		return type(self.context)
+	### return the context supplied
 	def __self__ (self):
-		return self._object
+		return self.context
 	### constructor 
-	### @_object: 
-		### [{'str':"{{string}}", 'attr':{'color':'red','style':'underline','weight':'bold'}}] 
-		### or
-		### {'str':'{{str}}', 'attr':{'color':'red'}}
-	def __init__ (self, _object = {}):
-		self._object = _object
+	def __init__ (self, context = {}):
+		self.context = context
 
-### short lexical class
-class LX:
-	### return formatted self object
-	def get (self, rtype = '__dict__'):
-		return getattr(self, rtype)
-	### return self as dictonary (to be integrated with class Lexicon)
-	def __dict__ (self):
-		return {'key':self.key, 'value':self.value, 'pause':self.pause,	'attr':self.attr, 'punctuate':self.punctuate, 'optional':self.optional}
-	### format the provided object to the Lexicon readible format
-	def __formatkey__ (self, _object):
-		if type(_object) is dict:
-			return _object
-		elif type(_object) is list:
-			### iterate over supplied list
-			for i in range(0, len(_object)):
-				### if instance is a Lexicon class get Lexicon data
-				if isinstance(_object[i], Lexicon):
-					_object[i] = _object[i].get()
-			return {'t':_object}
-		elif isinstance(_object, Lexicon):
-			return {'t':[_object.get()]}
-	def __formatrandom__ (self, _object):
-		if type(_object) is dict:
-			if not 'optional' in _object:
-				_object['optional'] = 2
-			if not 'punctuate' in _object:
-				_object['punctuate'] = 2
-		return _object
+
+class Lexicon:
+	### return lexical text
+	def get (self):
+		### format context object
+		return self.__format__()
+	### return string from random selection
+	def __lexical__ (self, key, value):
+		return key[value][random.randrange(len(key[value]))]
+	### return formatted string based on LX configuration
+	def __construct__ (self, context):
+		### obtain random string
+		context['formatted'] = self.__lexical__(context['key'], context['value'])
+		### format string with colours, weight, underline if attr dictionary 
+		if bool(context['attr']):
+			### call String class
+			context['formatted'] = String({'str': String(context['formatted']).tag(), 'attr': context['attr']}).get()
+		### append string with puncutation
+		if bool(context['punctuate']):
+			### select from list of punctuation if supplied
+			if type(context['punctuate']) is list:
+				### obtain random punctuation from list
+				context['punctuate'] = self.__lexical__({'t': context['punctuate']}, 't')
+			### append punctuation to the formatted string
+			context['formatted'] = (context['formatted'] + context['punctuate'])
+		### return formatted string including optional punctuation
+		return context['formatted']
+	### return formatted string if random number generated was not considered a boolean
+	def __optional__ (self, context):
+		### if LX dict optional was set as false format string
+		if not context['optional']:
+			### return formatted string
+			return self.__construct__(context)
+		else:
+			### if LX was provided a int or float attempt to run formatting
+			if (type(context['optional']) is int) or (type(context['optional']) is float):
+				### if number returned was equal to zero format string
+				if not bool(random.randrange(int(context['optional']))):
+					return self.__construct__(context)
+		### return empty string if context dict did not pass optional
+		return ""
+	### return formatted string whether or not it was formatted
+	def __process__ (self, context):
+		processed = []
+		### process a single item object
+		if not type(context) is list:
+			### check if single item was optionally formatted
+			processed.append(self.__optional__(context))
+		### process multiple objects
+		else:
+			### iterate over the context object
+			for i in range(0, len(context)):
+				### check if single item was optionally formatted
+				processed.append(self.__optional__(context[i]))
+		### return seperated string
+		return " ".join(filter(None, processed))
+	### return formatted instance as dictionary
+	def __type__ (self, context):
+		### process objects that are not list type
+		if not type(context) is list:
+			### process individual item
+			if type(context) is dict:	
+				### parse dictionary as named arguments to LX class
+				context = LX(**context).get()
+			### process items that are instances of classes LX or Lexicon
+			elif isinstance(context, LX) or isinstance(context, Lexicon):
+				### call class operator to return string or formatted dictionary
+				context = context.get()
+		### process items as list
+		else:
+			### parse list as the key to LX class and return formatted dictionary
+			context = LX(key = context).get()
+		### return formatted object
+		return context
+	### format self.object to be valid Lexicon data
+	def __format__ (self):
+		### process single item object
+		if not type(self.context) is list:
+			### format type object data
+			self.context = self.__type__(self.context)
+		### process multiple objects
+		else:
+			### iterate over object
+			for i in range(0, len(self.context)):
+				### format type object data
+				self.context[i] = self.__type__(self.context[i])
+		### process formatted data
+		return self.__process__(self.context)
 	### constructor
+	def __init__ (self, context = {}):
+		self.context = context
+
+class LX:
+	### return formatted dictionary from self
+	def get (self):
+		return self.__dict__
+	### format key to be list
+	def __format__ (self, key):
+		### process single supplied object
+		if not type(key) is list:
+			### convert object type to be string 
+			return self.__type__(key)
+		else:
+			### iterate list supplied as key
+			for i in range(0, len(key)):
+				### convert object type to be string 
+				key[i] = self.__type__(key[i])
+			### return valid dictionary object
+			return {'t': key }
+	### return formatted instance as string
+	def __type__ (self, context):
+		### process single object
+		if not type(context) is list:
+			### check if object is instance of Lexicon
+			if isinstance(context, Lexicon):
+				### process and return Lexical string
+				context = context.get()
+			### return formatted string
+			return context
+		### process multiple instances
+		else:
+			### iterate over objects
+			for i in range(0, len(context)):
+				### check if object is instance of Lexicon
+				if isinstance(context[i], Lexicon):
+					### process and return Lexical string
+					context[i] = context[i].get()
+			### return formatted string
+			return context
+	### constructor	
 	def __init__ (self, **kwargs):
-		self.key = self.__formatkey__(kwargs.pop('key', {'t':["test"]}))
+		self.key = self.__format__(kwargs.pop('key', {}))
 		self.value = kwargs.pop('value', 't')
-		self.pause = kwargs.pop('pause', None)
 		self.attr = kwargs.pop('attr', {})
 		self.punctuate = kwargs.pop('punctuate', None)
 		self.optional = kwargs.pop('optional', False)
 
-### produces concatenated string with random partial strings
-class Lexicon:
-	def pprint (self):
-		get_str = self.get()
-		### confirm if not empty returned string
-		if not bool(re.search("^$", get_str)):
-			### print returned string
-			print get_str
-	### return completely formatted string
-	def get (self):
-		### call packaging method to return string
-		return self.__package__()
-	### convert list of dict or single dict to string response
-	def __package__ (self):
-		### check if object type is a dictonary (assumes it is a single entity)
-		if type(self._object) is dict:
-			### return formatted
-			return self.__construct__(self._object)
-		### iterate over list item; evaluate all items but assume it will receive strings or dict
-		elif type(self._object) is list:
-			### temporary list to hold formatted or strings
-			constructed = []
-			### iterate over encapsulated objects
-			for i in range(0, len(self._object)):
-				### confirm type of item
-				if type(self._object[i]) is dict:
-					### check if the dict provided is an optional item
-					if not self.__optional__(self._object[i]):
-						### format string
-						constructed.append(self.__construct__(self._object[i]))
-				### assume other type supplied is a string
-				elif not type(self._object[i]) is None:
-					constructed.append(self._object[i])
-			### return joined string, seperated by whitespace
-			return " ".join(constructed)
-	### confirm if dict item is to be evaluated
-	def __optional__ (self, _object):
-		if bool(_object['optional']) and type(_object['optional']) is int:
-			_randvalue = random.randrange(0, _object['optional'])
-			if _randvalue == 0:
-				return True
-			else:
-				return False
-		else:
-			return False
-	### convert dictionary to string 
-	def __construct__ (self, _object):
-		### retrieve unformatted string
-		_object['original'] = self.__lexical__(_object['key'], _object['value'])
-		### assign new string to dict item for formatting
-		_object['formatted'] = _object['original']
-		### return the substring from the supplied dict and key
-		### apply string formatting if the dict supplied isn't empty
-		if bool(_object['attr']):
-			### replace formatted string with the prettified variant
-			_object['formatted'] = String({'str':String(_object['formatted']).tag(),'attr':_object['attr']}).get()
-		### confirm if the substring is to be punctuated with a english pause
-		if _object['pause']:
-			### format substring before main text
-			pause_str = self.__lexical__({'t':["uh", "uhh", "um--ah", "err"]}, 't')
-			### constructs for sentence
-			if _object['pause'] == 'before':
-				### determine if the string should include intenation lines
-				if random.randrange(0, 3) == 0:
-					punct_str = self.__lexical__({'t':["--", "..", "..."]}, 't')
-					### include intenation
-					_object['formatted'] = String().concat((pause_str + punct_str), _object['formatted'])
-				else:
-					_object['formatted'] = String().concat(pause_str, _object['formatted'])
-			### constructs after sentence
-			elif _object['pause'] == 'after':
-				### determine if the string should include intenation lines
-				if random.randrange(0, 3) == 0:
-					punct_str = self.__lexical__({'t':["--", ",", "..", "..."]}, 't')
-					### include intenation
-					_object['formatted'] = String().concat(_object['formatted'], (pause_str + punct_str))
-				else:
-					_object['formatted'] = String().concat(_object['formatted'], pause_str)
 
-		if len(_object['original']) == 0:
-			_object['formatted'] = "".join(_object['formatted'].split())
-
-		### confirm if the substring should be punctuated at the end of the string
-		if _object['punctuate']:
-			### allow dictonaries to be converted to substrings using self.__lexical__
-			if type(_object['punctuate']) is dict:
-				_object['punctuate'] = self.__lexical__(_object['punctuate'], 't')
-			### allow lists to be converted to substrings using self.__lexical__
-			elif type(_object['punctuate']) is list:
-				_object['punctuate'] = self.__lexical__({'t': _object['punctuate']}, 't')
-			### return string with punctuation
-			return _object['formatted'] + _object['punctuate']
-		### return substring without formatting	
-		else:
-			return _object['formatted']
-	### retrieve string from substring list in dict with pseudo number generator from range of list length
-	def __lexical__ (self, key, value):
-		return key[value][random.randrange(len(key[value]))] 
-	### construct dict from LX.get method or dict to LX then calling .get
-	def __format__ (self, _object):
-		if isinstance(_object, LX):
-			return _object.get()
-		elif isinstance(_object, Lexicon):
-			return _object.get()
-		elif type(_object) is dict:
-			return LX(**_object).get()
-		elif type(_object) is list:
-			return LX(key = _object).get()
-		else:
-			return _object
-	### process the object supplied to the constructor
-	def __process__ (self, _object):
-		## if object is a list iterate over all elements and attempt to format
-		if type(_object) is list:
-			for i in range(0, len(_object)):
-				### replace instances with foramtted dict
-				_object[i] = self.__format__(_object[i])
-		else:
-			### replace instances with formatted dict
-			_object = self.__format__(_object)
-		### return formatted dict
-		return _object
-	### constructor
-	def __init__ (self, _object):
-		self._object = self.__process__(_object)
-
-
-### creates a responder class used to prompt people contextually
 class Responder (String):	
 	### returns a string (optionally filtered) prefixed by the name of the responder
 	def response (self, message = "destory all humans!", attr = {}):
-		return (self.__name__() + self.seperator) + (" " + self.__message__(message, attr))
+		### return formatted concatenated string
+		return String().concat((self.__name__() + self.seperator), self.__message__(message, attr))
 	### private class for fetching the formatted string for the message part of ai response
 	def __message__ (self, message = "destroy all humans!", attr = {}):
+		### call inherited class of string to format string
 		return self.get({'str': message, 'attr': attr})
 	### private class for fetching and formatting the string that defines the ai's name
 	def __name__ (self):
-		return self.get({'str': '{{'+ self.name +'}}', 'attr': self.style})
+		### encapsulate name of responder in formatting syntax, instantiate to String class
+		return self.get({'str': String(self.name).tag(), 'attr': self.style})
 	### constructor
 	def __init__ (self, **kwargs):
 		self.name = kwargs.pop('name', 'system')
 		self.style = kwargs.pop('style', {'style':'underline','weight':'bold'})
-		self.seperator = kwargs.pop('seperator', ':')	
+		self.seperator = kwargs.pop('seperator', ':')
 
 
-### class wrapper for flexible selenium initialisations
-class Browser:
-	### exits defined selenium browser
-	def exit (self):
-		self.driver.exit()
-	### quits the selenium browser session closing all windows
-	def quit (self):
-		self.driver.quit()
-	### opens the defined self.url in the selenium browser
-	def get (self, url = "https://www.google.com/"):
-		if not self.url:
-			self.url = url
-		self.driver.get(self.url)
-	### returns the _object created from selenium
-	def __self__ (self):
-		return self.driver
-	### constructor
-	def __init__ (self, engine = "Chrome"):
-		### import the webdriver package if absent
-		from selenium import webdriver
-		### create a webdriver instance
-		self.driver = getattr(webdriver, engine, "Chrome")()
-		self.url = ""
-
-
-### class for recursive user prompts
 class Request:
 	### method for asking the user to input one of two provided options
 	def open (self):
 		### prompt user for input returning text submitted or NoneType if empty
 		self.response = self.__prompt__()
-		### return true if user input matches the supplied confirm string
+		### confirm if response was equal to the confirmation string
 		if self.response == self.confirm:
+			### return true if user input matches the supplied confirm string
 			return True
-		### return false if the user input matches the supplied reject string
+		### confirm if response was equal to the rejection string
 		elif self.response == self.reject:
+			### return false if the user input matches the supplied reject string
 			return False
 		### prompt user that the supplied input wasn't considered valid
 		else:
+			### concatenate string with formatting
 			print self.__response__(String().concat("command", String({'str':String(str(self.response)).tag(),'attr':{'weight':'bold'}}).get(), "unrecognised"))
 			### recall the function
 			return self.open()
 	### format the strings defining the options available for the user
 	def __option__ (self):
+		### return formatted string with the supplied confirmation and rejection choices
 		return String({'str': String((self.confirm + "/" + self.reject)).tag(), 'attr':{'weight':'bold'}}).get()
 	### prompt the user to input one of the supplied action contexts
 	def __prompt__ (self):
@@ -372,10 +316,7 @@ class Request:
 		self.reject = str.upper(kwargs.pop("reject", "no"))
 		self.system = Responder()
 
-		## print Request().open()
 
-
-### generic package manage class
 class Package:
 	### return the fetched package or False
 	def get (self):
@@ -383,10 +324,15 @@ class Package:
 		return self.__find__()
 	### assign the package to class as import or None
 	def __find__ (self):
+		### store result package test
 		self.package = self.__test__()
+		### confirm if supplied package was found or executed
 		if self.package:
+			### return True
 			return self.package
+		### package was unable to imported or executed
 		else:
+			### return False
 			return False
 	### test the existence of the package
 	def __test__ (self):
@@ -394,9 +340,11 @@ class Package:
 		if not self.exe:
 			### try import the required package
 			try:
+				### attempt to import package name as python import
 				__import__(self.name)
 				### return True if asset can be imported
 				return True
+			### handle the error as an exception
 			except:
 				### return False if unable to manage import
 				return False
@@ -418,8 +366,6 @@ class Package:
 		self.cmd = cmd
 		self.system = Responder()
 
-
-### general class designed to install python modules
 class Install:
 	### attempt to fetch all packages
 	def get (self):
@@ -514,8 +460,6 @@ class Install:
 		self.packages = self.__package__(packages)
 		self.system = Responder()
 
-
-### creates either a temporary or permanently write file
 class File:
 	### add new string to the end of the file
 	def append (self, string):
@@ -578,8 +522,6 @@ class File:
 		self.temporary = temporary
 		self.file = self.__create__()
 
-
-### fetches a web resource
 class HTTPResource:
 	### request the resource
 	def fetch (self):
@@ -626,7 +568,7 @@ class HTTPResource:
 		self.request_headers = headers
 		self.request__object = self.__format__()
 
-### operates a subprocess for checking terminal commands
+
 class Command:
 	### return the result of the attempted command
 	def process (self):
@@ -857,69 +799,100 @@ class Partner:
 		### edited file path (contains string colour)
 		path_string = String({'str':String(str(self.dirs) + "/").tag(),'attr':{'weight':'bold'}}).get() + String({'str':String(str(self.name)).tag(), 'attr':{'color':'darkcyan','weight':'bold'}}).get()
 		### request user to confirm whether the program can save the created files in the directory the script is being run from
-		self.__dee__(
-			Lexicon([
-				LX(key = [
-					Lexicon([
-						LX(key = ["ok"], punctuate = ".", optional = 3),
-						LX(key = [
-							Lexicon([
-								LX(key = ["next", "next steps"])
-							]),
-							Lexicon([
-								LX(key = ["so"], punctuate = ",", optional = 5),
-								LX(key = ["moving on"])
-							])
-						], punctuate = ".")
-					])
-				], optional = 4),
-
-				LX(key = [
-					Lexicon([
-						LX(key = ["i'm going to", "i'm gonna"]),
-						LX(key = ["create", "make", "build"]),
-						LX(key = ["some files", "a couple of files"]),
-						LX(key = ["for you and"]),
-						LX(key = ["save them", "store them"]),
-						LX(key = ["here", "in this directory", "in this folder", "in this location"], punctuate = ":")
-					])
-				])
-			])
-		)
+	
 		### print directory path
-		self.__dee__(Lexicon([LX(key = [path_string])]))
+		self.__dee__(path_string)
 		### confirm if the directory is ok to be written to
 		self.__dee__(
 			Lexicon([
-				LX(key = ["is"]),
 				LX(key = [
 					Lexicon([
-						LX(key = ["that the"]),
 						LX(key = [
 							Lexicon([
-								LX(key = ["correct", "right"]),
-								LX(key = ["working"], optional = 4),
-								LX(key = ["directory", "folder", "path"])
+								LX(key = [
+									Lexicon([
+										LX(key = ["alright"], punctuate = ".", optional = 5),
+										LX(key = ["do you want me to"]),
+									]),
+									Lexicon([
+										LX(key = ["so"], punctuate = ",", optional = 4),
+										LX(key = [
+											Lexicon([
+												LX(key = ["should i"])
+											]),
+											Lexicon([
+												LX(key = ["can i"])
+											])
+										]),
+									])
+								]),
+								LX(key = ["create", "store", "save"]),
+								LX(key = ["files", "stuff", "code"]),
+								LX(key = ["this directory", "this folder"])
+							]),
+							Lexicon([
+								LX(key = ["ok cool"], punctuate = ".", optional = 3),
+								LX(key = [
+									Lexicon([
+										LX(key = ["is this"])
+									]),
+									Lexicon([
+										LX(key = ["is the"]),
+										LX(key = ["selected", "highlighted"])
+									])
+								]),
+								LX(key = ["directory", "folder"]),
+								LX(key = ["ok to"]),
+								LX(key = ["store files in", "save files in"])
+							]),
+							Lexicon([
+								LX(key = [
+									Lexicon([
+										LX(key = ["can i"])
+									]),
+									Lexicon([
+										LX(key = ["do you mind if i", "is it alright if i"])
+									])
+								]),
+								LX(key = ["use this"]),
+								LX(key = ["folder to", "directory to"]),
+								LX(key = ["store files in", "save files in"])
 							])
-						], punctuate = "?")
+
+						])
 					]),
 					Lexicon([
-						LX(key = ["this"]),
+						LX(key = ["is"]),
 						LX(key = [
 							Lexicon([
-								LX(key = ["directory", "folder", "path"]),
-								LX(key = ["ok"])
+								LX(key = ["that the"]),
+								LX(key = [
+									Lexicon([
+										LX(key = ["correct", "right"]),
+										LX(key = ["working"], optional = 4),
+										LX(key = ["directory", "folder", "path"])
+									])
+								])
 							]),
 							Lexicon([
-								LX(key = ["ok", "fine", "alright"])
-							]),
-							Lexicon([
-								LX(key = ["the correct", "the right"]),
-								LX(key = ["directory", "folder", "path"])
+								LX(key = ["this"]),
+								LX(key = [
+									Lexicon([
+										LX(key = ["directory", "folder", "path"]),
+										LX(key = ["ok"])
+									]),
+									Lexicon([
+										LX(key = ["ok", "fine", "alright"])
+									]),
+									Lexicon([
+										LX(key = ["the correct", "the right"]),
+										LX(key = ["directory", "folder", "path"])
+									])
+								])
 							])
-						], punctuate = "?")
+						])
 					])
-				])
+				], punctuate = "?")
 			])
 		)
 		
@@ -935,7 +908,7 @@ class Partner:
 						]),
 						Lexicon([
 							LX(key = ["my"]),
-							LX(key = ["mistake", "bad"])
+							LX(key = ["mistake", "bad"], punctuate = ".")
 						]),
 						Lexicon([
 							LX(key = ["that's"]),
@@ -1046,8 +1019,10 @@ class Partner:
 				### print newline to clean output
 				print ""
 				return True
+			### print to user that the folder directory cannot be blank and terminate program
 			else:
 				### print the issue to the user
+				self.__dee__()
 				
 
 				return False
@@ -1148,17 +1123,17 @@ class Partner:
 						LX(key = [
 							Lexicon([
 								LX(key = ["let's"]),
-								LX(key = ["get this started", "get started", "start", "do this", "go"], punctuate = ["!", "."])
+								LX(key = ["get this started", "get started", "start", "do this", "go"])
 							]),
 							Lexicon([
-								LX(key = ["alright", "ok"]),
+								LX(key = ["alright", "ok"], punctuate = ","),
 								LX(key = ["time to make a partner"])
 							]),
 							Lexicon([
 								LX(key = ["time to make a something"], punctuate = "?"),
-								LX(key = ["ok", "alright", "neat", "cool"], punctuate = ".")
+								LX(key = ["ok", "alright", "neat", "cool"])
 							])
-						])
+						], punctuate = ["!", "."])
 					])
 				], optional = 6),
 				### tplvl
@@ -1364,18 +1339,6 @@ class Partner:
 		### return attribute
 		return __setattribute__()
 
-	def __lexicon__ (self, str__object, key):
-		return str__object[key][random.randrange(len(str__object[key]))]
-
-	def __grammar__ (self, responses):
-		for i in range(0, len(responses)):
-			if type(responses[i]) is dict:
-				responses[i] = self.__lexicon__(responses[i]['key'], responses[i]['value'])
-
-
-		return "".join(responses)
-		
-
 	### return text (used for functions) or print text to console	
 	def __rop__ (self, message = "Test", printt = True):
 		### if printt 
@@ -1497,15 +1460,7 @@ def main ():
 	if dependencies():
 		### initialse partner script
 		partner = Partner().__main__()
-		###
-		print ""
-
-		if partner:
-			return True
-		else:
-			return False
-	else:
-		return False
+		
 
 ### initialise the python script
 if __name__ == '__main__':
