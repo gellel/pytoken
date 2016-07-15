@@ -1,4 +1,5 @@
 #!/usr/bin/python
+#sys.argv[1:]
 
 ###################################
 ### python scripts dependencies ###
@@ -610,17 +611,21 @@ class Command:
 	### attempt to call function; uses either subprocess.call or subprocess.check_call
 	def __exec__ (self):
 		try:
-			### return True if function ran
+			### initialise selected subprocess method from __funct__
 			self.function(self.command, stdout = self.stdout, stderr = self.stderr, shell = self.shell)
+			### return True if function ran
 			return True
 		### handle the subprocessor command error if command was found but not executabe
 		except subprocess.CalledProcessError:
+			### return False if function failed
 			return False
 		### handle the subprocessor command error if command not found
 		except OSError:
+			### return False if function failed
 			return False
 	### return the appropriate subprocess
 	def __funct__ (self):
+		### use call for observing terminal ouput; use check call for confirming silent response
 		return subprocess.call if self.shell else subprocess.check_call
 	### constructor
 	def __init__ (self, command = "", stdout = open(os.devnull, 'w'), stderr = subprocess.STDOUT, shell = False):
@@ -632,6 +637,28 @@ class Command:
 
 
 
+class Dee:
+	START =
+	REG = "^(?:[\.\-])*.{1}"
+	def main (self):
+		if self.actions:
+			self.__action__(self.actions[0])
+		else:
+			self.__setup__()
+
+	def __action__ (self, context):
+		if re.compile(self.REG).match(context)
+
+	def __setup__ (self):
+		print True
+
+	### constructor
+	def __init__ (self, name = "dee", actions = sys.argv[1:]):
+		self.responder = Responder(name = name)
+		self.actions = actions
+
+
+
 if __name__ == '__main__':
 
-	print sys.argv[1:]
+	Dee().main()
