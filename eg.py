@@ -769,8 +769,9 @@ class Command:
 
 
 class Dee (String):
-	EDIT = "(edit|update|change)?"
-	REG = "^(?:[\.\-])*.{1}"
+	EDIT = "^edit$"
+	NEW = "^new$"
+	ARG = "^(?:[\.\-])*.{1}"
 
 	### determine run path for dee class
 	def main (self):
@@ -785,15 +786,34 @@ class Dee (String):
 
 	def __actions__ (self, context):
 		### confirm that secondary arguments are valid character patterns
-		if re.compile(self.REG).match(context):
-			### confirm that system argument matches "EDIT" pattern and a system argument was provided after "EDIT" decleration
-			if re.compile(self.EDIT).match(context) and List(self.actions).index(1):
-				### pass system argument of "partner name / folder to edit" to file locate function and potential extension of file if retrieved from system arguments
-				self.__file__(self.actions[1], List(self.actions).index(2))
+		if re.compile(self.ARG).match(context):
+			### confirm that system argument matches "EDIT" pattern
+			if re.compile(self.EDIT).match(context):
+				### confirm if a system argument was provided after "EDIT" decleration
+				if List(self.actions).index(1):
+					### pass system argument of "partner name / folder to edit" to file locate function and potential extension of file if retrieved from system arguments
+					self.__file__(self.actions[1], List(self.actions).index(2))
+			### confirm that system argument matches "NEW" pattern
+			elif re.compile(self.NEW).match(context):
+				### pass system arguments to attempt to silently build new file
+				self.__automate__(self.actions)
 			### if none of the patterns match sets
 			else:
 				### run initialiser from the beginning
 				self.__setup__(context)
+		### if not arguments were supplied as context
+		else:
+			### run initialiser from the beginning
+			self.__setup__()
+
+			
+	### attempt to automatically create all required files for valid output
+	def __automate__ (self, context):
+		#for i in range(0, len(context)):
+		#	print type(context[i])
+		print type(context[2]), "right hurr"
+	
+
 
 	### attempt to open configuration file and setup
 	def __file__ (self, context, extension):
@@ -806,10 +826,8 @@ class Dee (String):
 			else:
 				### concatenate string name as expected JSON
 				context = self.cconcat([context, "json"], ".")
-			
 		### attempt to find file on OS listed under context argument name
 		context = self.__fetch__(context, self.cconcat(["/", "Users", "/", pwd.getpwuid(os.getuid())[0], "/", "desktop"], ""))
-
 		### confirm if the config file was not found
 		if not bool(context):
 			### run initialiser from the beginning
@@ -819,8 +837,10 @@ class Dee (String):
 			### attempt to open the file as formatted JSON
 			if len(context) > 1:
 				print len(context), "items found"
-				context = context[Set(request = "an integer within list range", response = "the returned file").open()['response']]
+				item = Set(request = "an integer within list range", response = "the returned file").open()
 
+				context = context[int(item['response'])]
+			### attempt to locate
 			context = self.__open__(context)
 			### confirm JSON was successfully parsed
 			if context:
@@ -828,24 +848,34 @@ class Dee (String):
 
 	### find files on computer
 	def __fetch__ (self, context, path = "."):
+		### run silent subprocess to locate supplied file name on OS; return found items within list
 		return [line[2:] for line in subprocess.check_output(self.concat("find", path, "-iname", ("'" + context + "'")), shell = True).splitlines()]
-
-
 	### open filename as type json
 	def __open__ (self, file):
-		### contextually open file
-		with open(file) as config:
-			### attempt to load file as json
-			try:
-				### return parsed JSON data
-				return json.load(config)
-			except:
-				### return False for handling
-				return False
+		### confirm if returned string is missing prefix of "/U" (should match "/Users/{..}")
+		if not re.compile("\/{1}U").match(file):
+			### correct file path to valid string
+			file = self.cconcat(["/U", file], "")
+		### attempt to load file
+		try:
+			### contextually open file
+			with open(file) as config:
+				### attempt to load file as json
+				try:
+					### return parsed JSON data
+					return json.load(config)
+				except:
+					### return False for error handling
+					return False
+		### handle error if issue occurred with opening the file
+		except:
+			### return False for error handling
+			return False
+
 
 	### main setup handler
 	def __setup__ (self, context = None):
-		pass 
+		print 'setup', context 
 
 	### constructor
 	def __init__ (self, name = "dee", actions = sys.argv[1:]):
