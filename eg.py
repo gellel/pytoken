@@ -18,6 +18,10 @@ import urllib2
 import urllib
 ### py random class package
 import random
+### py pprint class package
+import pprint
+### py json class package
+import json
 ### py system class package
 import sys
 ### py os class package
@@ -42,11 +46,18 @@ class String:
 	END = '\033[0m'
 	### regexp for matching "{{string}}"
 	REG = "\{\{(?:[\w\s\d]*|[$&\+,\:\;\=\?@#\|'\<\>\.^\*\(\)%!-\/]*)*\}\}"
+	### regexp for matching string.extname
+	EXT = "^.+\.{1}\w+$"
+	### concatenate multiple arguments by string character
+	def cconcat (self, strlist, character):
+		return character.join(filter(None, strlist))
 	### concatenate multiple arguments to a single string
 	def concat (self, *args):
 		return " ".join(filter(None, args))
 	### wrap string in constructor with formatting syntax
-	def tag (self):
+	def tag (self, context = None):
+		if (type(context) is str) and (not hasattr(self, context)):
+			self.context = context
 		return "{{" + self.context + "}}"
 	### prints a multiple line string with formatting
 	def wrap (self, width = 60):
@@ -117,11 +128,25 @@ class String:
 	def __init__ (self, context = {}):
 		self.context = context
 
+class List:
+	### fetch index of list item
+	def index (self, index = 0):
+		### attempt to fetch and return list item without error if out of range
+		try:
+			### return list item
+			return self.context[index]
+		### handle exception
+		except:
+			### return False for possible evaluator
+			return False
+	### constructor
+	def __init__ (self, context = []):
+		self.context = context
 
 
-class Lexicon:
+class Lexicon (String):
 	### return lexical text
-	def get (self):
+	def create (self):
 		### format context object
 		return self.__format__()
 	### return string from random selection
@@ -134,7 +159,7 @@ class Lexicon:
 		### format string with colours, weight, underline if attr dictionary 
 		if bool(context['attr']):
 			### call String class
-			context['formatted'] = String({'str': String(context['formatted']).tag(), 'attr': context['attr']}).get()
+			context['formatted'] = self.get({'str': self.tag(context['formatted']), 'attr': context['attr']})
 		### append string with puncutation
 		if bool(context['punctuate']):
 			### select from list of punctuation if supplied
@@ -181,15 +206,15 @@ class Lexicon:
 			### process individual item
 			if type(context) is dict:	
 				### parse dictionary as named arguments to LX class
-				context = LX(**context).get()
+				context = LX(**context).create()
 			### process items that are instances of classes LX or Lexicon
 			elif isinstance(context, LX) or isinstance(context, Lexicon):
 				### call class operator to return string or formatted dictionary
-				context = context.get()
+				context = context.create()
 		### process items as list
 		else:
 			### parse list as the key to LX class and return formatted dictionary
-			context = LX(key = context).get()
+			context = LX(key = context).create()
 		### return formatted object
 		return context
 	### format self.object to be valid Lexicon data
@@ -214,7 +239,7 @@ class Lexicon:
 
 class LX:
 	### return formatted dictionary from self
-	def get (self):
+	def create (self):
 		return self.__dict__
 	### format key to be list
 	def __format__ (self, key):
@@ -236,7 +261,7 @@ class LX:
 			### check if object is instance of Lexicon
 			if isinstance(context, Lexicon):
 				### process and return Lexical string
-				context = context.get()
+				context = context.create()
 			### return formatted string
 			return context
 		### process multiple instances
@@ -246,7 +271,7 @@ class LX:
 				### check if object is instance of Lexicon
 				if isinstance(context[i], Lexicon):
 					### process and return Lexical string
-					context[i] = context[i].get()
+					context[i] = context[i].create()
 			### return formatted string
 			return context
 	### constructor	
@@ -263,7 +288,7 @@ class Responder (String):
 	### returns a string (optionally filtered) prefixed by the name of the responder
 	def response (self, message = "destory all humans!", attr = {}):
 		### return formatted concatenated string
-		return String().concat((self.__name__() + self.seperator), self.__message__(message, attr))
+		return self.concat((self.__name__() + self.seperator), self.__message__(message, attr))
 	### private class for fetching the formatted string for the message part of ai response
 	def __message__ (self, message = "destroy all humans!", attr = {}):
 		### call inherited class of string to format string
@@ -280,7 +305,113 @@ class Responder (String):
 
 
 
-class Request:
+class Set (String):
+	### return dictionary with returned response and boolean
+	def open (self):
+		### check if supplied request a string
+		if type(self.request) is str:
+			### format string to request for single entity type
+			self.request_string = self.request
+		### check if supplied request is a list
+		elif type(self.request) is list:			
+			### format message as a multiple option choice
+			### concatenate request string
+			self.request_string = self.cconcat(self.request, "/")
+		else:
+			### return response handler
+			return {'bool': False, 'response': None}
+		### prompt user to input the requested type
+		return self.__prompt__()
+	### evaluate user string against potential options
+	def __compare__ (self):
+		### if request type is a string
+		if type(self.request) is str:
+			### proceed to confirmation
+			return self.__confirm__()
+		### if request type is a list of mutliple sections
+		elif type(self.request) is list:
+			### iterate over list of options within supplied list
+			for i in range(0, len(self.request)):
+				### remove formatting from listed string
+				match_string = re.sub("{{|}}", "", self.request[i])
+				### compare if the supplied string is equal to the options within the list
+				if str.upper(match_string) == str.upper(self.user):
+					### if match is found proceed to confirmation
+					return self.__confirm__(match_string)
+			### if no match occurred notify user that their input wasn't found
+			self.__sys__(self.concat("user input", self.get({'str': self.tag(str.upper(self.user)), 'attr':{'weight':'bold'}}), "did not match", self.request_string))
+			### prompt user to reattempt selection
+			if Request(prompt = "try again?").open():
+				### recall user input handler
+				return self.__prompt__()
+			### if user selected to not continue
+			else:
+				### return response handler
+				return {'bool': False, 'response': None}
+	### confirm if the provided input was the correct selection
+	def __confirm__ (self, response = None):
+		### if string was not provided to function
+		if not response:
+			### set response string as the user string provided in single option conformation
+			response = self.user
+		### prompt user to confirm their inputted text
+		self.__sys__(self.concat("is", self.get({'str': self.tag(response), 'attr': {'weight': 'bold'}}), "the correct value for", self.cconcat([self.get({'str':self.tag(self.response), 'attr':{'weight':'bold'}}), " "], "?") ))
+		### if user selected to keep input
+		if Request().open():
+			### return response handler
+			return {'bool': True, 'response': response}
+		### if user opted to not keep input
+		else:
+			### prompt user to change input
+			if Request(prompt = "try again?").open():
+				### recall user input handler
+				return self.__prompt__()
+			### if user did not choose to change input
+			else:
+				### return response handler
+				return {'bool': False, 'response': None}
+	### prompt user to input their desired value for setter	
+	def __prompt__ (self):
+		### print message asking user to input their desired value for the supplied options
+		self.user = self.__input__(self.__sys__(self.concat(self.cconcat([self.concat("please enter", self.request_string), " "], ":")), False))
+		### if returned input was empty or undefined
+		if not self.user:
+			### notify user that the required input cannot be empty or None type
+			self.__sys__(self.get({'str': "user input cannot be {{NONE}}", 'attr':{'weight':'bold'}}))
+			### prompt user to reattempt to declare their input
+			if Request(prompt = "try again?").open():
+				### recall function
+				return self.__prompt__()
+			### if user chose not to re-enter their selection
+			else:
+				### return response handler
+				return {'bool': False, 'response': None}
+		### if user supplied a string
+		else:
+			### compare provided string to possible ptions
+			return self.__compare__()
+	### print input for user
+	def __input__ (self, string):
+		### prompt user to input string
+		return raw_input(str(string)) or None
+	### return or print return the message as system
+	def __sys__ (self, message, printed = True):
+		### format string with formatting if required
+		message = self.system.response(self.get({'str':message, 'attr': {'weight':'bold'}}))
+		### print string 
+		if printed:
+			print message
+		### return string
+		return message
+	### constructor 
+	def __init__ (self, **kwargs):
+		self.request = kwargs.pop('request', None)
+		self.response = kwargs.pop('response', None)
+		self.system = Responder()
+
+
+
+class Request (String):
 	### method for asking the user to input one of two provided options
 	def open (self):
 		### prompt user for input returning text submitted or NoneType if empty
@@ -296,17 +427,17 @@ class Request:
 		### prompt user that the supplied input wasn't considered valid
 		else:
 			### concatenate string with formatting
-			print self.__response__(String().concat("command", String({'str':String(str(self.response)).tag(),'attr':{'weight':'bold'}}).get(), "unrecognised"))
+			print self.__response__(self.concat("command", self.get({'str': self.tag(str(self.response)), 'attr':{'weight':'bold'}}), "unrecognised"))
 			### recall the function
 			return self.open()
 	### format the strings defining the options available for the user
 	def __option__ (self):
 		### return formatted string with the supplied confirmation and rejection choices
-		return String({'str': String((self.confirm + "/" + self.reject)).tag(), 'attr':{'weight':'bold'}}).get()
+		return self.get({'str': self.tag(self.cconcat([self.confirm, self.reject], "/")), 'attr':{'weight':'bold'}})
 	### prompt the user to input one of the supplied action contexts
 	def __prompt__ (self):
 		### request the user to input their text
-		response = raw_input(self.__response__((String().concat(self.prompt, self.__option__()) + ": "))) or None
+		response = raw_input(self.__response__(self.concat(self.prompt, self.cconcat([self.__option__(), " "], ":")))) or None
 		### attempt to format the text to a uppercase string for easier comparison
 		try:
 			### return the uppercase string
@@ -637,27 +768,83 @@ class Command:
 
 
 
-class Dee:
-	START =
+class Dee (String):
+	EDIT = "(edit|update|change)?"
 	REG = "^(?:[\.\-])*.{1}"
+
+	### determine run path for dee class
 	def main (self):
+		### if user supplied arguments during call
 		if self.actions:
-			self.__action__(self.actions[0])
+			### send first argument to evaluator 
+			self.__actions__(self.actions[0])
+		### if no arguments provided on startup
 		else:
+			### run initialiser
 			self.__setup__()
 
-	def __action__ (self, context):
-		if re.compile(self.REG).match(context)
+	def __actions__ (self, context):
+		if re.compile(self.REG).match(context):
+			if re.compile(self.EDIT).match(context) and List(self.actions).index(1):
+				self.__file__(self.actions[1], List(self.actions).index(2))
 
+			else:
+				self.__setup__(context)
+
+	### attempt to open configuration file and setup
+	def __file__ (self, context, extension):
+		### if context argument is not an accepted filename 
+		if not re.compile(String().EXT).match(context):
+			### check if secondary argument was a file extension
+			if type(extension) is str:
+				### concatenate extension name
+				context = context + "." + extension
+			else:
+				### concatenate string name as expected JSON
+				context = context + ".json"
+
+		print 'try to find', context
+		### attempt to find file on OS listed under context argument name
+		context = List(self.__fetch__(context)).index(0)
+
+		### check if file was located 
+		if not context:
+			print 'couldn\'t find file. set up'
+			### return to setup
+			self.__setup__()
+
+		else:
+			print 'found file', context
+
+	### find files on computer
+	def __fetch__ (self, context):
+		### attempt to locate file within subprocess on system drive
+		return [line[2:] for line in subprocess.check_output(String().concat("find", ".", "-iname", ("'" + context + "'")), shell = True).splitlines()]
+
+	### open filename as type json
+	def __open__ (self, file):
+		### contextually open file
+		with open(file) as config:
+			### attempt to load file as json
+			try:
+				### return parsed JSON data
+				return json.load(config)
+			except:
+				### return False for handling
+				return False
+
+	### check attribute name, callback
+	def __jsoncheck__ (self, json, attribute, funct):
+		pass
+
+	### main setup handler
 	def __setup__ (self):
-		print True
+		pass 
 
 	### constructor
 	def __init__ (self, name = "dee", actions = sys.argv[1:]):
 		self.responder = Responder(name = name)
 		self.actions = actions
-
-
 
 if __name__ == '__main__':
 
