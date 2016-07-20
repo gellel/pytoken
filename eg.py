@@ -18,10 +18,10 @@ import urllib2
 import urllib
 ### py random class package
 import random
-### py pprint class package
-import pprint
 ### py json class package
 import json
+### py pwd class package
+import pwd
 ### py system class package
 import sys
 ### py os class package
@@ -355,7 +355,7 @@ class Set (String):
 			### set response string as the user string provided in single option conformation
 			response = self.user
 		### prompt user to confirm their inputted text
-		self.__sys__(self.concat("is", self.get({'str': self.tag(response), 'attr': {'weight': 'bold'}}), "the correct value for", self.cconcat([self.get({'str':self.tag(self.response), 'attr':{'weight':'bold'}}), " "], "?") ))
+		self.__sys__(self.concat("is", self.get({'str': self.tag(response), 'attr': {'weight': 'bold'}}), "the correct value for", self.cconcat([self.get({'str':self.response, 'attr':{'weight':'bold'}}), " "], "?") ))
 		### if user selected to keep input
 		if Request().open():
 			### return response handler
@@ -508,9 +508,9 @@ class Package:
 
 
 
-class Install:
+class Install (String):
 	### attempt to fetch all packages
-	def get (self):
+	def all (self):
 		### assign empty or reduced list
 		packages = self.__assign__()
 		### if list is empty assume all packages were found
@@ -522,7 +522,7 @@ class Install:
 		### attempt to install the missing files
 		else:
 			### ask user if they would like to install the files dependencies
-			print self.__response__(String().concat(String({'str': String(str(len(missing)) + "/" + str(len(self.packages))).tag(), 'attr':{'color':'red','weight':'bold'}}).get(), "packages are missing"))
+			print self.__response__(self.concat(self.get({'str': self.tag(self.cconcat([str(len(missing)), str(len(self.packages))], "/")), 'attr': {'color':'red','weight':'bold'}})))
 			### if user agrees attempt to install each package
 			if Request(prompt = "attempt to install missing files?").open():
 				for i in range(0, len(packages)):
@@ -533,12 +533,12 @@ class Install:
 					### if file package not installed, print solution
 					if not packages[i]['installed']:
 						### print the name of the package that wasn't able to be installed
-						print self.__response__(String().concat("package", String({'str': String(packages[i]['name']).tag(), 'attr':{'weight':'bold'}}).get(), "could not be installed"))
+						print self.__response__(self.concat("package", self.get({'str': self.tag(packages[i]['name']), 'attr':{'weight':'bold'}}), "could not be installed"))
 						### print the appropriate solution
 						print self.__response__("please download the package and install before running the program again")
 						### if source is available print the URL
 						if packages[i]['source']:
-							print self.__response__(String().concat("package available at", String({'str': String(packages[i]['source']).tag(), 'attr':{'style':'underline'}}).get()))
+							print self.__response__(self.concat("packages available at", self.get({'str': self.tag(packages[i]['source']), 'attr':{'style':'underline'}})))
 						### return false; break loop; this will terminate all checking instances
 						### written with the assumption that you would not want your file to proceed running without all
 						return False
@@ -549,7 +549,7 @@ class Install:
 	### attempt to install the package through the supplied installer
 	def __install__ (self, package):
 		### notify user that the package is attempting to be installed
-		print self.__response__(String().concat("trying to install", String({'str': String(package['name']).tag(), 'attr':{'weight':'bold'}}).get()))
+		print self.__response__(self.concat("trying to install", self.get({'str': self.tag(package['name']), 'attr':{'weight':'bold'}})))
 		### try and call the supplied package installer
 		if hasattr(package['installer'], '__call__'):
 			### this is the response that comes back from the file installer!!!
@@ -561,7 +561,7 @@ class Install:
 			return package
 		### notify user that a package installer wasn't provided for this package
 		else:
-			print self.__response__(String().concat(String({'str': String(package['name']).tag(), 'attr':{'weight':'bold'}}).get(), "has no installer!"))
+			print self.__response__(self.concat(self.tag({'str': self.tag(package['name']), 'attr':{'weight':'bold'}}), "has no installer!"))
 	### attempt to load the class package through Package.get() 		
 	def __attempt__ (self, package):
 		### return result
@@ -574,7 +574,7 @@ class Install:
 			self.packages[i]['installed'] = True if self.__attempt__(self.packages[i]['package']) else False
 			### if package is determined to be installed print formatted package name
 			if self.packages[i]['installed']:
-				print self.__response__(String().concat(String({'str': String(self.packages[i]['name']).tag(), 'attr':{'weight':'bold'}}).get(), "is", String({'str':'{{installed}}','attr':{'color':'green','weight':'bold'}}).get()))
+				print self.__response__(self.concat(self.get({'str': self.tag(self.packages[i]['name']), 'attr':{'weight':'bold'}}), "is", self.get({'str':'{{installed}}','attr':{'color':'green','weight':'bold'}})))
 		### return reduced array
 		return self.packages
 	### substitute array item to be a dict with a class instance
@@ -784,42 +784,52 @@ class Dee (String):
 			self.__setup__()
 
 	def __actions__ (self, context):
+		### confirm that secondary arguments are valid character patterns
 		if re.compile(self.REG).match(context):
+			### confirm that system argument matches "EDIT" pattern and a system argument was provided after "EDIT" decleration
 			if re.compile(self.EDIT).match(context) and List(self.actions).index(1):
+				### pass system argument of "partner name / folder to edit" to file locate function and potential extension of file if retrieved from system arguments
 				self.__file__(self.actions[1], List(self.actions).index(2))
-
+			### if none of the patterns match sets
 			else:
+				### run initialiser from the beginning
 				self.__setup__(context)
 
 	### attempt to open configuration file and setup
 	def __file__ (self, context, extension):
 		### if context argument is not an accepted filename 
-		if not re.compile(String().EXT).match(context):
+		if not re.compile(self.EXT).match(context):
 			### check if secondary argument was a file extension
 			if type(extension) is str:
 				### concatenate extension name
-				context = context + "." + extension
+				context = self.cconcat([context, extension], ".")
 			else:
 				### concatenate string name as expected JSON
-				context = context + ".json"
-
-		print 'try to find', context
+				context = self.cconcat([context, "json"], ".")
+			
 		### attempt to find file on OS listed under context argument name
-		context = List(self.__fetch__(context)).index(0)
+		context = self.__fetch__(context, self.cconcat(["/", "Users", "/", pwd.getpwuid(os.getuid())[0], "/", "desktop"], ""))
 
-		### check if file was located 
-		if not context:
-			print 'couldn\'t find file. set up'
-			### return to setup
+		### confirm if the config file was not found
+		if not bool(context):
+			### run initialiser from the beginning
 			self.__setup__()
-
+		### if the file was found on the OS
 		else:
-			print 'found file', context
+			### attempt to open the file as formatted JSON
+			if len(context) > 1:
+				print len(context), "items found"
+				context = context[Set(request = "an integer within list range", response = "the returned file").open()['response']]
+
+			context = self.__open__(context)
+			### confirm JSON was successfully parsed
+			if context:
+				print json.dumps(context, indent = 4)
 
 	### find files on computer
-	def __fetch__ (self, context):
-		### attempt to locate file within subprocess on system drive
-		return [line[2:] for line in subprocess.check_output(String().concat("find", ".", "-iname", ("'" + context + "'")), shell = True).splitlines()]
+	def __fetch__ (self, context, path = "."):
+		return [line[2:] for line in subprocess.check_output(self.concat("find", path, "-iname", ("'" + context + "'")), shell = True).splitlines()]
+
 
 	### open filename as type json
 	def __open__ (self, file):
@@ -833,12 +843,8 @@ class Dee (String):
 				### return False for handling
 				return False
 
-	### check attribute name, callback
-	def __jsoncheck__ (self, json, attribute, funct):
-		pass
-
 	### main setup handler
-	def __setup__ (self):
+	def __setup__ (self, context = None):
 		pass 
 
 	### constructor

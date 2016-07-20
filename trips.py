@@ -39,11 +39,18 @@ class String:
 	END = '\033[0m'
 	### regexp for matching "{{string}}"
 	REG = "\{\{(?:[\w\s\d]*|[$&\+,\:\;\=\?@#\|'\<\>\.^\*\(\)%!-\/]*)*\}\}"
+	### regexp for matching string.extname
+	EXT = "^.+\.{1}\w+$"
+	### concatenate multiple arguments by string character
+	def cconcat (self, strlist, character):
+		return character.join(filter(None, strlist))
 	### concatenate multiple arguments to a single string
 	def concat (self, *args):
 		return " ".join(filter(None, args))
 	### wrap string in constructor with formatting syntax
-	def tag (self):
+	def tag (self, context = None):
+		if (type(context) is str) and (not hasattr(self, context)):
+			self.context = context
 		return "{{" + self.context + "}}"
 	### prints a multiple line string with formatting
 	def wrap (self, width = 60):
@@ -366,9 +373,9 @@ class Package:
 		self.cmd = cmd
 		self.system = Responder()
 
-class Install:
+class Install (String):
 	### attempt to fetch all packages
-	def get (self):
+	def all (self):
 		### assign empty or reduced list
 		packages = self.__assign__()
 		### if list is empty assume all packages were found
@@ -380,7 +387,7 @@ class Install:
 		### attempt to install the missing files
 		else:
 			### ask user if they would like to install the files dependencies
-			print self.__response__(String().concat(String({'str': String(str(len(missing)) + "/" + str(len(self.packages))).tag(), 'attr':{'color':'red','weight':'bold'}}).get(), "packages are missing"))
+			print self.__response__(self.concat(self.get({'str': self.tag(self.cconcat([str(len(missing)), str(len(self.packages))], "/")), 'attr': {'color':'red','weight':'bold'}})))
 			### if user agrees attempt to install each package
 			if Request(prompt = "attempt to install missing files?").open():
 				for i in range(0, len(packages)):
@@ -391,12 +398,12 @@ class Install:
 					### if file package not installed, print solution
 					if not packages[i]['installed']:
 						### print the name of the package that wasn't able to be installed
-						print self.__response__(String().concat("package", String({'str': String(packages[i]['name']).tag(), 'attr':{'weight':'bold'}}).get(), "could not be installed"))
+						print self.__response__(self.concat("package", self.get({'str': self.tag(packages[i]['name']), 'attr':{'weight':'bold'}}), "could not be installed"))
 						### print the appropriate solution
 						print self.__response__("please download the package and install before running the program again")
 						### if source is available print the URL
 						if packages[i]['source']:
-							print self.__response__(String().concat("package available at", String({'str': String(packages[i]['source']).tag(), 'attr':{'style':'underline'}}).get()))
+							print self.__response__(self.concat("packages available at", self.get({'str': self.tag(packages[i]['source']), 'attr':{'style':'underline'}})))
 						### return false; break loop; this will terminate all checking instances
 						### written with the assumption that you would not want your file to proceed running without all
 						return False
@@ -407,7 +414,7 @@ class Install:
 	### attempt to install the package through the supplied installer
 	def __install__ (self, package):
 		### notify user that the package is attempting to be installed
-		print self.__response__(String().concat("trying to install", String({'str': String(package['name']).tag(), 'attr':{'weight':'bold'}}).get()))
+		print self.__response__(self.concat("trying to install", self.get({'str': self.tag(package['name']), 'attr':{'weight':'bold'}})))
 		### try and call the supplied package installer
 		if hasattr(package['installer'], '__call__'):
 			### this is the response that comes back from the file installer!!!
@@ -419,7 +426,7 @@ class Install:
 			return package
 		### notify user that a package installer wasn't provided for this package
 		else:
-			print self.__response__(String().concat(String({'str': String(package['name']).tag(), 'attr':{'weight':'bold'}}).get(), "has no installer!"))
+			print self.__response__(self.concat(self.tag({'str': self.tag(package['name']), 'attr':{'weight':'bold'}}), "has no installer!"))
 	### attempt to load the class package through Package.get() 		
 	def __attempt__ (self, package):
 		### return result
@@ -432,7 +439,7 @@ class Install:
 			self.packages[i]['installed'] = True if self.__attempt__(self.packages[i]['package']) else False
 			### if package is determined to be installed print formatted package name
 			if self.packages[i]['installed']:
-				print self.__response__(String().concat(String({'str': String(self.packages[i]['name']).tag(), 'attr':{'weight':'bold'}}).get(), "is", String({'str':'{{installed}}','attr':{'color':'green','weight':'bold'}}).get()))
+				print self.__response__(self.concat(self.get({'str': self.tag(self.packages[i]['name']), 'attr':{'weight':'bold'}}), "is", self.get({'str':'{{installed}}','attr':{'color':'green','weight':'bold'}})))
 		### return reduced array
 		return self.packages
 	### substitute array item to be a dict with a class instance
@@ -1437,7 +1444,7 @@ def dependencies (system = Responder()):
 	### attempt to install the required files automatically
 	def attempt_installed (packages):
 		### return the result of the installation
-		return Install(packages).get()
+		return Install(packages).all()
 	### confirm the required packages were successfully installed on the OS
 	def confirm_installed (packages):
 		### notify user that the program is checking for installed dependencies
