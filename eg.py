@@ -818,8 +818,8 @@ class Command:
 
 class PX (String):
 	### produce formatted string for config.js entire container js object
-	def container (self, container = {'pre':'','ind':''}, frequency = {'pre':'','ind':''}):
-		return self.cconcat([container['pre'], "{", "\n", container['ind'], "    ", self.__target__(), "\n", container['ind'], "    ",  self.__selector__(), ",", "\n", container['ind'], "    ",  self.__template__(), ",", "\n", container['ind'], self.frequency(**frequency), "\n", container['pre'], "}"])
+	def container (self, container = {'pre':'','ind':''}, nested = {'pre':'    ','ind':'    '}):
+		return self.cconcat([container['pre'], "{", "\n", container['ind'], "    ", self.__target__(), "\n", container['ind'], "    ",  self.__selector__(), ",", "\n", container['ind'], "    ",  self.__template__(), ",", "\n", container['ind'], self.frequency(**nested), "\n", container['pre'], "}"])
 	### produce formatted string for config.js entire frequency js object
 	def frequency (self, pre = "", ind = ""):
 		return self.cconcat([pre, "frequency: {", "\n", "    ", ind, self.__first__(), ",", "\n", "    ", ind, self.__interval__(), "    ", "\n", pre, "}"])
@@ -854,27 +854,25 @@ class PX (String):
 
 
 
-print PX().container({'pre':'','ind':''}, {'pre':'    ', 'ind': '    '})
+#print PX().container({'pre':'','ind':''}, {'pre':'    ', 'ind': '    '})
 
 
 class Partner (String):
-	### produce formatted string array for config.js
-	def __push__ (self):
-		pass
-		#return 'containers: [\n    \n]' 
-	### produce formatted string object for config.js
-	def __item__ (self):
-		### return formatted string with four space indentation for individual containers pathing to gemini templates
-		pass
-	### produce formatted config file
-	def __config__ (self):
-		pass
+	def __container__ (self, pre = "", ind = "", nested = {'container':{'pre':'','ind':''}, 'nested':{'pre':'    ','ind':'    '}}):
+		return self.cconcat([pre, "containers:", " ", "[", "\n", self.__templates__(**nested), "\n", pre, "]"])
+
+	def __templates__ (self, container = {'pre':'','ind':''}, nested = {'pre':'    ','ind':'    '}):
+		print container
+		print nested
+
 	### constructor 
 	def __init__ (self, **kwargs):
-		self.name = kwargs.pop("name", None)
-		self.url = kwargs.pop("website", None)
+		self.name = kwargs.pop("name", "example")
+		self.website = kwargs.pop("website", "https://www.example.com/")
+		self.templates = kwargs.pop("templates", [PX(), PX()])
 
 
+print Partner().__container__("", "")
 
 
 class Dee (String):
