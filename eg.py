@@ -49,7 +49,7 @@ class String:
 	### regexp for matching string.extname
 	EXT = "^.+\.{1}\w+$"
 	### concatenate multiple arguments by string character
-	def cconcat (self, strlist, character):
+	def cconcat (self, strlist, character = ""):
 		return character.join(filter(None, strlist))
 	### concatenate multiple arguments to a single string
 	def concat (self, *args):
@@ -128,6 +128,54 @@ class String:
 	def __init__ (self, context = {}):
 		self.context = context
 
+
+class JSON:
+	### attempt to fetch formatted json from string or file
+	def fetch (self, method = "strs"):
+		### determine which method to operate
+		return self.__method__(method)
+	### determine method to parse json
+	def __method__ (self, method):
+		### format method string to match class function string pattern
+		method = String().cconcat(["__", method, "__" ])
+		### confirm if self has the method defined within self
+		if hasattr(self, method):
+			### call found function
+			return getattr(self, method)(self.context)
+	### attempt to parse json from string
+	def __strs__ (self, context):
+		### attempt to call json load as string method
+		try:
+			### return formatted json as dict
+			return json.loads(context)
+		### handle exception error for failing to load json
+		except:
+			### return False type for error handling
+			return False
+	### attempt to call json loads as string method
+	def __file__ (self, context):
+		### attempt to load supplied file instance as context argument
+		try:
+			### attempt to load string path / file instance
+			with open(context) as file:
+				### attempt to load file contents as json
+				try:
+					return json.load(file)
+				### handle exception error for failing to parse json
+				except:
+					### return False type for error handling
+					return False
+		### handle exception error for failing to open file in context
+		except:
+			### return False type for error handling
+			return False
+	### constructor
+	def __init__ (self, context = '{"example":"json"}'):
+		self.context = context
+
+
+
+
 class List:
 	### fetch index of list item
 	def index (self, index = 0):
@@ -142,6 +190,7 @@ class List:
 	### constructor
 	def __init__ (self, context = []):
 		self.context = context
+
 
 
 class Lexicon (String):
@@ -767,121 +816,118 @@ class Command:
 		self.function = self.__funct__()
 
 
+class PX (String):
+	### produce formatted string for config.js entire container js object
+	def container (self, container = {'pre':'','ind':''}, frequency = {'pre':'','ind':''}):
+		return self.cconcat([container['pre'], "{", "\n", container['ind'], "    ", self.__target__(), "\n", container['ind'], "    ",  self.__selector__(), ",", "\n", container['ind'], "    ",  self.__template__(), ",", "\n", container['ind'], self.frequency(**frequency), "\n", container['pre'], "}"])
+	### produce formatted string for config.js entire frequency js object
+	def frequency (self, pre = "", ind = ""):
+		return self.cconcat([pre, "frequency: {", "\n", "    ", ind, self.__first__(), ",", "\n", "    ", ind, self.__interval__(), "    ", "\n", pre, "}"])
+	### produce formatted string for config.js first ad position
+	def __first__ (self):
+		### return concatenated string forming the first ad position
+		return self.concat("first:", str(self.first))
+	### produce formatted string for config.js ad repetition interval
+	def __interval__ (self):
+		### return concatenated string forming the repeated ad position
+		return self.concat("interval:", str(self.interval))
+	### produce formatted string for config.js child selector
+	def __selector__ (self):
+		### return concatenated string forming the path the child container
+		return self.concat("selector:", self.cconcat(['"', self.selector, '"']))
+	### produce formatted string for config.js target selector
+	def __target__ (self):
+		### return concatenated string forming the path the parent container
+		return self.concat("target:", self.cconcat(['"', self.target, '"']))
+	### produce formatted string for config.js template path
+	def __template__ (self):
+		### return concatenated string forming the path the handlebars template
+		return self.concat("template:", self.cconcat(['"', self.cconcat([self.partner, "/", self.module, "/", self.module]), '"']))
+	### constructor
+	def __init__ (self, **kwargs):
+		self.partner = kwargs.pop("partner", "example")
+		self.module = kwargs.pop("module", "instream")
+		self.target = kwargs.pop("target", "#example")
+		self.selector = kwargs.pop("selector", "div")
+		self.first = kwargs.pop("first", 1)
+		self.interval = kwargs.pop("interval", 3)
+
+
+
+print PX().container({'pre':'','ind':''}, {'pre':'    ', 'ind': '    '})
+
+
+class Partner (String):
+	### produce formatted string array for config.js
+	def __push__ (self):
+		pass
+		#return 'containers: [\n    \n]' 
+	### produce formatted string object for config.js
+	def __item__ (self):
+		### return formatted string with four space indentation for individual containers pathing to gemini templates
+		pass
+	### produce formatted config file
+	def __config__ (self):
+		pass
+	### constructor 
+	def __init__ (self, **kwargs):
+		self.name = kwargs.pop("name", None)
+		self.url = kwargs.pop("website", None)
+
+
+
 
 class Dee (String):
-	EDIT = "^edit$"
-	NEW = "^new$"
 	ARG = "^(?:[\.\-])*.{1}"
-
-	### determine run path for dee class
+	AUTO = "^auto(mated)?$"
+	EDIT = "^edit$"
+	### main process handler
 	def main (self):
-		### if user supplied arguments during call
-		if self.actions:
-			### send first argument to evaluator 
-			self.__actions__(self.actions[0])
-		### if no arguments provided on startup
-		else:
-			### run initialiser
-			self.__setup__()
-
-	def __actions__ (self, context):
-		### confirm that secondary arguments are valid character patterns
-		if re.compile(self.ARG).match(context):
-			### confirm that system argument matches "EDIT" pattern
-			if re.compile(self.EDIT).match(context):
-				### confirm if a system argument was provided after "EDIT" decleration
-				if List(self.actions).index(1):
-					### pass system argument of "partner name / folder to edit" to file locate function and potential extension of file if retrieved from system arguments
-					self.__file__(self.actions[1], List(self.actions).index(2))
-			### confirm that system argument matches "NEW" pattern
-			elif re.compile(self.NEW).match(context):
-				### pass system arguments to attempt to silently build new file
-				self.__automate__(self.actions)
-			### if none of the patterns match sets
-			else:
-				### run initialiser from the beginning
-				self.__setup__(context)
-		### if not arguments were supplied as context
-		else:
-			### run initialiser from the beginning
-			self.__setup__()
-
-			
-	### attempt to automatically create all required files for valid output
-	def __automate__ (self, context):
-		#for i in range(0, len(context)):
-		#	print type(context[i])
-		print type(context[2]), "right hurr"
-	
-
-
-	### attempt to open configuration file and setup
-	def __file__ (self, context, extension):
-		### if context argument is not an accepted filename 
-		if not re.compile(self.EXT).match(context):
-			### check if secondary argument was a file extension
-			if type(extension) is str:
-				### concatenate extension name
-				context = self.cconcat([context, extension], ".")
-			else:
-				### concatenate string name as expected JSON
-				context = self.cconcat([context, "json"], ".")
-		### attempt to find file on OS listed under context argument name
-		context = self.__fetch__(context, self.cconcat(["/", "Users", "/", pwd.getpwuid(os.getuid())[0], "/", "desktop"], ""))
-		### confirm if the config file was not found
-		if not bool(context):
-			### run initialiser from the beginning
-			self.__setup__()
-		### if the file was found on the OS
-		else:
-			### attempt to open the file as formatted JSON
-			if len(context) > 1:
-				print len(context), "items found"
-				item = Set(request = "an integer within list range", response = "the returned file").open()
-
-				context = context[int(item['response'])]
-			### attempt to locate
-			context = self.__open__(context)
-			### confirm JSON was successfully parsed
-			if context:
-				print json.dumps(context, indent = 4)
-
-	### find files on computer
-	def __fetch__ (self, context, path = "."):
-		### run silent subprocess to locate supplied file name on OS; return found items within list
-		return [line[2:] for line in subprocess.check_output(self.concat("find", path, "-iname", ("'" + context + "'")), shell = True).splitlines()]
-	### open filename as type json
-	def __open__ (self, file):
-		### confirm if returned string is missing prefix of "/U" (should match "/Users/{..}")
-		if not re.compile("\/{1}U").match(file):
-			### correct file path to valid string
-			file = self.cconcat(["/U", file], "")
-		### attempt to load file
-		try:
-			### contextually open file
-			with open(file) as config:
-				### attempt to load file as json
-				try:
-					### return parsed JSON data
-					return json.load(config)
-				except:
-					### return False for error handling
-					return False
-		### handle error if issue occurred with opening the file
-		except:
-			### return False for error handling
-			return False
-
-
-	### main setup handler
-	def __setup__ (self, context = None):
-		print 'setup', context 
-
+		### attempt to process input context
+		return self.__process__()
+	### process edited start
+	def __edit__ (self, actions):
+		pass
+	### process automated start
+	def __automatic__ (self, actions):
+		pass
+	### process manual start
+	def __manual__ (self):
+		pass
+	### process argument string(s)
+	def __process__ (self):
+		### confirm that system arguments were supplied
+		if not bool(self.actions):
+			### if system arguments missing setup proccess to run as normal
+			return self.__manual__()
+		### should system arguments be found 			
+		### attempt to match the first argument instance
+		elif re.compile(self.ARG).match(self.actions[0]):
+			### attempt to match automatically setup expression
+			if re.compile(self.AUTO).match(self.actions[0]):
+				### run program with automated setup
+				return self.__automatic__(self.actions[1:])
+			### attempt to match edited setup expression
+			elif re.compile(self.EDIT).match(self.actions[0]):
+				### run program with edited setup
+				return self.__edit__(self.actions[1:])
+		### failed to match with expression list
+		### run program with BIOS setup
+		return self.__manual__()
 	### constructor
 	def __init__ (self, name = "dee", actions = sys.argv[1:]):
 		self.responder = Responder(name = name)
 		self.actions = actions
+		self.partners = []
+
+
+
 
 if __name__ == '__main__':
+	pass
+	#f = File(name = "myconfig", ext = "js", temporary = False)
+	#f.write(Partner().__item__())
+	#f.close()
+	
 
-	Dee().main()
+	#print Dee().main()
