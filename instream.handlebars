@@ -1,0 +1,81 @@
+{{!--
+
+### full list: https://git.corp.yahoo.com/aunz-webdev/gemini-native-templates ###
+### text within {{!-- will not be included in compiled template --}} ###
+
+
+####################
+##### clickout #####
+####################
+
+{{clickUrl}}
+
+#######################
+##### ad headline #####
+#######################
+
+{{headline}}
+
+####################
+### image source ###
+####################
+
+{{#if secHqImage}}
+    {{secHqImage}}
+{{else}}
+    {{#if secImage}}
+        {{secImage}}
+    {{else}}
+        {{image}}
+    {{/if}}
+{{/if}}
+
+########################
+###### ad summary ######
+########################
+
+{{#if summary}}
+    {{summary}}
+{{/if}}
+
+####################
+### sponsored by ###
+####################
+
+{{#if source}}
+    <a href="{{#if adchoices_url}}{{adchoices_url}}{{else}}https://info.yahoo.com/privacy/au/yahoo/relevantads.html{{/if}}" target="_blank">
+        <span>Sponsored by {{source}}</span>
+    </a>
+{{/if}}
+
+--}}
+
+
+<!-- Yahoo! Gemini -->
+<div id="gemini-ad-example" class="gemini-example-ad">
+    <div class="main-image row">
+        <figure>
+            <a href="{{headline}}" target="_blank">
+                <img src="{{#if secHqImage}}{{secHqImage}}{{else}}{{#if secImage}}{{secImage}}{{else}}{{image}}{{/if}}{{/if}}" alt="{{headline}}">
+            </a>
+        </figure>
+    </div>
+    <div class="main-headline row">
+        <h1>
+            <a href="{{headline}}" target="_blank">
+                {{headline}}
+            </a>
+        </h1>
+    </div>
+    <div class="main-sumamry row">
+        <p>
+            {{headline}}
+        </p>
+        {{#if source}}
+            <a href="{{#if adchoices_url}}{{adchoices_url}}{{else}}https://info.yahoo.com/privacy/au/yahoo/relevantads.html{{/if}}" target="_blank">
+                <span>Sponsored by {{source}}</span>
+            </a>
+        {{/if}}
+    </div>
+</div>
+

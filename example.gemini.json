@@ -1,0 +1,1 @@
+{"website": "https://www.example.com/", "templates": [{"target": "#example", "interval": 3, "module": "instream", "selector": "div", "partner": "example", "first": 1}], "name": "example", "syndication": "1234567"}

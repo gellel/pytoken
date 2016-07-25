@@ -858,6 +858,9 @@ class CX (String):
 	def __template__ (self):
 		### return concatenated string forming the path the handlebars template
 		return self.concat("template:", self.cconcat(['"', self.cconcat([self.partner, "/", self.module, "/", self.module]), '"']))
+	### self to dict
+	def __self__ (self):
+		return self.__dict__
 	### constructor
 	def __init__ (self, **kwargs):
 		self.partner = kwargs.pop("partner", "example")
@@ -872,10 +875,33 @@ class CX (String):
 
 
 class Config (String):
+	### produce javascript file and write to destination
+	def js (self, tabs):
+		### confirm if file has not been created
+		if not hasattr(self, 'js_file'):
+			### if file has no instance within class create file
+			self.js_file = File(name = "gemini-native.config", ext = "js", temporary = False)
+			self.js_file.write(self.__js__(tabs))
+			self.js_file.close()
+		### return file instance
+		return self.js_file
+	def json (self):
+		if not hasattr(self, 'json_file'):
+			### if file has no instance within class create file
+			self.json_file = File(name = self.cconcat([self.name, ".", "gemini"]), ext = "json", temporary = False)
+			self.json_file.write(self.__json__())
+			self.json_file.close()
+		### return file instance
+		return self.json_file
 	### produce entire config.js file string
-	def create (self, tabs = ""):
+	def create (self, **kwargs):
+		file_type = kwargs.pop("file", "js")
+		tabs = kwargs.pop("tabs", "")
 		### return formatted container 
-		return self.__wrapper__(tabs)
+		if file_type is "js":
+			return self.js(tabs)
+		elif file_type is "json":
+			return self.json()
 	def __comments__ (self):
 		return self.cconcat(["/*", "\n", "\n", "************************", "\n", "***", " ", "config file help", " ", "***", "\n", "************************", "\n", "\n", "containers: this section refers to the number of ad templates to be included for this partner. each javascript object refers to a seperate template. the same template can be include multiple times.", "\n", "\n", "target: this refers to the parent container for the ad to be sent to. when assigning this section, you should aim to get your selector as close as you can to the desired location for the ad.", "\n", "\n", "selector: this is the element that gemini will try to match against within the target container. these should be direct child of the target container.", "\n", "\n", "template: refers to the HTML snippet that is assigned / associated with this particular placement. the template path provided here will be inserted into the taget container and repeated x number of times after the first position set. templates can be shared across multiple placements.", "\n", "\n", "first: represents the initial position within the target that ads will commence.", "\n", "\n", "interval: this is the index that tells gemini when the next ad unit should occur within the target container. this index pattern is counted after the first ad position and will occur until no more ads are available to be served.", "\n", "\n", "************************", "\n", "******* ", "end help", " *******", "\n", "************************", "\n", "\n", "*/" "\n\n"]) 
 	### produce formatted string for config.js entire container js array
@@ -900,15 +926,82 @@ class Config (String):
 	def __syndication__ (self, tabs = ""):
 		### return concatenated string forming the id of the partner
 		return self.cconcat([tabs, "syndication: {", "\n", self.cconcat([tabs, "    "]), "section: ", self.cconcat(['"', self.syndication, '"']), "\n", tabs, "}"])
-	def __wrapper__ (self, tabs = ""):
+	### produce completely formatted javascript file for use within browser
+	def __js__ (self, tabs = ""):
 		### return complete string for js file
 		return self.cconcat([self.__comments__(), "\n", tabs, "(function () {", "\n", self.cconcat([tabs, "    "]), "new GeminiNative({", "\n", self.__container__(self.cconcat([tabs, "    ", "    "])), ",", "\n", self.__syndication__(self.cconcat([tabs, "    ", "    "])), "\n", self.cconcat([tabs, "    "]), "});", "\n", tabs, "})();"])
+	def __json__ (self):
+		templates = []
+		for i in range(0, len(self.templates)):
+			templates.append(self.templates[i].__self__())
+		return json.dumps({'name': self.name, 'website': self.website, 'syndication': self.syndication, 'templates': templates})
 	### constructor 
 	def __init__ (self, **kwargs):
 		self.name = kwargs.pop("name", "example")
 		self.website = kwargs.pop("website", "https://www.example.com/")
 		self.templates = kwargs.pop("templates", [CX()])
 		self.syndication = kwargs.pop("syndication", '1234567')
+
+
+
+
+class HTML (String):
+	### produce javascript file and write to destination
+	def handlebars (self, tabs = ""):
+		### confirm if file has not been created
+		if not hasattr(self, 'handlebars_file'):
+			### if file has no instance within class create file
+			self.handlebars_file = File(name = self.name, ext = "handlebars", temporary = False)
+			self.handlebars_file.write(self.__code__(tabs))
+			self.handlebars_file.close()
+		### return file instance
+		return self.handlebars_file
+	### produce handlebars file and write to destination
+	def create (self, **kwargs):
+		file_type = kwargs.pop("file", "handlebars")
+		tabs = kwargs.pop("tabs", "")
+		### return formatted container 
+		if file_type is "handlebars":
+			return self.handlebars(tabs)
+	#### produce entire formatted HTML code for handlebars file including comments and markup
+	def __code__ (self, tabs = ""):
+		### return comments and html for inclusion within handlebars file
+		return self.cconcat([self.__comments__(tabs), "\n", self.__html__()])
+	#### produce formatted comments for handlebars file
+	def __comments__ (self, tabs = ""):
+		### return formatted strings for inclusion within uncompiled handlebars file for all of the basic required fields
+		return self.cconcat(["{{!--", "\n", "\n", "### full list: https://git.corp.yahoo.com/aunz-webdev/gemini-native-templates ###", "\n", "### text within {{!-- will not be included in compiled template --}} ###", "\n", "\n", "\n", tabs, self.__clickurl__(), "\n", "\n", tabs, self.__headline__(), "\n", "\n", tabs, self.__image__(), "\n", "\n", tabs, self.__summary__(), "\n", "\n", tabs, self.__sponsored__(), "\n", "\n", "--}}", "\n", "\n"])
+	#### produce formatted HTML code for handlebars file
+	def __html__ (self):
+		### return formatted HTML for inclusion within uncompiled handlebars file
+		return self.cconcat(["<!-- Yahoo! Gemini -->", "\n", self.html, "\n", "\n"])
+	#### produce formatted clickurl comment for handlebars file
+	def __clickurl__ (self, tabs = ""):
+		### return formatted string for inclusion within uncompiled handlebars file
+		return self.cconcat([tabs, self.cconcat([tabs, "####################", "\n"]), self.cconcat([tabs, "##### clickout #####", "\n"]), self.cconcat([tabs, "####################", "\n", "\n"]), self.cconcat([tabs, "{{clickUrl}}"])])
+	#### produce formatted headline comment for handlebars file
+	def __headline__ (self, tabs = ""):
+		### return formatted string for inclusion within uncompiled handlebars file
+		return self.cconcat([tabs, self.cconcat([tabs, "#######################", "\n"]), self.cconcat([tabs, "##### ad headline #####", "\n"]), self.cconcat([tabs, "#######################", "\n", "\n"]), self.cconcat([tabs, "{{headline}}"])])
+	#### produce formatted image comment for handlebars file
+	def __image__ (self, tabs = ""):
+		### return formatted string for inclusion within uncompiled handlebars file
+		return self.cconcat([tabs, self.cconcat([tabs, "####################", "\n"]), self.cconcat([tabs, "### image source ###", "\n"]), self.cconcat([tabs, "####################", "\n", "\n"]), self.cconcat([tabs, "{{#if secHqImage}}", "\n"]), self.cconcat([tabs, "    ", "{{secHqImage}}", "\n"]), self.cconcat([tabs, "{{else}}", "\n"]), self.cconcat([tabs, "    ", "{{#if secImage}}", "\n"]), self.cconcat([tabs, "    ", "    ", "{{secImage}}", "\n"]), self.cconcat([tabs, "    ", "{{else}}", "\n"]), self.cconcat([tabs, "    ", "    ", "{{image}}", "\n"]), self.cconcat([tabs, "    ", "{{/if}}", "\n"]), self.cconcat([tabs, "{{/if}}"])])
+	#### produce formatted summary comment for handlebars file
+	def __summary__ (self, tabs = ""):
+		### return formatted string for inclusion within uncompiled handlebars file
+		return self.cconcat([tabs, self.cconcat([tabs, self.cconcat([tabs, "########################", "\n"]), self.cconcat([tabs, "###### ad summary ######", "\n"]), self.cconcat([tabs, "########################", "\n", "\n"])]), self.cconcat([tabs, "{{#if summary}}", "\n"]), self.cconcat([tabs, "    ", "{{summary}}", "\n"]), self.cconcat(["{{/if}}"])])
+	#### produce formatted sponsored by comment for handlebars file
+	def __sponsored__ (self, tabs = ""):
+		### return formatted string for inclusion within uncompiled handlebars file
+		return self.cconcat([self.cconcat([tabs, self.cconcat([tabs, "####################", "\n"]), self.cconcat([tabs, "### sponsored by ###", "\n"]), self.cconcat([tabs, "####################", "\n", "\n"]), tabs, "{{#if source}}", "\n"]), self.cconcat([tabs, "    ", '<a href="{{#if adchoices_url}}{{adchoices_url}}{{else}}https://info.yahoo.com/privacy/au/yahoo/relevantads.html{{/if}}" target="_blank">', "\n"]), self.cconcat([tabs, "    ", "    ", '<span>Sponsored by {{source}}</span>', "\n"]), self.cconcat([tabs, "    ", '</a>', "\n"]), self.cconcat([tabs, "{{/if}}"])])
+	### constructor
+	def __init__ (self, **kwargs):
+		html = kwargs.pop("html", None)
+		if not html:
+			html = self.cconcat([self.cconcat(['<div id="gemini-ad-example" class="gemini-example-ad">', "\n"]), self.cconcat(["    ", '<div class="main-image row">', "\n"]), self.cconcat(["    ", "    ", '<figure>', "\n"]), self.cconcat(["    ", "    ", "    ", '<a href="{{headline}}" target="_blank">', "\n"]), self.cconcat(["    ", "    ", "    ", "    ", '<img src="{{#if secHqImage}}{{secHqImage}}{{else}}{{#if secImage}}{{secImage}}{{else}}{{image}}{{/if}}{{/if}}" alt="{{headline}}">', "\n"]), self.cconcat(["    ", "    ", "    ", '</a>', "\n"]), self.cconcat(["    ", "    ", '</figure>', "\n"]), self.cconcat(["    ", '</div>', "\n"]), self.cconcat(["    ", '<div class="main-headline row">', "\n"]), self.cconcat(["    ", "    ", '<h1>', "\n"]), self.cconcat(["    ", "    ", "    ", '<a href="{{headline}}" target="_blank">', "\n"]), self.cconcat(["    ", "    ", "    ", "    ", '{{headline}}', "\n"]), self.cconcat(["    ", "    ", "    ", '</a>', "\n"]), self.cconcat(["    ", "    ", '</h1>', "\n"]), self.cconcat(["    ", '</div>', "\n"]), self.cconcat(["    ", '<div class="main-sumamry row">', "\n"]), self.cconcat(["    ", "    ", '<p>', "\n"]), self.cconcat(["    ", "    ", "    ", "{{headline}}", "\n"]), self.cconcat(["    ", "    ", '</p>', "\n"]), self.cconcat(["    ", "    ", "{{#if source}}", "\n"]), self.cconcat(["    ", "    ", "    ", '<a href="{{#if adchoices_url}}{{adchoices_url}}{{else}}https://info.yahoo.com/privacy/au/yahoo/relevantads.html{{/if}}" target="_blank">', "\n"]), self.cconcat(["    ", "    ", "    ", "    ", '<span>Sponsored by {{source}}</span>', "\n"]), self.cconcat(["    ", "    ", "    ", '</a>', "\n"]), self.cconcat(["    ", "    ", "{{/if}}"]), "\n", self.cconcat(["    ", '</div>', "\n"]), self.cconcat(['</div>'])])
+		self.name = kwargs.pop("name", "instream")
+		self.html = html
 
 
 
@@ -959,11 +1052,20 @@ class Dee (String):
 
 
 if __name__ == '__main__':
-	#print Config().create()
+	#C = Config()
+	#H = HTML()
+
+	#C.create(file = "js")
+	#C.create(file = "json")
+	#H.create(file = "handlebars")
+
+	pass
+	#print Config().js()
+	#print Config().json()
 	
-	f = File(name = "myconfig", ext = "js", temporary = False)
-	f.write(Config().create())
-	f.close()
+	#f = File(name = "myconfig", ext = "js", temporary = False)
+	#f.write(Config().create())
+	#f.close()
 	#pass
 
 	#print Dee().main()
