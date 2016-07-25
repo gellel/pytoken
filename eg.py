@@ -129,6 +129,8 @@ class String:
 		self.context = context
 
 
+
+
 class JSON:
 	### attempt to fetch formatted json from string or file
 	def fetch (self, method = "strs"):
@@ -190,6 +192,7 @@ class List:
 	### constructor
 	def __init__ (self, context = []):
 		self.context = context
+
 
 
 
@@ -286,6 +289,7 @@ class Lexicon (String):
 
 
 
+
 class LX:
 	### return formatted dictionary from self
 	def create (self):
@@ -333,6 +337,7 @@ class LX:
 
 
 
+
 class Responder (String):	
 	### returns a string (optionally filtered) prefixed by the name of the responder
 	def response (self, message = "destory all humans!", attr = {}):
@@ -351,6 +356,7 @@ class Responder (String):
 		self.name = kwargs.pop('name', 'system')
 		self.style = kwargs.pop('style', {'style':'underline','weight':'bold'})
 		self.seperator = kwargs.pop('seperator', ':')
+
 
 
 
@@ -460,6 +466,7 @@ class Set (String):
 
 
 
+
 class Request (String):
 	### method for asking the user to input one of two provided options
 	def open (self):
@@ -503,6 +510,7 @@ class Request (String):
 		self.confirm = str.upper(kwargs.pop("confirm", "yes"))
 		self.reject = str.upper(kwargs.pop("reject", "no"))
 		self.system = Responder()
+
 
 
 
@@ -653,6 +661,7 @@ class Install (String):
 
 
 
+
 class File:
 	### add new string to the end of the file
 	def append (self, string):
@@ -730,6 +739,7 @@ class File:
 
 
 
+
 class HTTPResource:
 	### request the resource
 	def fetch (self):
@@ -784,6 +794,7 @@ class HTTPResource:
 
 
 
+
 class Command:
 	### return the result of the attempted command
 	def process (self):
@@ -816,13 +827,17 @@ class Command:
 		self.function = self.__funct__()
 
 
-class PX (String):
+
+
+class CX (String):
 	### produce formatted string for config.js entire container js object
-	def container (self, container = {'pre':'','ind':''}, nested = {'pre':'    ','ind':'    '}):
-		return self.cconcat([container['pre'], "{", "\n", container['ind'], "    ", self.__target__(), "\n", container['ind'], "    ",  self.__selector__(), ",", "\n", container['ind'], "    ",  self.__template__(), ",", "\n", container['ind'], self.frequency(**nested), "\n", container['pre'], "}"])
+	def container (self, tabs = ""):
+		### return concatenated string forming the template object container
+		return self.cconcat([tabs, "{", "\n", self.cconcat([tabs, "    "]), self.cconcat([self.__target__(), ","]), "\n", self.cconcat([tabs, "    "]), self.cconcat([self.__selector__(), ","]), "\n", self.frequency(self.cconcat([tabs, "    "])), "\n", tabs, "}"])
 	### produce formatted string for config.js entire frequency js object
-	def frequency (self, pre = "", ind = ""):
-		return self.cconcat([pre, "frequency: {", "\n", "    ", ind, self.__first__(), ",", "\n", "    ", ind, self.__interval__(), "    ", "\n", pre, "}"])
+	def frequency (self, tabs = ""):
+		### return concatenated string forming the template frequency object
+		return self.cconcat([tabs, "frequency: {", "\n", self.cconcat([tabs, "    "]), self.cconcat([self.__first__(), ","]), "\n", self.cconcat([tabs, "    "]), self.__interval__(), "\n", tabs, "}"])
 	### produce formatted string for config.js first ad position
 	def __first__ (self):
 		### return concatenated string forming the first ad position
@@ -854,25 +869,48 @@ class PX (String):
 
 
 
-#print PX().container({'pre':'','ind':''}, {'pre':'    ', 'ind': '    '})
 
 
-class Partner (String):
-	def __container__ (self, pre = "", ind = "", nested = {'container':{'pre':'','ind':''}, 'nested':{'pre':'    ','ind':'    '}}):
-		return self.cconcat([pre, "containers:", " ", "[", "\n", self.__templates__(**nested), "\n", pre, "]"])
-
-	def __templates__ (self, container = {'pre':'','ind':''}, nested = {'pre':'    ','ind':'    '}):
-		print container
-		print nested
-
+class Config (String):
+	### produce entire config.js file string
+	def create (self, tabs = ""):
+		### return formatted container 
+		return self.__wrapper__(tabs)
+	def __comments__ (self):
+		return self.cconcat(["/*", "\n", "\n", "************************", "\n", "***", " ", "config file help", " ", "***", "\n", "************************", "\n", "\n", "containers: this section refers to the number of ad templates to be included for this partner. each javascript object refers to a seperate template. the same template can be include multiple times.", "\n", "\n", "target: this refers to the parent container for the ad to be sent to. when assigning this section, you should aim to get your selector as close as you can to the desired location for the ad.", "\n", "\n", "selector: this is the element that gemini will try to match against within the target container. these should be direct child of the target container.", "\n", "\n", "first: represents the initial position within the target that ads will commence.", "\n", "\n", "interval: this is the index that tells gemini when the next ad unit should occur within the target container. this index pattern is counted after the first ad position and will occur until no more ads are available to be served.", "\n", "\n", "************************", "\n", "******* ", "end help", " *******", "\n", "************************", "\n", "\n", "*/" "\n\n"]) 
+	### produce formatted string for config.js entire container js array
+	def __container__ (self, tabs = ""):
+		### return formatted string for javascript object with key of container and value of array with nested objects
+		return self.cconcat([tabs, "containers: [", "\n", self.__templates__(tabs), "\n", tabs, "]"])
+	### produce formatted string for config.js single or multiple objects formatted for js array
+	def __templates__ (self, tabs = ""):
+		templates_string = ""
+		templates_len = len(self.templates)
+		### iterate over the length of template containers to be concatenated
+		for i in range(0, templates_len):
+			### return container string generated from PX container method
+			templates_string = self.cconcat([templates_string, self.templates[i].container(self.cconcat([tabs, "    "]))])
+			### confirm if the iteration count is not the length of the list range
+			if ((i + 1) is not templates_len):
+				### if iteration is not the length format string to include a comma denoting a following item and breakline
+				templates_string = self.cconcat([templates_string, ",", "\n"])
+		### return concatenated singular or multiple formatted array type list of javascript objects
+		return templates_string
+	### produce formatted string for config.js entire container js array
+	def __syndication__ (self, tabs = ""):
+		### return concatenated string forming the id of the partner
+		return self.cconcat([tabs, "syndication: {", "\n", self.cconcat([tabs, "    "]), "section: ", self.cconcat(['"', self.syndication, '"']), "\n", tabs, "}"])
+	def __wrapper__ (self, tabs = ""):
+		### return complete string for js file
+		return self.cconcat([self.__comments__(), "\n", tabs, "(function () {", "\n", self.cconcat([tabs, "    "]), "new GeminiNative({", "\n", self.__container__(self.cconcat([tabs, "    ", "    "])), ",", "\n", self.__syndication__(self.cconcat([tabs, "    ", "    "])), "\n", self.cconcat([tabs, "    "]), "});", "\n", tabs, "})();"])
 	### constructor 
 	def __init__ (self, **kwargs):
 		self.name = kwargs.pop("name", "example")
 		self.website = kwargs.pop("website", "https://www.example.com/")
-		self.templates = kwargs.pop("templates", [PX(), PX()])
+		self.templates = kwargs.pop("templates", [CX()])
+		self.syndication = kwargs.pop("syndication", '1234567')
 
 
-print Partner().__container__("", "")
 
 
 class Dee (String):
@@ -919,13 +957,14 @@ class Dee (String):
 		self.partners = []
 
 
-
+#### FIX PRINT METHOD; TOO MUCH INDENTATION 
 
 if __name__ == '__main__':
-	pass
-	#f = File(name = "myconfig", ext = "js", temporary = False)
-	#f.write(Partner().__item__())
-	#f.close()
+	#print Config().create()
 	
+	f = File(name = "myconfig", ext = "js", temporary = False)
+	f.write(Config().create())
+	f.close()
+	#pass
 
 	#print Dee().main()
