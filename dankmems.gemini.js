@@ -27,17 +27,17 @@ interval: this is the index that tells gemini when the next ad unit should occur
     new GeminiNative({
         containers: [
             {
-                target: "#example",
-                selector: "div",
-                template: "example/instream/instream",
+                target: "#sample",
+                selector: "> section",
+                template: "dankmems/instream/instream",
                 frequency: {
-                    first: 1,
-                    interval: 3
+                    first: 3,
+                    interval: 5
                 }
             }
         ],
         syndication: {
-            section: "1234567"
+            section: "7654321"
         }
     });
 })();

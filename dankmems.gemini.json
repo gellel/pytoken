@@ -1,0 +1,1 @@
+{"website": "https://www.sample.com/", "partner": "dankmems", "templates": [{"target": "#sample", "interval": 5, "module": "instream", "selector": "> section", "partner": "dankmems", "first": 3}], "syndication": "7654321"}

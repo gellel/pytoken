@@ -565,6 +565,7 @@ class Package:
 
 
 
+
 class Install (String):
 	### attempt to fetch all packages
 	def all (self):
@@ -868,7 +869,7 @@ class CX (String):
 		self.target = kwargs.pop("target", "#example")
 		self.selector = kwargs.pop("selector", "div")
 		self.first = kwargs.pop("first", 1)
-		self.interval = kwargs.pop("interval", 3)
+		self.interval = kwargs.pop("interval", 1)
 
 
 
@@ -880,7 +881,7 @@ class Config (String):
 		### confirm if file has not been created
 		if not hasattr(self, 'js_file'):
 			### if file has no instance within class create file
-			self.js_file = File(name = "gemini-native.config", ext = "js", temporary = False)
+			self.js_file = File(name = self.cconcat([self.partner, ".", "gemini"]), ext = "js", temporary = False)
 			self.js_file.write(self.__js__(tabs))
 			self.js_file.close()
 		### return file instance
@@ -888,7 +889,7 @@ class Config (String):
 	def json (self):
 		if not hasattr(self, 'json_file'):
 			### if file has no instance within class create file
-			self.json_file = File(name = self.cconcat([self.name, ".", "gemini"]), ext = "json", temporary = False)
+			self.json_file = File(name = self.cconcat([self.partner, ".", "gemini"]), ext = "json", temporary = False)
 			self.json_file.write(self.__json__())
 			self.json_file.close()
 		### return file instance
@@ -902,6 +903,8 @@ class Config (String):
 			return self.js(tabs)
 		elif file_type is "json":
 			return self.json()
+		elif file_type is "both":
+			return {'js': self.js(tabs), 'json': self.json()}
 	def __comments__ (self):
 		return self.cconcat(["/*", "\n", "\n", "************************", "\n", "***", " ", "config file help", " ", "***", "\n", "************************", "\n", "\n", "containers: this section refers to the number of ad templates to be included for this partner. each javascript object refers to a seperate template. the same template can be include multiple times.", "\n", "\n", "target: this refers to the parent container for the ad to be sent to. when assigning this section, you should aim to get your selector as close as you can to the desired location for the ad.", "\n", "\n", "selector: this is the element that gemini will try to match against within the target container. these should be direct child of the target container.", "\n", "\n", "template: refers to the HTML snippet that is assigned / associated with this particular placement. the template path provided here will be inserted into the taget container and repeated x number of times after the first position set. templates can be shared across multiple placements.", "\n", "\n", "first: represents the initial position within the target that ads will commence.", "\n", "\n", "interval: this is the index that tells gemini when the next ad unit should occur within the target container. this index pattern is counted after the first ad position and will occur until no more ads are available to be served.", "\n", "\n", "************************", "\n", "******* ", "end help", " *******", "\n", "************************", "\n", "\n", "*/" "\n\n"]) 
 	### produce formatted string for config.js entire container js array
@@ -934,13 +937,13 @@ class Config (String):
 		templates = []
 		for i in range(0, len(self.templates)):
 			templates.append(self.templates[i].__self__())
-		return json.dumps({'name': self.name, 'website': self.website, 'syndication': self.syndication, 'templates': templates})
+		return json.dumps({'partner': self.partner, 'website': self.website, 'syndication': self.syndication, 'templates': templates})
 	### constructor 
 	def __init__ (self, **kwargs):
-		self.name = kwargs.pop("name", "example")
+		self.partner = kwargs.pop("partner", "example")
 		self.website = kwargs.pop("website", "https://www.example.com/")
 		self.templates = kwargs.pop("templates", [CX()])
-		self.syndication = kwargs.pop("syndication", '1234567')
+		self.syndication = kwargs.pop("syndication", "1234567")
 
 
 
@@ -1005,6 +1008,27 @@ class HTML (String):
 
 
 
+class Partner:
+	def __config__ (self, config):
+		return Config(**config)
+
+	def __templates__ (self, templates = [{'module': 'instream', 'target': '#sample', 'selector': '> section', 'first': 3, 'interval': 5}]):
+		for i in range(0, len(templates)):
+			templates[i]['partner'] = self.name
+			templates[i] = CX(**templates[i])
+		return templates
+
+	def __init__ (self, **kwargs):
+		self.name = kwargs.pop("name", "sample")
+		self.website = kwargs.pop("website", "https://www.sample.com/")
+		self.templates = self.__templates__(kwargs.pop("templates", [{'module': 'instream', 'target': '#sample', 'selector': '> section', 'first': 3, 'interval': 5}]))
+		self.syndication = kwargs.pop("syndication", "7654321")
+		self.config = self.__config__({'partner': self.name, 'website': self.website, 'templates': self.templates, 'syndication': self.syndication})
+
+
+
+print Partner(name = "dankmems").config.create(file = "both")
+
 
 class Dee (String):
 	ARG = "^(?:[\.\-])*.{1}"
@@ -1052,6 +1076,10 @@ class Dee (String):
 
 
 if __name__ == '__main__':
+	### i change the output name for the js config file; need to update that on the url file 
+
+
+
 	#C = Config()
 	#H = HTML()
 
