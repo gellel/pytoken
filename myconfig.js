@@ -10,6 +10,8 @@ target: this refers to the parent container for the ad to be sent to. when assig
 
 selector: this is the element that gemini will try to match against within the target container. these should be direct child of the target container.
 
+template: refers to the HTML snippet that is assigned / associated with this particular placement. the template path provided here will be inserted into the taget container and repeated x number of times after the first position set. templates can be shared across multiple placements.
+
 first: represents the initial position within the target that ads will commence.
 
 interval: this is the index that tells gemini when the next ad unit should occur within the target container. this index pattern is counted after the first ad position and will occur until no more ads are available to be served.
@@ -27,6 +29,7 @@ interval: this is the index that tells gemini when the next ad unit should occur
             {
                 target: "#example",
                 selector: "div",
+                template: "example/instream/instream",
                 frequency: {
                     first: 1,
                     interval: 3

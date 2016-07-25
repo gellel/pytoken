@@ -833,7 +833,7 @@ class CX (String):
 	### produce formatted string for config.js entire container js object
 	def container (self, tabs = ""):
 		### return concatenated string forming the template object container
-		return self.cconcat([tabs, "{", "\n", self.cconcat([tabs, "    "]), self.cconcat([self.__target__(), ","]), "\n", self.cconcat([tabs, "    "]), self.cconcat([self.__selector__(), ","]), "\n", self.frequency(self.cconcat([tabs, "    "])), "\n", tabs, "}"])
+		return self.cconcat([tabs, "{", "\n", self.cconcat([tabs, "    "]), self.cconcat([self.__target__(), ","]), "\n", self.cconcat([tabs, "    "]), self.cconcat([self.__selector__(), ","]), "\n", self.cconcat([tabs, "    "]), self.cconcat([self.__template__(), ","]), "\n", self.frequency(self.cconcat([tabs, "    "])), "\n", tabs, "}"])
 	### produce formatted string for config.js entire frequency js object
 	def frequency (self, tabs = ""):
 		### return concatenated string forming the template frequency object
@@ -877,7 +877,7 @@ class Config (String):
 		### return formatted container 
 		return self.__wrapper__(tabs)
 	def __comments__ (self):
-		return self.cconcat(["/*", "\n", "\n", "************************", "\n", "***", " ", "config file help", " ", "***", "\n", "************************", "\n", "\n", "containers: this section refers to the number of ad templates to be included for this partner. each javascript object refers to a seperate template. the same template can be include multiple times.", "\n", "\n", "target: this refers to the parent container for the ad to be sent to. when assigning this section, you should aim to get your selector as close as you can to the desired location for the ad.", "\n", "\n", "selector: this is the element that gemini will try to match against within the target container. these should be direct child of the target container.", "\n", "\n", "first: represents the initial position within the target that ads will commence.", "\n", "\n", "interval: this is the index that tells gemini when the next ad unit should occur within the target container. this index pattern is counted after the first ad position and will occur until no more ads are available to be served.", "\n", "\n", "************************", "\n", "******* ", "end help", " *******", "\n", "************************", "\n", "\n", "*/" "\n\n"]) 
+		return self.cconcat(["/*", "\n", "\n", "************************", "\n", "***", " ", "config file help", " ", "***", "\n", "************************", "\n", "\n", "containers: this section refers to the number of ad templates to be included for this partner. each javascript object refers to a seperate template. the same template can be include multiple times.", "\n", "\n", "target: this refers to the parent container for the ad to be sent to. when assigning this section, you should aim to get your selector as close as you can to the desired location for the ad.", "\n", "\n", "selector: this is the element that gemini will try to match against within the target container. these should be direct child of the target container.", "\n", "\n", "template: refers to the HTML snippet that is assigned / associated with this particular placement. the template path provided here will be inserted into the taget container and repeated x number of times after the first position set. templates can be shared across multiple placements.", "\n", "\n", "first: represents the initial position within the target that ads will commence.", "\n", "\n", "interval: this is the index that tells gemini when the next ad unit should occur within the target container. this index pattern is counted after the first ad position and will occur until no more ads are available to be served.", "\n", "\n", "************************", "\n", "******* ", "end help", " *******", "\n", "************************", "\n", "\n", "*/" "\n\n"]) 
 	### produce formatted string for config.js entire container js array
 	def __container__ (self, tabs = ""):
 		### return formatted string for javascript object with key of container and value of array with nested objects
@@ -957,7 +957,6 @@ class Dee (String):
 		self.partners = []
 
 
-#### FIX PRINT METHOD; TOO MUCH INDENTATION 
 
 if __name__ == '__main__':
 	#print Config().create()
