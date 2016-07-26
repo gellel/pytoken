@@ -870,6 +870,9 @@ class CX (String):
 		self.selector = kwargs.pop("selector", "div")
 		self.first = kwargs.pop("first", 1)
 		self.interval = kwargs.pop("interval", 1)
+		self.html = kwargs.pop("html", None)
+		if not self.html:
+			self.html = self.cconcat([self.cconcat(['<div id="gemini-ad-example" class="gemini-example-ad">', "\n"]), self.cconcat(["    ", '<div class="main-image row">', "\n"]), self.cconcat(["    ", "    ", '<figure>', "\n"]), self.cconcat(["    ", "    ", "    ", '<a href="{{headline}}" target="_blank">', "\n"]), self.cconcat(["    ", "    ", "    ", "    ", '<img src="{{#if secHqImage}}{{secHqImage}}{{else}}{{#if secImage}}{{secImage}}{{else}}{{image}}{{/if}}{{/if}}" alt="{{headline}}">', "\n"]), self.cconcat(["    ", "    ", "    ", '</a>', "\n"]), self.cconcat(["    ", "    ", '</figure>', "\n"]), self.cconcat(["    ", '</div>', "\n"]), self.cconcat(["    ", '<div class="main-headline row">', "\n"]), self.cconcat(["    ", "    ", '<h1>', "\n"]), self.cconcat(["    ", "    ", "    ", '<a href="{{headline}}" target="_blank">', "\n"]), self.cconcat(["    ", "    ", "    ", "    ", '{{headline}}', "\n"]), self.cconcat(["    ", "    ", "    ", '</a>', "\n"]), self.cconcat(["    ", "    ", '</h1>', "\n"]), self.cconcat(["    ", '</div>', "\n"]), self.cconcat(["    ", '<div class="main-sumamry row">', "\n"]), self.cconcat(["    ", "    ", '<p>', "\n"]), self.cconcat(["    ", "    ", "    ", "{{headline}}", "\n"]), self.cconcat(["    ", "    ", '</p>', "\n"]), self.cconcat(["    ", "    ", "{{#if source}}", "\n"]), self.cconcat(["    ", "    ", "    ", '<a href="{{#if adchoices_url}}{{adchoices_url}}{{else}}https://info.yahoo.com/privacy/au/yahoo/relevantads.html{{/if}}" target="_blank">', "\n"]), self.cconcat(["    ", "    ", "    ", "    ", '<span>Sponsored by {{source}}</span>', "\n"]), self.cconcat(["    ", "    ", "    ", '</a>', "\n"]), self.cconcat(["    ", "    ", "{{/if}}"]), "\n", self.cconcat(["    ", '</div>', "\n"]), self.cconcat(['</div>'])])
 
 
 
@@ -966,68 +969,91 @@ class HTML (String):
 		### return formatted container 
 		if file_type is "handlebars":
 			return self.handlebars(tabs)
-	#### produce entire formatted HTML code for handlebars file including comments and markup
+	### produce formatting hashes around titles
+	def __formatter__ (self, string):
+		return "".join(list('#' * len(string)))		
+	### produce entire formatted HTML code for handlebars file including comments and markup
 	def __code__ (self, tabs = ""):
 		### return comments and html for inclusion within handlebars file
 		return self.cconcat([self.__comments__(tabs), "\n", self.__html__()])
-	#### produce formatted comments for handlebars file
+	### produce formatted comments for handlebars file
 	def __comments__ (self, tabs = ""):
 		### return formatted strings for inclusion within uncompiled handlebars file for all of the basic required fields
-		return self.cconcat(["{{!--", "\n", "\n", "### full list: https://git.corp.yahoo.com/aunz-webdev/gemini-native-templates ###", "\n", "### text within {{!-- will not be included in compiled template --}} ###", "\n", "\n", "\n", tabs, self.__clickurl__(), "\n", "\n", tabs, self.__headline__(), "\n", "\n", tabs, self.__image__(), "\n", "\n", tabs, self.__summary__(), "\n", "\n", tabs, self.__sponsored__(), "\n", "\n", "--}}", "\n", "\n"])
-	#### produce formatted HTML code for handlebars file
+		return self.cconcat(["{{!--", "\n", "\n", self.__name__(), "\n", "\n", "### full list: https://git.corp.yahoo.com/aunz-webdev/gemini-native-templates ###", "\n", "### text within {{!-- --}} will not be included in compiled template ###", "\n", "\n", "\n", tabs, self.__clickurl__(), "\n", "\n", tabs, self.__headline__(), "\n", "\n", tabs, self.__image__(), "\n", "\n", tabs, self.__summary__(), "\n", "\n", tabs, self.__sponsored__(), "\n", "\n", "--}}", "\n", "\n"])
+	### produce formatted HTML code for handlebars file
 	def __html__ (self):
 		### return formatted HTML for inclusion within uncompiled handlebars file
 		return self.cconcat(["<!-- Yahoo! Gemini -->", "\n", self.html, "\n", "\n"])
-	#### produce formatted clickurl comment for handlebars file
+	### produce formatted clickurl comment for handlebars file
 	def __clickurl__ (self, tabs = ""):
+		title_str = self.cconcat(["###", " ", "click out / exit url", " ", "###"])
 		### return formatted string for inclusion within uncompiled handlebars file
-		return self.cconcat([tabs, self.cconcat([tabs, "####################", "\n"]), self.cconcat([tabs, "##### clickout #####", "\n"]), self.cconcat([tabs, "####################", "\n", "\n"]), self.cconcat([tabs, "{{clickUrl}}"])])
-	#### produce formatted headline comment for handlebars file
+		return self.cconcat([tabs, self.cconcat([tabs, self.__formatter__(title_str), "\n"]), self.cconcat([tabs, title_str, "\n"]), self.cconcat([tabs, self.__formatter__(title_str), "\n", "\n"]), self.cconcat([tabs, "{{clickUrl}}"])])
+	### produce formatted headline comment for handlebars file
 	def __headline__ (self, tabs = ""):
+		title_str = self.cconcat(["###", " ", "primary ad headline", " ", "###"])
 		### return formatted string for inclusion within uncompiled handlebars file
-		return self.cconcat([tabs, self.cconcat([tabs, "#######################", "\n"]), self.cconcat([tabs, "##### ad headline #####", "\n"]), self.cconcat([tabs, "#######################", "\n", "\n"]), self.cconcat([tabs, "{{headline}}"])])
-	#### produce formatted image comment for handlebars file
+		return self.cconcat([tabs, self.cconcat([tabs, self.__formatter__(title_str), "\n"]), self.cconcat([tabs, title_str, "\n"]), self.cconcat([tabs, self.__formatter__(title_str), "\n", "\n"]), self.cconcat([tabs, "{{headline}}"])])
+	### produce formatted image comment for handlebars file
 	def __image__ (self, tabs = ""):
+		title_str = self.cconcat(["###", " ",  "primary ad image", " ", "###"])
 		### return formatted string for inclusion within uncompiled handlebars file
-		return self.cconcat([tabs, self.cconcat([tabs, "####################", "\n"]), self.cconcat([tabs, "### image source ###", "\n"]), self.cconcat([tabs, "####################", "\n", "\n"]), self.cconcat([tabs, "{{#if secHqImage}}", "\n"]), self.cconcat([tabs, "    ", "{{secHqImage}}", "\n"]), self.cconcat([tabs, "{{else}}", "\n"]), self.cconcat([tabs, "    ", "{{#if secImage}}", "\n"]), self.cconcat([tabs, "    ", "    ", "{{secImage}}", "\n"]), self.cconcat([tabs, "    ", "{{else}}", "\n"]), self.cconcat([tabs, "    ", "    ", "{{image}}", "\n"]), self.cconcat([tabs, "    ", "{{/if}}", "\n"]), self.cconcat([tabs, "{{/if}}"])])
-	#### produce formatted summary comment for handlebars file
+		return self.cconcat([tabs, self.cconcat([tabs, self.__formatter__(title_str), "\n"]), self.cconcat([tabs, title_str, "\n"]), self.cconcat([tabs, self.__formatter__(title_str), "\n", "\n"]), self.cconcat([tabs, "{{#if secHqImage}}", "\n"]), self.cconcat([tabs, "    ", "{{secHqImage}}", "\n"]), self.cconcat([tabs, "{{else}}", "\n"]), self.cconcat([tabs, "    ", "{{#if secImage}}", "\n"]), self.cconcat([tabs, "    ", "    ", "{{secImage}}", "\n"]), self.cconcat([tabs, "    ", "{{else}}", "\n"]), self.cconcat([tabs, "    ", "    ", "{{image}}", "\n"]), self.cconcat([tabs, "    ", "{{/if}}", "\n"]), self.cconcat([tabs, "{{/if}}"])])
+	### produce formatted name comment for handlebars file
+	def __name__ (self, tabs = ""):
+		title_str = self.cconcat(["###", " ", "HTML template for website:",  " ", self.website, " ", "###"])
+		### return formatted string for inclusion within uncompiled handlebars file
+		return self.cconcat([tabs, self.cconcat([tabs, self.__formatter__(title_str), "\n"]), self.cconcat([tabs, title_str, "\n"]), self.cconcat([tabs, self.__formatter__(title_str)])])
+	### produce formatted summary comment for handlebars file
 	def __summary__ (self, tabs = ""):
+		title_str = self.cconcat(["###", " ", "ad content summary", " ", "###"])
 		### return formatted string for inclusion within uncompiled handlebars file
-		return self.cconcat([tabs, self.cconcat([tabs, self.cconcat([tabs, "########################", "\n"]), self.cconcat([tabs, "###### ad summary ######", "\n"]), self.cconcat([tabs, "########################", "\n", "\n"])]), self.cconcat([tabs, "{{#if summary}}", "\n"]), self.cconcat([tabs, "    ", "{{summary}}", "\n"]), self.cconcat(["{{/if}}"])])
-	#### produce formatted sponsored by comment for handlebars file
+		return self.cconcat([tabs, self.cconcat([tabs, self.cconcat([tabs, self.__formatter__(title_str), "\n"]), self.cconcat([tabs, title_str, "\n"]), self.cconcat([tabs, self.__formatter__(title_str), "\n", "\n"])]), self.cconcat([tabs, "{{#if summary}}", "\n"]), self.cconcat([tabs, "    ", "{{summary}}", "\n"]), self.cconcat(["{{/if}}"])])
+	### produce formatted sponsored by comment for handlebars file
 	def __sponsored__ (self, tabs = ""):
+		title_str = self.cconcat(["###", " ", "ad sponsored by", " ", "###"])
 		### return formatted string for inclusion within uncompiled handlebars file
-		return self.cconcat([self.cconcat([tabs, self.cconcat([tabs, "####################", "\n"]), self.cconcat([tabs, "### sponsored by ###", "\n"]), self.cconcat([tabs, "####################", "\n", "\n"]), tabs, "{{#if source}}", "\n"]), self.cconcat([tabs, "    ", '<a href="{{#if adchoices_url}}{{adchoices_url}}{{else}}https://info.yahoo.com/privacy/au/yahoo/relevantads.html{{/if}}" target="_blank">', "\n"]), self.cconcat([tabs, "    ", "    ", '<span>Sponsored by {{source}}</span>', "\n"]), self.cconcat([tabs, "    ", '</a>', "\n"]), self.cconcat([tabs, "{{/if}}"])])
+		return self.cconcat([self.cconcat([tabs, self.cconcat([tabs, self.__formatter__(title_str), "\n"]), self.cconcat([tabs, title_str, "\n"]), self.cconcat([tabs, self.__formatter__(title_str), "\n", "\n"]), tabs, "{{#if source}}", "\n"]), self.cconcat([tabs, "    ", '<a href="{{#if adchoices_url}}{{adchoices_url}}{{else}}https://info.yahoo.com/privacy/au/yahoo/relevantads.html{{/if}}" target="_blank">', "\n"]), self.cconcat([tabs, "    ", "    ", '<span>Sponsored by {{source}}</span>', "\n"]), self.cconcat([tabs, "    ", '</a>', "\n"]), self.cconcat([tabs, "{{/if}}"])])
 	### constructor
-	def __init__ (self, **kwargs):
-		html = kwargs.pop("html", None)
-		if not html:
-			html = self.cconcat([self.cconcat(['<div id="gemini-ad-example" class="gemini-example-ad">', "\n"]), self.cconcat(["    ", '<div class="main-image row">', "\n"]), self.cconcat(["    ", "    ", '<figure>', "\n"]), self.cconcat(["    ", "    ", "    ", '<a href="{{headline}}" target="_blank">', "\n"]), self.cconcat(["    ", "    ", "    ", "    ", '<img src="{{#if secHqImage}}{{secHqImage}}{{else}}{{#if secImage}}{{secImage}}{{else}}{{image}}{{/if}}{{/if}}" alt="{{headline}}">', "\n"]), self.cconcat(["    ", "    ", "    ", '</a>', "\n"]), self.cconcat(["    ", "    ", '</figure>', "\n"]), self.cconcat(["    ", '</div>', "\n"]), self.cconcat(["    ", '<div class="main-headline row">', "\n"]), self.cconcat(["    ", "    ", '<h1>', "\n"]), self.cconcat(["    ", "    ", "    ", '<a href="{{headline}}" target="_blank">', "\n"]), self.cconcat(["    ", "    ", "    ", "    ", '{{headline}}', "\n"]), self.cconcat(["    ", "    ", "    ", '</a>', "\n"]), self.cconcat(["    ", "    ", '</h1>', "\n"]), self.cconcat(["    ", '</div>', "\n"]), self.cconcat(["    ", '<div class="main-sumamry row">', "\n"]), self.cconcat(["    ", "    ", '<p>', "\n"]), self.cconcat(["    ", "    ", "    ", "{{headline}}", "\n"]), self.cconcat(["    ", "    ", '</p>', "\n"]), self.cconcat(["    ", "    ", "{{#if source}}", "\n"]), self.cconcat(["    ", "    ", "    ", '<a href="{{#if adchoices_url}}{{adchoices_url}}{{else}}https://info.yahoo.com/privacy/au/yahoo/relevantads.html{{/if}}" target="_blank">', "\n"]), self.cconcat(["    ", "    ", "    ", "    ", '<span>Sponsored by {{source}}</span>', "\n"]), self.cconcat(["    ", "    ", "    ", '</a>', "\n"]), self.cconcat(["    ", "    ", "{{/if}}"]), "\n", self.cconcat(["    ", '</div>', "\n"]), self.cconcat(['</div>'])])
+	def __init__ (self, **kwargs):		
 		self.name = kwargs.pop("name", "instream")
-		self.html = html
+		self.website = kwargs.pop("website", "https://www.loremipsum.com/")
+		self.html = kwargs.pop("html", None)
+		if not self.html:
+			self.html = self.cconcat([self.cconcat(['<div id="gemini-ad-example" class="gemini-example-ad">', "\n"]), self.cconcat(["    ", '<div class="main-image row">', "\n"]), self.cconcat(["    ", "    ", '<figure>', "\n"]), self.cconcat(["    ", "    ", "    ", '<a href="{{headline}}" target="_blank">', "\n"]), self.cconcat(["    ", "    ", "    ", "    ", '<img src="{{#if secHqImage}}{{secHqImage}}{{else}}{{#if secImage}}{{secImage}}{{else}}{{image}}{{/if}}{{/if}}" alt="{{headline}}">', "\n"]), self.cconcat(["    ", "    ", "    ", '</a>', "\n"]), self.cconcat(["    ", "    ", '</figure>', "\n"]), self.cconcat(["    ", '</div>', "\n"]), self.cconcat(["    ", '<div class="main-headline row">', "\n"]), self.cconcat(["    ", "    ", '<h1>', "\n"]), self.cconcat(["    ", "    ", "    ", '<a href="{{headline}}" target="_blank">', "\n"]), self.cconcat(["    ", "    ", "    ", "    ", '{{headline}}', "\n"]), self.cconcat(["    ", "    ", "    ", '</a>', "\n"]), self.cconcat(["    ", "    ", '</h1>', "\n"]), self.cconcat(["    ", '</div>', "\n"]), self.cconcat(["    ", '<div class="main-sumamry row">', "\n"]), self.cconcat(["    ", "    ", '<p>', "\n"]), self.cconcat(["    ", "    ", "    ", "{{headline}}", "\n"]), self.cconcat(["    ", "    ", '</p>', "\n"]), self.cconcat(["    ", "    ", "{{#if source}}", "\n"]), self.cconcat(["    ", "    ", "    ", '<a href="{{#if adchoices_url}}{{adchoices_url}}{{else}}https://info.yahoo.com/privacy/au/yahoo/relevantads.html{{/if}}" target="_blank">', "\n"]), self.cconcat(["    ", "    ", "    ", "    ", '<span>Sponsored by {{source}}</span>', "\n"]), self.cconcat(["    ", "    ", "    ", '</a>', "\n"]), self.cconcat(["    ", "    ", "{{/if}}"]), "\n", self.cconcat(["    ", '</div>', "\n"]), self.cconcat(['</div>'])])
+
 
 
 
 class Partner:
-	def __config__ (self, config):
-		return Config(**config)
-
-	def __templates__ (self, templates = [{'module': 'instream', 'target': '#sample', 'selector': '> section', 'first': 3, 'interval': 5}]):
-		for i in range(0, len(templates)):
-			templates[i]['partner'] = self.name
-			templates[i] = CX(**templates[i])
-		return templates
-
+	### create all files
+	def create (self):
+		self.__templates__()
+		self.__config__()
+	### create new 
+	def template (self, **kwargs):
+		kwargs.update({'partner': self.name})
+		self.templates.append({'cx': CX(**kwargs), 'html': HTML(**kwargs)})
+	### config
+	def __config__ (self):
+		cxs = []
+		for i in range(0, len(self.templates)):
+			cxs.append(self.templates[i]['cx'])
+		
+		c = Config(partner = self.name, website = self.website, templates = cxs, syndication = self.syndication)
+		c.create(file = "both")
+	### templates
+	def __templates__ (self):
+		for i in range(0, len(self.templates)):
+			self.templates[i]['html'].create(file = "handlebars")	
+	### constructor
 	def __init__ (self, **kwargs):
-		self.name = kwargs.pop("name", "sample")
-		self.website = kwargs.pop("website", "https://www.sample.com/")
-		self.templates = self.__templates__(kwargs.pop("templates", [{'module': 'instream', 'target': '#sample', 'selector': '> section', 'first': 3, 'interval': 5}]))
-		self.syndication = kwargs.pop("syndication", "7654321")
-		self.config = self.__config__({'partner': self.name, 'website': self.website, 'templates': self.templates, 'syndication': self.syndication})
+		self.name = kwargs.pop("name", "dee")
+		self.website = kwargs.pop("website", "https://www.iamarobot.com/")
+		self.syndication = kwargs.pop("syndication", "7653421")
+		self.templates = []
 
 
-
-print Partner(name = "dankmems").config.create(file = "both")
 
 
 class Dee (String):
@@ -1076,24 +1102,10 @@ class Dee (String):
 
 
 if __name__ == '__main__':
-	### i change the output name for the js config file; need to update that on the url file 
-
-
-
-	#C = Config()
-	#H = HTML()
-
-	#C.create(file = "js")
-	#C.create(file = "json")
-	#H.create(file = "handlebars")
-
-	pass
-	#print Config().js()
-	#print Config().json()
 	
-	#f = File(name = "myconfig", ext = "js", temporary = False)
-	#f.write(Config().create())
-	#f.close()
-	#pass
+	P = Partner(name = "robolindsay", website = "https://www.bleepboopiamarobot.com", syndication = "5555555")
 
-	#print Dee().main()
+	P.template(module = "standfirst", target = ".geminirobot", section = ".secret", first = 1, interval = 4, html = '<div id="gemini">{{clickurl}}</div>')
+	P.template(module = "rightrail", target = ".lindsaygelle", section = ".killinit", first = 5, interval = 11, html = '<article>{{headline}}</article>')
+
+	P.create()
