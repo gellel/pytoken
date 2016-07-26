@@ -1069,7 +1069,26 @@ class Dee (String):
 		pass
 	### process automated start
 	def __automatic__ (self, actions):
-		pass
+		### confirm that system arguments container an index
+		if bool(actions):
+			### iterate over indexes within system arguments
+			for i in range(0, len(actions)):
+				### attempt to convert json argument to python dictionary
+				config = JSON(actions[i]).fetch()
+				### confirm that JSON class returned dictionary instance
+				if bool(config):
+					### create Partner class instance for associated dictionary
+					P = Partner(name = config['name'], website = config['website'], syndication = config['syndication'])
+					### confirm that the supplied dictionary from json contained a list of templates to be constructed
+					if bool(config['templates']):
+						### iterate over dictionaries within list
+						for k in range(0, len(config['templates'])):
+							### possible check to be included where it runs selenium
+
+							### create config class
+							P.template(**config['templates'][k])
+						### create assets
+						P.create()
 	### process manual start
 	def __manual__ (self):
 		pass
@@ -1101,11 +1120,18 @@ class Dee (String):
 
 
 
+
 if __name__ == '__main__':
-	
-	P = Partner(name = "robolindsay", website = "https://www.bleepboopiamarobot.com", syndication = "5555555")
 
-	P.template(module = "standfirst", target = ".geminirobot", section = ".secret", first = 1, interval = 4, html = '<div id="gemini">{{clickurl}}</div>')
-	P.template(module = "rightrail", target = ".lindsaygelle", section = ".killinit", first = 5, interval = 11, html = '<article>{{headline}}</article>')
+	Dee().main()
 
-	P.create()
+
+	### title: example automatic setup
+	### input: python eg.py auto '{"name":"automatic","website":"https://www.automatic.com/","syndication":"1234567","templates":[{"module":"modulename","target":".example.class","section":".example.section","first":1,"interval":2,"html":"<div id='#gemini'>{{example}}</div>"}]}'
+		
+	#P = Partner(name = "robolindsay", website = "https://www.bleepboopiamarobot.com", syndication = "5555555")
+
+	#P.template(module = "standfirst", target = ".geminirobot", section = ".secret", first = 1, interval = 4, html = '<div id="gemini">{{clickurl}}</div>')
+	#P.template(module = "rightrail", target = ".lindsaygelle", section = ".killinit", first = 5, interval = 11, html = '<article>{{headline}}</article>')
+
+	#P.create()

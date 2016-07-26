@@ -1,0 +1,1 @@
+{"website": "https://www.automatic.com/", "partner": "automatic", "templates": [{"target": ".example.class", "interval": 2, "module": "modulename", "selector": "div", "html": "<div id=#gemini>{{example}}</div>", "partner": "automatic", "first": 1}], "syndication": "1234567"}
