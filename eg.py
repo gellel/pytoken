@@ -866,6 +866,7 @@ class CX (String):
 	def __init__ (self, **kwargs):
 		self.partner = kwargs.pop("partner", "example")
 		self.module = kwargs.pop("module", "instream")
+		self.path = kwargs.pop("path", "https://www.example.com/path")
 		self.target = kwargs.pop("target", "#example")
 		self.selector = kwargs.pop("selector", "div")
 		self.first = kwargs.pop("first", 1)
@@ -957,7 +958,7 @@ class HTML (String):
 		### confirm if file has not been created
 		if not hasattr(self, 'handlebars_file'):
 			### if file has no instance within class create file
-			self.handlebars_file = File(name = self.name, ext = "handlebars", temporary = False)
+			self.handlebars_file = File(name = self.module, ext = "handlebars", temporary = False)
 			self.handlebars_file.write(self.__code__(tabs))
 			self.handlebars_file.close()
 		### return file instance
@@ -979,7 +980,7 @@ class HTML (String):
 	### produce formatted comments for handlebars file
 	def __comments__ (self, tabs = ""):
 		### return formatted strings for inclusion within uncompiled handlebars file for all of the basic required fields
-		return self.cconcat(["{{!--", "\n", "\n", self.__name__(), "\n", "\n", "### full list: https://git.corp.yahoo.com/aunz-webdev/gemini-native-templates ###", "\n", "### text within {{!-- --}} will not be included in compiled template ###", "\n", "\n", "\n", tabs, self.__clickurl__(), "\n", "\n", tabs, self.__headline__(), "\n", "\n", tabs, self.__image__(), "\n", "\n", tabs, self.__summary__(), "\n", "\n", tabs, self.__sponsored__(), "\n", "\n", "--}}", "\n", "\n"])
+		return self.cconcat(["{{!--", "\n", "\n", self.__partner__(), "\n", "\n", self.__path__(), "\n", "\n", "### full list: https://git.corp.yahoo.com/aunz-webdev/gemini-native-templates ###", "\n", "### text within {{!-- --}} will not be included in compiled template ###", "\n", "\n", tabs, self.__clickurl__(), "\n", "\n", tabs, self.__headline__(), "\n", "\n", tabs, self.__image__(), "\n", "\n", tabs, self.__summary__(), "\n", "\n", tabs, self.__sponsored__(), "\n", "\n", "--}}", "\n", "\n"])
 	### produce formatted HTML code for handlebars file
 	def __html__ (self):
 		### return formatted HTML for inclusion within uncompiled handlebars file
@@ -998,10 +999,15 @@ class HTML (String):
 	def __image__ (self, tabs = ""):
 		title_str = self.cconcat(["###", " ",  "primary ad image", " ", "###"])
 		### return formatted string for inclusion within uncompiled handlebars file
-		return self.cconcat([tabs, self.cconcat([tabs, self.__formatter__(title_str), "\n"]), self.cconcat([tabs, title_str, "\n"]), self.cconcat([tabs, self.__formatter__(title_str), "\n", "\n"]), self.cconcat([tabs, "{{#if secHqImage}}", "\n"]), self.cconcat([tabs, "    ", "{{secHqImage}}", "\n"]), self.cconcat([tabs, "{{else}}", "\n"]), self.cconcat([tabs, "    ", "{{#if secImage}}", "\n"]), self.cconcat([tabs, "    ", "    ", "{{secImage}}", "\n"]), self.cconcat([tabs, "    ", "{{else}}", "\n"]), self.cconcat([tabs, "    ", "    ", "{{image}}", "\n"]), self.cconcat([tabs, "    ", "{{/if}}", "\n"]), self.cconcat([tabs, "{{/if}}"])])
+		return self.cconcat([tabs, self.cconcat([tabs, self.__formatter__(title_str), "\n"]), self.cconcat([tabs, title_str, "\n"]), self.cconcat([tabs, self.__formatter__(title_str), "\n", "\n"]), self.cconcat([tabs, "{{> gemini/image }}"])])
 	### produce formatted name comment for handlebars file
-	def __name__ (self, tabs = ""):
-		title_str = self.cconcat(["###", " ", "HTML template for website:",  " ", self.website, " ", "###"])
+	def __partner__ (self, tabs = ""):
+		title_str = self.cconcat(["###", " ", "template created for partner:",  " ", self.partner, " ", "###"])
+		### return formatted string for inclusion within uncompiled handlebars file
+		return self.cconcat([tabs, self.cconcat([tabs, self.__formatter__(title_str), "\n"]), self.cconcat([tabs, title_str, "\n"]), self.cconcat([tabs, self.__formatter__(title_str)])])
+	### produce formatted path comment for handlebars file
+	def __path__ (self, tabs = ""):
+		title_str = self.cconcat(["###", " ", "template website url path:",  " ", self.path, " ", "###"])
 		### return formatted string for inclusion within uncompiled handlebars file
 		return self.cconcat([tabs, self.cconcat([tabs, self.__formatter__(title_str), "\n"]), self.cconcat([tabs, title_str, "\n"]), self.cconcat([tabs, self.__formatter__(title_str)])])
 	### produce formatted summary comment for handlebars file
@@ -1013,14 +1019,15 @@ class HTML (String):
 	def __sponsored__ (self, tabs = ""):
 		title_str = self.cconcat(["###", " ", "ad sponsored by", " ", "###"])
 		### return formatted string for inclusion within uncompiled handlebars file
-		return self.cconcat([self.cconcat([tabs, self.cconcat([tabs, self.__formatter__(title_str), "\n"]), self.cconcat([tabs, title_str, "\n"]), self.cconcat([tabs, self.__formatter__(title_str), "\n", "\n"]), tabs, "{{#if source}}", "\n"]), self.cconcat([tabs, "    ", '<a href="{{#if adchoices_url}}{{adchoices_url}}{{else}}https://info.yahoo.com/privacy/au/yahoo/relevantads.html{{/if}}" target="_blank">', "\n"]), self.cconcat([tabs, "    ", "    ", '<span>Sponsored by {{source}}</span>', "\n"]), self.cconcat([tabs, "    ", '</a>', "\n"]), self.cconcat([tabs, "{{/if}}"])])
+		return self.cconcat([self.cconcat([tabs, self.cconcat([tabs, self.__formatter__(title_str), "\n"]), self.cconcat([tabs, title_str, "\n"]), self.cconcat([tabs, self.__formatter__(title_str), "\n", "\n"]), tabs, "{{#if source}}", "\n"]), self.cconcat([tabs, "    ", '<a href="{{adchoices_url}}" target="_blank">', "\n"]), self.cconcat([tabs, "    ", "    ", '<span>Sponsored by {{source}}</span>', "\n"]), self.cconcat([tabs, "    ", '</a>', "\n"]), self.cconcat([tabs, "{{/if}}"])])
 	### constructor
 	def __init__ (self, **kwargs):		
-		self.name = kwargs.pop("name", "instream")
-		self.website = kwargs.pop("website", "https://www.loremipsum.com/")
+		self.module = kwargs.pop("module", "instream")
+		self.partner = kwargs.pop("partner", "loremipsum")
+		self.path = kwargs.pop("path", "https://www.loremipsum.com/home")
 		self.html = kwargs.pop("html", None)
 		if not self.html:
-			self.html = self.cconcat([self.cconcat(['<div id="gemini-ad-example" class="gemini-example-ad">', "\n"]), self.cconcat(["    ", '<div class="main-image row">', "\n"]), self.cconcat(["    ", "    ", '<figure>', "\n"]), self.cconcat(["    ", "    ", "    ", '<a href="{{headline}}" target="_blank">', "\n"]), self.cconcat(["    ", "    ", "    ", "    ", '<img src="{{#if secHqImage}}{{secHqImage}}{{else}}{{#if secImage}}{{secImage}}{{else}}{{image}}{{/if}}{{/if}}" alt="{{headline}}">', "\n"]), self.cconcat(["    ", "    ", "    ", '</a>', "\n"]), self.cconcat(["    ", "    ", '</figure>', "\n"]), self.cconcat(["    ", '</div>', "\n"]), self.cconcat(["    ", '<div class="main-headline row">', "\n"]), self.cconcat(["    ", "    ", '<h1>', "\n"]), self.cconcat(["    ", "    ", "    ", '<a href="{{headline}}" target="_blank">', "\n"]), self.cconcat(["    ", "    ", "    ", "    ", '{{headline}}', "\n"]), self.cconcat(["    ", "    ", "    ", '</a>', "\n"]), self.cconcat(["    ", "    ", '</h1>', "\n"]), self.cconcat(["    ", '</div>', "\n"]), self.cconcat(["    ", '<div class="main-sumamry row">', "\n"]), self.cconcat(["    ", "    ", '<p>', "\n"]), self.cconcat(["    ", "    ", "    ", "{{headline}}", "\n"]), self.cconcat(["    ", "    ", '</p>', "\n"]), self.cconcat(["    ", "    ", "{{#if source}}", "\n"]), self.cconcat(["    ", "    ", "    ", '<a href="{{#if adchoices_url}}{{adchoices_url}}{{else}}https://info.yahoo.com/privacy/au/yahoo/relevantads.html{{/if}}" target="_blank">', "\n"]), self.cconcat(["    ", "    ", "    ", "    ", '<span>Sponsored by {{source}}</span>', "\n"]), self.cconcat(["    ", "    ", "    ", '</a>', "\n"]), self.cconcat(["    ", "    ", "{{/if}}"]), "\n", self.cconcat(["    ", '</div>', "\n"]), self.cconcat(['</div>'])])
+			self.html = self.cconcat([self.cconcat(['<div id="gemini-ad-example" class="gemini-example-ad">', "\n"]), self.cconcat(["    ", '<div class="main-image row">', "\n"]), self.cconcat(["    ", "    ", '<figure>', "\n"]), self.cconcat(["    ", "    ", "    ", '<a href="{{headline}}" target="_blank">', "\n"]), self.cconcat(["    ", "    ", "    ", "    ", '<img src="{{> gemini/image }}" alt="{{headline}}">', "\n"]), self.cconcat(["    ", "    ", "    ", '</a>', "\n"]), self.cconcat(["    ", "    ", '</figure>', "\n"]), self.cconcat(["    ", '</div>', "\n"]), self.cconcat(["    ", '<div class="main-headline row">', "\n"]), self.cconcat(["    ", "    ", '<h1>', "\n"]), self.cconcat(["    ", "    ", "    ", '<a href="{{headline}}" target="_blank">', "\n"]), self.cconcat(["    ", "    ", "    ", "    ", '{{headline}}', "\n"]), self.cconcat(["    ", "    ", "    ", '</a>', "\n"]), self.cconcat(["    ", "    ", '</h1>', "\n"]), self.cconcat(["    ", '</div>', "\n"]), self.cconcat(["    ", '<div class="main-sumamry row">', "\n"]), self.cconcat(["    ", "    ", '<p>', "\n"]), self.cconcat(["    ", "    ", "    ", "{{headline}}", "\n"]), self.cconcat(["    ", "    ", '</p>', "\n"]), self.cconcat(["    ", "    ", "{{#if source}}", "\n"]), self.cconcat(["    ", "    ", "    ", '<a href="{{adchoices_url}}" target="_blank">', "\n"]), self.cconcat(["    ", "    ", "    ", "    ", '<span>Sponsored by {{source}}</span>', "\n"]), self.cconcat(["    ", "    ", "    ", '</a>', "\n"]), self.cconcat(["    ", "    ", "{{/if}}"]), "\n", self.cconcat(["    ", '</div>', "\n"]), self.cconcat(['</div>'])])
 
 
 
@@ -1028,35 +1035,41 @@ class HTML (String):
 class Partner:
 	### create all files
 	def create (self):
+		### produce the html files for the different ad templates
 		self.__templates__()
+		### produce the json and js files for the entire ad partner
 		self.__config__()
-	### create new 
+	### create instances of the template strings and config objects
 	def template (self, **kwargs):
+		### append the name of the partner to the function arguments
 		kwargs.update({'partner': self.name})
-		self.templates.append({'cx': CX(**kwargs), 'html': HTML(**kwargs)})
-	### config
+		### append the html and context instance to the list of files to produced
+		self.html_templates.append({'cx': CX(**kwargs), 'html': HTML(**kwargs)})
+	### generate the config files for the new partner
 	def __config__ (self):
 		cxs = []
-		for i in range(0, len(self.templates)):
-			cxs.append(self.templates[i]['cx'])
+		for i in range(0, len(self.html_templates)):
+			cxs.append(self.html_templates[i]['cx'])
 		
 		c = Config(partner = self.name, website = self.website, templates = cxs, syndication = self.syndication)
 		c.create(file = "both")
-	### templates
+	### generate the html/handlebars templates for the supplied ad positions
 	def __templates__ (self):
-		for i in range(0, len(self.templates)):
-			self.templates[i]['html'].create(file = "handlebars")	
+		for i in range(0, len(self.html_templates)):
+			self.html_templates[i]['html'].create(file = "handlebars")	
+
+			print self.html_templates[i]['html'].module
 	### constructor
 	def __init__ (self, **kwargs):
 		self.name = kwargs.pop("name", "dee")
-		self.website = kwargs.pop("website", "https://www.iamarobot.com/")
-		self.syndication = kwargs.pop("syndication", "7653421")
-		self.templates = []
+		self.website = kwargs.pop("website", "https://dee.robot")
+		self.syndication = kwargs.pop("syndication", "0111001001101111011000100110111101110100")
+		self.html_templates = []
 
 
 
 
-class Dee (String):
+class AI (String):
 	ARG = "^(?:[\.\-])*.{1}"
 	AUTO = "^auto(mated)?$"
 	EDIT = "^edit$"
@@ -1081,17 +1094,32 @@ class Dee (String):
 					P = Partner(name = config['name'], website = config['website'], syndication = config['syndication'])
 					### confirm that the supplied dictionary from json contained a list of templates to be constructed
 					if bool(config['templates']):
+						### create selenium instance
+						B = Browser()
+						### initialise selenium browser
+						B.start()
 						### iterate over dictionaries within list
 						for k in range(0, len(config['templates'])):
-							### possible check to be included where it runs selenium
+							#P.template(**config['templates'][k])
 
-							### create config class
-							P.template(**config['templates'][k])
-						### create assets
+							### set template path to be the website of selenium browser
+							B.website = config['templates'][k]['path']
+							### open the provided url
+							B.open()
+							### attempt to find the HTML on the page
+							config['templates'][k]['html'] = B.find(selector = self.concat(config['templates'][k]['target'], config['templates'][k]['selector']))
+							### confirm that selenium instance returned code
+							if bool(config['templates'][k]['html']):
+								### assign outerHTML to the template constructor
+								config['templates'][k]['html'] = config['templates'][k]['html'].get_attribute("outerHTML")
+								### create config class
+								P.template(**config['templates'][k])
+
 						P.create()
+
 	### process manual start
 	def __manual__ (self):
-		pass
+		self.__name__()
 	### process argument string(s)
 	def __process__ (self):
 		### confirm that system arguments were supplied
@@ -1112,6 +1140,28 @@ class Dee (String):
 		### failed to match with expression list
 		### run program with BIOS setup
 		return self.__manual__()
+	### request input for gemini parter name
+	def __name__ (self):
+		partner_name = Set(request = "the {{Gemini Partners}} name", response = "the {{Gemini Partner}}").open()
+
+		if partner_name['bool']:
+			return self.__url__(partner_name['response'])
+		else:
+			return None
+
+	### request input for gemini partner website url
+	def __url__ (self, name):
+		partner_url = Set(request = self.concat(self.cconcat([name, "'s"]), "{{website url}}"), response = self.concat(self.cconcat([name, "'s"]), "{{website}}")).open()
+
+		if partner_url['bool']:
+			return self.__template__(name, partner_url['response'])
+		else:
+			return None
+
+	def __template__ (self, name, url):
+		template_name = Set(request = self.concat("the {{template}} name for", self.cconcat(["{{", name, "}}"])), response = self.concat("template name")).open()
+		template_path = Set(request = self.concat("the url for this template", self.cconcat(["(", "{{", template_name['response'], "}}", ")"])), response = self.concat("template", template_name['response'])).open()
+
 	### constructor
 	def __init__ (self, name = "dee", actions = sys.argv[1:]):
 		self.responder = Responder(name = name)
@@ -1121,13 +1171,39 @@ class Dee (String):
 
 
 
-if __name__ == '__main__':
+from selenium import webdriver
 
-	Dee().main()
+class Browser (String):
+
+	def find (self, **kwargs):
+		try:
+			return self.webdriver.execute_script(self.concat("return", self.cconcat([kwargs.pop("method", "document.querySelector"),"(", '"', kwargs.pop("selector", "body"), '"', ")", ";"])))
+		except:
+			return False
+
+	def open (self):
+		self.webdriver.get(self.website)
+
+	def start (self):
+		self.webdriver = self.webdriver()
+
+	def quit (self):
+		self.webdriver.quit()
+
+	def __init__ (self, website = None):
+		self.website = website
+		self.webdriver = webdriver.Chrome
+
+
+
+
+if __name__ == '__main__':
+	#pass
+	AI().main()
 
 
 	### title: example automatic setup
-	### input: python eg.py auto '{"name":"automatic","website":"https://www.automatic.com/","syndication":"1234567","templates":[{"module":"modulename","target":".example.class","section":".example.section","first":1,"interval":2,"html":"<div id='#gemini'>{{example}}</div>"}]}'
+	### input: python eg.py auto '{"name":"thewhoot","website":"https://www.thewhoot.com.au/","syndication":"5511214","templates":[{"module":"instream","target":"#pt-cv-page-1","selector":"div","first":1,"interval":2,"path":"https://www.thewhoot.com.au/"}]}'
 		
 	#P = Partner(name = "robolindsay", website = "https://www.bleepboopiamarobot.com", syndication = "5555555")
 
