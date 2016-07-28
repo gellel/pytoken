@@ -18,6 +18,10 @@ import urllib2
 import urllib
 ### py random class package
 import random
+### py datetime class package
+import datetime
+### py time class package
+import time
 ### py json class package
 import json
 ### py pwd class package
@@ -741,6 +745,34 @@ class File:
 
 
 
+class Folder (String):
+	### create new folder
+	def create (self):
+		### confirm if folder has filepath
+		if not os.path.exists(self.path):
+			### confirm if folder is to be created with timestamp in name
+			if self.timestamp:
+				### create datetime from supplied timestamp and stringify into formatted string
+				dt = datetime.datetime.fromtimestamp(time.time()).strftime('%Y %m %d %H %M %S')
+				### substitute spaces within timestamp
+				dt = re.compile(r"\s+").sub("", dt)
+				### set new temp path to the new folder path
+				self.path = self.cconcat([self.path, dt], "_")
+		### create new folder
+		os.makedirs(self.path)
+		### return path
+		return self.path
+	### constructor
+	def __init__ (self, name = "gemini", timestamp = True, filepath = __filepath__):
+		self.name = name
+		self.filepath = filepath
+		self.timestamp = timestamp
+		self.path = self.cconcat([self.filepath, self.name], "/")
+
+
+
+
+
 class HTTPResource:
 	### request the resource
 	def fetch (self):
@@ -885,7 +917,7 @@ class Config (String):
 		### confirm if file has not been created
 		if not hasattr(self, 'js_file'):
 			### if file has no instance within class create file
-			self.js_file = File(name = self.cconcat([self.partner, ".", "gemini"]), ext = "js", temporary = False)
+			self.js_file = File(name = self.cconcat([self.partner, ".", "gemini"]), ext = "js", temporary = False, filepath = self.filepath)
 			self.js_file.write(self.__js__(tabs))
 			self.js_file.close()
 		### return file instance
@@ -893,7 +925,7 @@ class Config (String):
 	def json (self):
 		if not hasattr(self, 'json_file'):
 			### if file has no instance within class create file
-			self.json_file = File(name = self.cconcat([self.partner, ".", "gemini"]), ext = "json", temporary = False)
+			self.json_file = File(name = self.cconcat([self.partner, ".", "gemini"]), ext = "json", temporary = False, filepath = self.filepath)
 			self.json_file.write(self.__json__())
 			self.json_file.close()
 		### return file instance
@@ -945,9 +977,12 @@ class Config (String):
 	### constructor 
 	def __init__ (self, **kwargs):
 		self.partner = kwargs.pop("partner", "example")
+		self.filepath = kwargs.pop("filepath", __filepath__)
 		self.website = kwargs.pop("website", "https://www.example.com/")
 		self.templates = kwargs.pop("templates", [CX()])
 		self.syndication = kwargs.pop("syndication", "1234567")
+
+
 
 
 
@@ -958,7 +993,7 @@ class HTML (String):
 		### confirm if file has not been created
 		if not hasattr(self, 'handlebars_file'):
 			### if file has no instance within class create file
-			self.handlebars_file = File(name = self.module, ext = "handlebars", temporary = False)
+			self.handlebars_file = File(name = self.module, ext = "handlebars", temporary = False, filepath = self.filepath)
 			self.handlebars_file.write(self.__code__(tabs))
 			self.handlebars_file.close()
 		### return file instance
@@ -1025,11 +1060,57 @@ class HTML (String):
 		self.module = kwargs.pop("module", "instream")
 		self.partner = kwargs.pop("partner", "loremipsum")
 		self.path = kwargs.pop("path", "https://www.loremipsum.com/home")
+		self.filepath =  kwargs.pop("filepath", __filepath__)
 		self.html = kwargs.pop("html", None)
 		if not self.html:
 			self.html = self.cconcat([self.cconcat(['<div id="gemini-ad-example" class="gemini-example-ad">', "\n"]), self.cconcat(["    ", '<div class="main-image row">', "\n"]), self.cconcat(["    ", "    ", '<figure>', "\n"]), self.cconcat(["    ", "    ", "    ", '<a href="{{headline}}" target="_blank">', "\n"]), self.cconcat(["    ", "    ", "    ", "    ", '<img src="{{> gemini/image }}" alt="{{headline}}">', "\n"]), self.cconcat(["    ", "    ", "    ", '</a>', "\n"]), self.cconcat(["    ", "    ", '</figure>', "\n"]), self.cconcat(["    ", '</div>', "\n"]), self.cconcat(["    ", '<div class="main-headline row">', "\n"]), self.cconcat(["    ", "    ", '<h1>', "\n"]), self.cconcat(["    ", "    ", "    ", '<a href="{{headline}}" target="_blank">', "\n"]), self.cconcat(["    ", "    ", "    ", "    ", '{{headline}}', "\n"]), self.cconcat(["    ", "    ", "    ", '</a>', "\n"]), self.cconcat(["    ", "    ", '</h1>', "\n"]), self.cconcat(["    ", '</div>', "\n"]), self.cconcat(["    ", '<div class="main-sumamry row">', "\n"]), self.cconcat(["    ", "    ", '<p>', "\n"]), self.cconcat(["    ", "    ", "    ", "{{headline}}", "\n"]), self.cconcat(["    ", "    ", '</p>', "\n"]), self.cconcat(["    ", "    ", "{{#if source}}", "\n"]), self.cconcat(["    ", "    ", "    ", '<a href="{{adchoices_url}}" target="_blank">', "\n"]), self.cconcat(["    ", "    ", "    ", "    ", '<span>Sponsored by {{source}}</span>', "\n"]), self.cconcat(["    ", "    ", "    ", '</a>', "\n"]), self.cconcat(["    ", "    ", "{{/if}}"]), "\n", self.cconcat(["    ", '</div>', "\n"]), self.cconcat(['</div>'])])
 
 
+
+
+
+class HX (String):
+	
+	def __module__ (self):
+		self.module = Set(request = self.concat("the", self.tag("module name"), "for this template"), response = self.concat("this template module")).open()
+
+	def __path__ (self):
+		if not Request(prompt = self.concat("does this module", self.cconcat(["(", self.tag(self.module['response']), ")"]), "sit on the same destination as the base url")).open():
+			temp_path = Set(request = self.concat("the sub path for", self.tag(self.path)), response = self.concat("url path")).open()
+			
+			if temp_path['bool']:
+				if re.compile("^.+\/$").match(self.path):
+					self.path = self.path[:-1]
+				if re.compile("^\/.+").match(temp_path['response']):
+					temp_path['response'] = temp_path['response'][1:]
+
+				self.path = self.cconcat([self.path, temp_path['response']], "/")
+
+	def __target__ (self):
+		self.target = Set(request = self.concat("the", self.tag("css selector"), "for the parent container"), response = self.concat("the", self.tag("css selector"))).open()
+
+	def __selector__ (self):
+		self.selector = Set(request = self.concat("the", self.tag("css selector"), "for the HTML element to emulate/copy"), response = self.concat("the", self.tag("child element css selector"))).open()
+
+	def __first__ (self):
+		pass
+		
+	def __init__ (self, name = None, path = None):
+		self.name = name
+		self.path = path
+		self.module = None
+		self.target = None
+		self.selector = None
+		self.first = None
+		self.interval = None
+"""
+H = HX(path = "https://basesite.com/")
+
+H.__module__()
+H.__path__()
+H.__target__()
+H.__selector__()
+"""
 
 
 class Partner:
@@ -1043,6 +1124,8 @@ class Partner:
 	def template (self, **kwargs):
 		### append the name of the partner to the function arguments
 		kwargs.update({'partner': self.name})
+		### append the filepath of the parther to the function arguments
+		kwargs.update({'filepath': self.filepath})
 		### append the html and context instance to the list of files to produced
 		self.html_templates.append({'cx': CX(**kwargs), 'html': HTML(**kwargs)})
 	### generate the config files for the new partner
@@ -1051,17 +1134,16 @@ class Partner:
 		for i in range(0, len(self.html_templates)):
 			cxs.append(self.html_templates[i]['cx'])
 		
-		c = Config(partner = self.name, website = self.website, templates = cxs, syndication = self.syndication)
+		c = Config(partner = self.name, website = self.website, templates = cxs, syndication = self.syndication, filepath = self.filepath)
 		c.create(file = "both")
 	### generate the html/handlebars templates for the supplied ad positions
 	def __templates__ (self):
 		for i in range(0, len(self.html_templates)):
 			self.html_templates[i]['html'].create(file = "handlebars")	
-
-			print self.html_templates[i]['html'].module
 	### constructor
 	def __init__ (self, **kwargs):
 		self.name = kwargs.pop("name", "dee")
+		self.filepath = kwargs.pop("filepath", __filepath__)
 		self.website = kwargs.pop("website", "https://dee.robot")
 		self.syndication = kwargs.pop("syndication", "0111001001101111011000100110111101110100")
 		self.html_templates = []
@@ -1091,7 +1173,9 @@ class AI (String):
 				### confirm that JSON class returned dictionary instance
 				if bool(config):
 					### create Partner class instance for associated dictionary
-					P = Partner(name = config['name'], website = config['website'], syndication = config['syndication'])
+					P = Partner(name = config['name'], website = config['website'], syndication = config['syndication'], filepath = Folder(name = config['name']).create())
+					
+					print P.filepath
 					### confirm that the supplied dictionary from json contained a list of templates to be constructed
 					if bool(config['templates']):
 						### create selenium instance
@@ -1100,8 +1184,6 @@ class AI (String):
 						B.start()
 						### iterate over dictionaries within list
 						for k in range(0, len(config['templates'])):
-							#P.template(**config['templates'][k])
-
 							### set template path to be the website of selenium browser
 							B.website = config['templates'][k]['path']
 							### open the provided url
@@ -1111,10 +1193,13 @@ class AI (String):
 							### confirm that selenium instance returned code
 							if bool(config['templates'][k]['html']):
 								### assign outerHTML to the template constructor
-								config['templates'][k]['html'] = config['templates'][k]['html'].get_attribute("outerHTML")
+								config['templates'][k]['html'] = config['templates'][k]['html'].get_attribute("innerHTML")
 								### create config class
 								P.template(**config['templates'][k])
 
+							else:
+								print 'html not found'
+						### produce all files
 						P.create()
 
 	### process manual start
@@ -1142,31 +1227,27 @@ class AI (String):
 		return self.__manual__()
 	### request input for gemini parter name
 	def __name__ (self):
-		partner_name = Set(request = "the {{Gemini Partners}} name", response = "the {{Gemini Partner}}").open()
-
-		if partner_name['bool']:
-			return self.__url__(partner_name['response'])
-		else:
-			return None
+		self.temp['partner_name'] = Set(request = self.concat("the", self.tag("Gemini partner's"), "name"), response = self.concat("the Gemini partner")).open()
+		if self.temp['partner_name']['bool']:
+			self.__url__()
 
 	### request input for gemini partner website url
-	def __url__ (self, name):
-		partner_url = Set(request = self.concat(self.cconcat([name, "'s"]), "{{website url}}"), response = self.concat(self.cconcat([name, "'s"]), "{{website}}")).open()
+	def __url__ (self):
+		self.temp['base_url'] = Set(request = self.concat("the", self.tag("website url"), "for", self.tag(self.temp['partner_name']['response'])), response = self.concat(self.cconcat([self.temp['partner_name']['response'], "'s"]), "website")).open()
+		if self.temp['base_url']['bool']:
+			self.__template__()
 
-		if partner_url['bool']:
-			return self.__template__(name, partner_url['response'])
-		else:
-			return None
-
-	def __template__ (self, name, url):
-		template_name = Set(request = self.concat("the {{template}} name for", self.cconcat(["{{", name, "}}"])), response = self.concat("template name")).open()
-		template_path = Set(request = self.concat("the url for this template", self.cconcat(["(", "{{", template_name['response'], "}}", ")"])), response = self.concat("template", template_name['response'])).open()
+	### request all required parameters for the gemini template for the current partner
+	def __template__ (self):
+		pass
+		
 
 	### constructor
 	def __init__ (self, name = "dee", actions = sys.argv[1:]):
 		self.responder = Responder(name = name)
 		self.actions = actions
 		self.partners = []
+		self.temp = {}
 
 
 
