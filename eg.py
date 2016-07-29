@@ -1234,6 +1234,7 @@ class AI (String):
 		self.__website__()
 		self.__filepath__()
 		self.__template__()
+		self.__create__()
 	### process argument string(s)
 	def __process__ (self):
 		### confirm that system arguments were supplied
@@ -1270,16 +1271,22 @@ class AI (String):
 			self.partner.filepath = Set(request = self.concat("the", self.tag("folder name"), "for file storage"), response = self.concat("the storage folder")).open()['response']
 		else:
 			self.partner.filepath = self.partner.name
+		
+		self.partner.filepath = Folder(name = self.partner.filepath).create()
 
 	def __template__ (self):
 
-		#self.partner.template(**HTML(**))
-		self.partner.filepath = Folder(name = self.partner.filepath).create()
 		self.partner.template(**HX(name = self.partner.name, path = self.partner.website).all())
 	
+		if Request(prompt = self.concat("create another template for", self.cconcat([self.partner.name, "?"]))).open():
+			self.__template__()
+
+
+	def __create__ (self):
 		self.partner.create()
 
-		#P.template(**config['templates'][k])
+		if Request(prompt = "create another partner?").open():
+			self.__manual__()
 
 	### constructor
 	def __init__ (self, name = "dee", actions = sys.argv[1:]):
