@@ -49,9 +49,9 @@ class String:
 	UNDERLINE = '\033[4m'
 	END = '\033[0m'
 	### regexp for matching "{{string}}"
-	REG = "\{\{(?:[\w\s\d]*|[$&\+,\:\;\=\?@#\|'\<\>\.^\*\(\)%!-\/]*)*\}\}"
+	REG = r"\{\{(?:[\w\s\d]*|[$&\+,\:\;\=\?@#\|'\<\>\.^\*\(\)%!-\/]*)*\}\}"
 	### regexp for matching string.extname
-	EXT = "^.+\.{1}\w+$"
+	EXT = r"^.+\.{1}\w+$"
 	### concatenate multiple arguments by string character
 	def cconcat (self, strlist, character = ""):
 		return character.join(filter(None, strlist))
@@ -89,7 +89,7 @@ class String:
 		### iterate through substrings
 		for i in range(0, len(matches)):
 			### replace "{{"" or "}}" from substrings
-			substring = re.sub("{{|}}", "", matches[i])
+			substring = re.sub(r"{{|}}", "", matches[i])
 			### replace matches[i] with dict
 			matches[i] = {'original': substring, 'formatted': self.__format__(substring, attributes)}
 		### iterate through matches again
@@ -97,7 +97,7 @@ class String:
 			### replace string with formatted text based on items in matches
 			string = re.sub(matches[i]['original'], matches[i]['formatted'], string)
 		### return string with formatting replacing any "{{" or "}}" that exists in original string
-		return re.sub("{{|}}", "", string)
+		return re.sub(r"{{|}}", "", string)
 	### return formatted string or strings depending on config context supplied (list or dict)
 	def __process__ (self, context = {}):
 		### check if context isn't a default
@@ -131,6 +131,7 @@ class String:
 	### constructor 
 	def __init__ (self, context = {}):
 		self.context = context
+
 
 
 
@@ -182,6 +183,7 @@ class JSON:
 
 
 
+
 class List:
 	### fetch index of list item
 	def index (self, index = 0):
@@ -196,6 +198,7 @@ class List:
 	### constructor
 	def __init__ (self, context = []):
 		self.context = context
+
 
 
 
@@ -294,6 +297,7 @@ class Lexicon (String):
 
 
 
+
 class LX:
 	### return formatted dictionary from self
 	def create (self):
@@ -364,6 +368,7 @@ class Responder (String):
 
 
 
+
 class Set (String):
 	### return dictionary with returned response and boolean
 	def open (self):
@@ -392,7 +397,7 @@ class Set (String):
 			### iterate over list of options within supplied list
 			for i in range(0, len(self.request)):
 				### remove formatting from listed string
-				match_string = re.sub("{{|}}", "", self.request[i])
+				match_string = re.sub(r"{{|}}", "", self.request[i])
 				### compare if the supplied string is equal to the options within the list
 				if str.upper(match_string) == str.upper(self.user):
 					### if match is found proceed to confirmation
@@ -471,6 +476,7 @@ class Set (String):
 
 
 
+
 class Request (String):
 	### method for asking the user to input one of two provided options
 	def open (self):
@@ -514,6 +520,7 @@ class Request (String):
 		self.confirm = str.upper(kwargs.pop("confirm", "yes"))
 		self.reject = str.upper(kwargs.pop("reject", "no"))
 		self.system = Responder()
+
 
 
 
@@ -566,6 +573,7 @@ class Package:
 		self.exe = exe
 		self.cmd = cmd
 		self.system = Responder()
+
 
 
 
@@ -667,6 +675,7 @@ class Install (String):
 
 
 
+
 class File:
 	### add new string to the end of the file
 	def append (self, string):
@@ -745,11 +754,12 @@ class File:
 
 
 
+
 class Folder (String):
 	### create new folder
 	def create (self):
 		### confirm if folder has filepath
-		if not os.path.exists(self.path):
+		if os.path.exists(self.path):
 			### confirm if folder is to be created with timestamp in name
 			if self.timestamp:
 				### create datetime from supplied timestamp and stringify into formatted string
@@ -986,9 +996,126 @@ class Config (String):
 
 
 
+class HX (String):
+	### create all required files
+	def all (self):
+		### check selenium
+		self.__start__()
+		### create all required values
+		self.__module__()
+		self.__path__()
+		self.__target__()
+		self.__selector__()
+		self.__first__()
+		self.__interval__()
+		self.__html__()
+		### return formatted dict
+		return self.container()
+	### create and return dictionary from self
+	def container (self):
+		### return dict
+		return self.__dict__
+	### create the string required for defining the name of the module for the produced template
+	def __module__ (self):
+		### return the response string
+		self.module = Set(request = self.concat("the", self.tag("module name"), "for this template"), response = self.concat("this template module")).open()['response']
+	### create the URL string required for redirecting the browser to the correct location where the template HTML is situated
+	def __path__ (self):
+		### confirm if the template to be created is to be placed on the same destination as the base url
+		if not Request(prompt = self.concat("does this module", self.cconcat(["(", self.module,")"]), "sit on the same page as the base url?")).open():
+			### generate the subpath for the main url
+			self.subpath = Set(request = self.concat("the sub path for", self.tag(self.path)), response = self.concat("for the sub path")).open()['response']
+			### confirm if the subpath was defined
+			if self.subpath:
+				### confirm if the base url has a trailing "/"
+				if re.compile(r"^.+\/$").match(self.path):
+					### set the string to omit the trailing "/"
+					self.path = self.path[:-1]
+				### confirm if the sub path leads with a "/"
+				if re.compile(r"^\/.+").match(self.subpath):
+					### set the string to omit the leading "/"
+					self.subpath = self.subpath[1:]
+				### set the base url path for this template to be the include the sub path, joined by a "/"
+				self.path = self.cconcat([self.path, self.subpath], "/")
+				### redirect to new page
+				self.browser.open(self.path)
+	### create the string required to select the parent container for the ad units
+	def __target__ (self):
+		### return the css selector string
+		self.target = Set(request = self.concat("the", self.tag("css selector"), "for the template's parent container"), response = self.concat("the parent css selector")).open()['response']	
+		### confirm that the css selector can be found on the provided page
+		if self.__element__("target", self.target, "html"):
+			print "found html"
+		### if selenium failed to select find HTML on provided page
+		else:
+			### request to redefine the css selector and attempt to locate again
+			if Request(prompt = "unable to find element. try again?").open():
+				### recall function
+				self.__target__()
+	### create the string required to select the child container for the ad unit to emulate
+	def __selector__ (self):
+		### return the css selector string
+		self.selector = Set(request = self.concat("the", self.tag("css selector"), "for the HTML to be copied"), response = self.concat("the", self.tag("HTML css selector"))).open()['response']
+		### confirm that the parent selector was defined
+		if self.target:
+			### confirm that the css selector can be found on the provided page
+			if self.__element__("selector", self.concat(self.target, self.selector), "html"):
+				print "found html"
+			### if selenium failed to select find HTML on provided page
+			else:
+				### request to redefine the css selector and attempt to locate again
+				if Request(prompt = "unable to find element. try again?").open():
+					### recall function
+					self.__selector__()
+
+	### create the string required to set the starting position of the ad template
+	def __first__ (self):
+		### return the starting string
+		self.first = Set(request = self.concat("the", self.tag("starting position"), "for this template"), response = self.concat("the ad starting position")).open()['response']
+	### create the string required to set the repetition position of the ad template
+	def __interval__ (self):
+		### return the interval string
+		self.interval = Set(request = self.concat("the", self.tag("interval position"), "at which this template will repeat"), response = self.concat("the ad repetition interval")).open()['response']	
+	### confirm that selenium instance has been started
+	def __start__ (self):
+		### call start function
+		self.browser.start()
+	### create the selenium html instance for selected element
+	def __element__ (self, attribute = None, selector = None, html_attr = None):
+		### confirm that a selector was provided as an argument
+		if selector:
+			### attempt to locate instance in self
+			if hasattr(self, attribute):
+				### confirm that attribute was provided for the HTML to be assigned to
+				if html_attr:
+					### set selenium HTML to retreived value from browser
+					setattr(self, html_attr, self.browser.find(selector = selector))
+					### return response for handler
+					return getattr(self, html_attr)
+	### extract HTML code from selected element
+	def __html__ (self, html_selection = "innerHTML"):
+		### confirm that HTML instance exists
+		if self.html:
+			### retrieve attribute from selenium index
+			self.html = self.html.get_attribute(html_selection)
+	### constructor 
+	def __init__ (self, **kwargs):
+		self.name = kwargs.pop("name", "example")
+		self.path = kwargs.pop("path", "https://www.example.com/")
+		self.browser = kwargs.pop("browser", Browser())
+		self.module = None
+		self.target = None
+		self.selector = None
+		self.first = None
+		self.interval = None
+		self.html = None
+
+
+
+
 
 class HTML (String):
-	### produce javascript file and write to destination
+	### produce html file and write to destination
 	def handlebars (self, tabs = ""):
 		### confirm if file has not been created
 		if not hasattr(self, 'handlebars_file'):
@@ -1054,7 +1181,7 @@ class HTML (String):
 	def __sponsored__ (self, tabs = ""):
 		title_str = self.cconcat(["###", " ", "ad sponsored by", " ", "###"])
 		### return formatted string for inclusion within uncompiled handlebars file
-		return self.cconcat([self.cconcat([tabs, self.cconcat([tabs, self.__formatter__(title_str), "\n"]), self.cconcat([tabs, title_str, "\n"]), self.cconcat([tabs, self.__formatter__(title_str), "\n", "\n"]), tabs, "{{#if source}}", "\n"]), self.cconcat([tabs, "    ", '<a href="{{adchoices_url}}" target="_blank">', "\n"]), self.cconcat([tabs, "    ", "    ", '<span>Sponsored by {{source}}</span>', "\n"]), self.cconcat([tabs, "    ", '</a>', "\n"]), self.cconcat([tabs, "{{/if}}"])])
+		return self.cconcat([self.cconcat([tabs, self.cconcat([tabs, self.__formatter__(title_str), "\n"]), self.cconcat([tabs, title_str, "\n"]), self.cconcat([tabs, self.__formatter__(title_str), "\n", "\n"]), tabs, "{{> gemini/sponsored color='#999' size='13px' }}", "\n"])])
 	### constructor
 	def __init__ (self, **kwargs):		
 		self.module = kwargs.pop("module", "instream")
@@ -1064,74 +1191,6 @@ class HTML (String):
 		self.html = kwargs.pop("html", None)
 		if not self.html:
 			self.html = self.cconcat([self.cconcat(['<div id="gemini-ad-example" class="gemini-example-ad">', "\n"]), self.cconcat(["    ", '<div class="main-image row">', "\n"]), self.cconcat(["    ", "    ", '<figure>', "\n"]), self.cconcat(["    ", "    ", "    ", '<a href="{{headline}}" target="_blank">', "\n"]), self.cconcat(["    ", "    ", "    ", "    ", '<img src="{{> gemini/image }}" alt="{{headline}}">', "\n"]), self.cconcat(["    ", "    ", "    ", '</a>', "\n"]), self.cconcat(["    ", "    ", '</figure>', "\n"]), self.cconcat(["    ", '</div>', "\n"]), self.cconcat(["    ", '<div class="main-headline row">', "\n"]), self.cconcat(["    ", "    ", '<h1>', "\n"]), self.cconcat(["    ", "    ", "    ", '<a href="{{headline}}" target="_blank">', "\n"]), self.cconcat(["    ", "    ", "    ", "    ", '{{headline}}', "\n"]), self.cconcat(["    ", "    ", "    ", '</a>', "\n"]), self.cconcat(["    ", "    ", '</h1>', "\n"]), self.cconcat(["    ", '</div>', "\n"]), self.cconcat(["    ", '<div class="main-sumamry row">', "\n"]), self.cconcat(["    ", "    ", '<p>', "\n"]), self.cconcat(["    ", "    ", "    ", "{{headline}}", "\n"]), self.cconcat(["    ", "    ", '</p>', "\n"]), self.cconcat(["    ", "    ", "{{#if source}}", "\n"]), self.cconcat(["    ", "    ", "    ", '<a href="{{adchoices_url}}" target="_blank">', "\n"]), self.cconcat(["    ", "    ", "    ", "    ", '<span>Sponsored by {{source}}</span>', "\n"]), self.cconcat(["    ", "    ", "    ", '</a>', "\n"]), self.cconcat(["    ", "    ", "{{/if}}"]), "\n", self.cconcat(["    ", '</div>', "\n"]), self.cconcat(['</div>'])])
-
-
-
-
-
-class HX (String):
-	### create all required files
-	def all (self):
-		### create all required values
-		self.__module__()
-		self.__path__()
-		self.__target__()
-		self.__selector__()
-		self.__first__()
-		self.__interval__()
-		### return formatted dict
-		return self.container()
-	### create and return dictionary from self
-	def container (self):
-		### return dict
-		return self.__dict__
-	### create the string required for defining the name of the module for the produced template
-	def __module__ (self):
-		### return the response string
-		self.module = Set(request = self.concat("the", self.tag("module name"), "for this template"), response = self.concat("this template module")).open()['response']
-	### create the URL string required for redirecting the browser to the correct location where the template HTML is situated
-	def __path__ (self):
-		### confirm if the template to be created is to be placed on the same destination as the base url
-		if not Request(prompt = self.concat("does this module", self.cconcat(["(", self.module,")"]), "sit on the same page as the base url?")).open():
-			### generate the subpath for the main url
-			self.subpath = Set(request = self.concat("the sub path for", self.tag(self.path)), response = self.concat("for the sub path")).open()['response']
-			### confirm if the subpath was defined
-			if self.subpath:
-				### confirm if the base url has a trailing "/"
-				if re.compile("^.+\/$").match(self.path):
-					### set the string to omit the trailing "/"
-					self.path = self.path[:-1]
-				### confirm if the sub path leads with a "/"
-				if re.compile("^\/.+").match(self.subpath):
-					### set the string to omit the leading "/"
-					self.subpath = self.subpath[1:]
-				### set the base url path for this template to be the include the sub path, joined by a "/"
-				self.path = self.cconcat([self.path, self.subpath], "/")
-	### create the string required to select the parent container for the ad units
-	def __target__ (self):
-		### return the css selector string
-		self.target = Set(request = self.concat("the", self.tag("css selector"), "for the template's parent container"), response = self.concat("the parent css selector")).open()['response']	
-	### create the string required to select the child container for the ad unit to emulate
-	def __selector__ (self):
-		### return the css selector string
-		self.selector = Set(request = self.concat("the", self.tag("css selector"), "for the HTML to be copied"), response = self.concat("the", self.tag("HTML css selector"))).open()['response']
-	### create the string required to set the starting position of the ad template
-	def __first__ (self):
-		### return the starting string
-		self.first = Set(request = self.concat("the", self.tag("starting position"), "for this template"), response = self.concat("the ad starting position")).open()['response']
-	### create the string required to set the repetition position of the ad template
-	def __interval__ (self):
-		### return the interval string
-		self.interval = Set(request = self.concat("the", self.tag("interval position"), "at which this template will repeat"), response = self.concat("the ad repetition interval")).open()['response']	
-	### constructor 
-	def __init__ (self, name = "example", path = "https://www.example.com/"):
-		self.name = name
-		self.path = path
-		self.module = None
-		self.target = None
-		self.selector = None
-		self.first = None
-		self.interval = None
 
 
 
@@ -1150,91 +1209,40 @@ class Partner:
 		kwargs.update({'partner': self.name})
 		### append the filepath of the parther to the function arguments
 		kwargs.update({'filepath': self.filepath})
-		### append the html and context instance to the list of files to produced
-		self.html_templates.append({'cx': CX(**kwargs), 'html': HTML(**kwargs)})
+		### append the html to the list of files to produced
+		self.html_context.append(HTML(**kwargs))
+		#### append the config extension to the list of files to produce
+		self.javascript_context.append(CX(**kwargs))
 	### generate the config files for the new partner
 	def __config__ (self):
-		cxs = []
-		for i in range(0, len(self.html_templates)):
-			cxs.append(self.html_templates[i]['cx'])
-		
-		c = Config(partner = self.name, website = self.website, templates = cxs, syndication = self.syndication, filepath = self.filepath)
-		c.create(file = "both")
+		### create empty list for holding only the context extensions
+		Config(partner = self.name, website = self.website, templates = self.javascript_context, syndication = self.syndication, filepath = self.filepath).create(file = "both")
 	### generate the html/handlebars templates for the supplied ad positions
 	def __templates__ (self):
-		for i in range(0, len(self.html_templates)):
-			self.html_templates[i]['html'].create(file = "handlebars")	
+		### iterate over length of html templates (HTML classes)
+		for i in range(0, len(self.html_context)):
+			### create handlebars files from supplied HTML class
+			self.html_context[i].create(file = "handlebars")	
 	### constructor
 	def __init__ (self, **kwargs):
 		self.name = kwargs.pop("name", "dee")
 		self.filepath = kwargs.pop("filepath", __filepath__)
 		self.website = kwargs.pop("website", "https://dee.robot")
 		self.syndication = kwargs.pop("syndication", "0111001001101111011000100110111101110100")
-		self.html_templates = []
+		self.html_context = []
+		self.javascript_context = []
 
 
 
 
 class AI (String):
-	ARG = "^(?:[\.\-])*.{1}"
-	AUTO = "^auto(mated)?$"
-	EDIT = "^edit$"
+	ARG = r"^(?:[\.\-])*.{1}"
+	AUTO = r"^auto(mated)?$"
+	EDIT = r"^edit$"
 	### main process handler
 	def main (self):
 		### attempt to process input context
 		return self.__process__()
-	### process edited start
-	def __edit__ (self, actions):
-		pass
-	### process automated start
-	def __automatic__ (self, actions):
-		### confirm that system arguments container an index
-		if bool(actions):
-			### iterate over indexes within system arguments
-			for i in range(0, len(actions)):
-				### attempt to convert json argument to python dictionary
-				config = JSON(actions[i]).fetch()
-				### confirm that JSON class returned dictionary instance
-				if bool(config):
-					### create Partner class instance for associated dictionary
-					P = Partner(name = config['name'], website = config['website'], syndication = config['syndication'], filepath = Folder(name = config['name']).create())					
-					### confirm that the supplied dictionary from json contained a list of templates to be constructed
-					if bool(config['templates']):
-						### create selenium instance
-						B = Browser()
-						### initialise selenium browser
-						B.start()
-						### iterate over dictionaries within list
-						for k in range(0, len(config['templates'])):
-							### set template path to be the website of selenium browser
-							B.website = config['templates'][k]['path']
-							### open the provided url
-							B.open()
-							### attempt to find the HTML on the page
-							config['templates'][k]['html'] = B.find(selector = self.concat(config['templates'][k]['target'], config['templates'][k]['selector']))
-							### confirm that selenium instance returned code
-							if bool(config['templates'][k]['html']):
-								### assign outerHTML to the template constructor
-								config['templates'][k]['html'] = config['templates'][k]['html'].get_attribute("innerHTML")
-								### create config class
-								P.template(**config['templates'][k])
-							### HANDLER FOR ISSUE GETTING HTML
-							else:
-								print 'html not found'
-						### produce all files
-						P.create()
-
-	### process manual start
-	def __manual__ (self):
-		### initialise partner class
-		self.partner = Partner()
-		### setup name for the partner
-		self.__name__()
-		self.__syndication__()
-		self.__website__()
-		self.__filepath__()
-		self.__template__()
-		self.__create__()
 	### process argument string(s)
 	def __process__ (self):
 		### confirm that system arguments were supplied
@@ -1248,24 +1256,88 @@ class AI (String):
 			if re.compile(self.AUTO).match(self.actions[0]):
 				### run program with automated setup
 				return self.__automatic__(self.actions[1:])
-			### attempt to match edited setup expression
-			elif re.compile(self.EDIT).match(self.actions[0]):
-				### run program with edited setup
-				return self.__edit__(self.actions[1:])
 		### failed to match with expression list
 		### run program with BIOS setup
 		return self.__manual__()
+	### process automated start
+	def __automatic__ (self, actions):
+		### confirm that system arguments container an index
+		if bool(actions):
+			### create selenium instance
+			B = Browser()
+			### initialise selenium browser
+			B.start()
+			### iterate over indexes within system arguments
+			for i in range(0, len(actions)):
+				### attempt to convert json argument to python dictionary
+				config = JSON(actions[i]).fetch()
+				### confirm that JSON class returned dictionary instance
+				if bool(config):
+					### create Partner class instance for associated dictionary
+					P = Partner(name = config['name'], website = config['website'], syndication = config['syndication'], filepath = Folder(name = config['name']).create())					
+					### confirm that the supplied dictionary from json contained a list of templates to be constructed
+					if bool(config['templates']):	
+						### iterate over dictionaries within list
+						for k in range(0, len(config['templates'])):
+							### set template path to be the website of selenium browser
+							B.website = config['templates'][k]['path']
+							### open the provided url
+							B.open()
+							### attempt to find the HTML on the page
+							config['templates'][k]['html'] = B.find(selector = self.concat(config['templates'][k]['target'], config['templates'][k]['selector']))
+							### confirm that selenium instance returned code
+							if bool(config['templates'][k]['html']):
+								### assign innerHTML to the template constructor
+								config['templates'][k]['html'] = config['templates'][k]['html'].get_attribute("innerHTML")
+								### create config class
+								P.template(**config['templates'][k])
+							### HANDLER FOR ISSUE GETTING HTML
+							else:
+								print 'html not found'
+						### produce all files
+						P.create()
+
+
+	
+	### process manual start
+	def __manual__ (self):
+		### initialise selenium browser
+		self.browser.start()
+		### setup the partner
+		self.__setup__()
+
+	def __setup__ (self):
+		self.__partner__()
+
+	def __partner__ (self):
+		### initialise partner class
+		self.partner = Partner()
+	
+		self.__name__()
 
 	### create the partner name for manual setup
 	def __name__ (self):
 		self.partner.name = Set(request = self.concat("the", self.tag("Gemini partner's name")), response = self.concat("the partner's name")).open()['response']
-	
+		
+		if self.partner.name:
+			self.__syndication__()
+
+
 	def __syndication__ (self):
 		self.partner.syndication = Set(request = self.concat(self.cconcat([self.partner.name, "'s"]), self.tag("Gemini ID")), response = self.concat(self.cconcat([self.partner.name, "'s"]), "Gemini ID")).open()['response']
+		
+		if self.partner.syndication:
+			self.__website__()
 
 	def __website__ (self):
 		self.partner.website = Set(request = self.concat("the", self.tag("website address"), "for", self.partner.name), response = self.concat(self.cconcat([self.partner.name, "'s"]), "website address")).open()['response']
 		
+		if self.partner.website:
+			self.browser.open(self.partner.website)
+
+			self.__filepath__()
+
+
 	def __filepath__ (self):
 		if not Request(prompt = self.concat("use the", self.tag("default name"), "for the storage folder", self.cconcat(["(", self.partner.name, ")", "?"]))).open():
 			self.partner.filepath = Set(request = self.concat("the", self.tag("folder name"), "for file storage"), response = self.concat("the storage folder")).open()['response']
@@ -1274,24 +1346,29 @@ class AI (String):
 		
 		self.partner.filepath = Folder(name = self.partner.filepath).create()
 
+		self.__template__()
+
 	def __template__ (self):
 
-		self.partner.template(**HX(name = self.partner.name, path = self.partner.website).all())
+		self.partner.template(**HX(name = self.partner.name, path = self.partner.website, browser = self.browser).all())
 	
 		if Request(prompt = self.concat("create another template for", self.cconcat([self.partner.name, "?"]))).open():
 			self.__template__()
-
+		else:
+			self.__create__()
 
 	def __create__ (self):
 		self.partner.create()
 
 		if Request(prompt = "create another partner?").open():
-			self.__manual__()
+			self.__setup__()
 
 	### constructor
 	def __init__ (self, name = "dee", actions = sys.argv[1:]):
 		self.responder = Responder(name = name)
 		self.actions = actions
+		self.partner = None
+		self.browser = Browser()
 
 
 
@@ -1310,13 +1387,19 @@ class Browser (String):
 			### return False for error handling
 			return False
 	### open the provided webpage within selenium
-	def open (self):
-		### create instance of page within selenium
-		self.webdriver.get(self.website)
+	def open (self, website = None):
+		if website:
+			self.website = website
+		if self.website:
+			### create instance of page within selenium
+			self.webdriver.get(self.website)
 	### initialise selenium browser
 	def start (self):
-		### create selenium instance
-		self.webdriver = self.webdriver()
+		if not self.initialised:
+			### create selenium instance
+			self.webdriver = self.webdriver()
+			### set boolean to prevent same instance restart
+			self.initialised = True
 	### exit selenium
 	def quit (self):
 		### close selenium instance
@@ -1325,6 +1408,7 @@ class Browser (String):
 	def __init__ (self, website = None):
 		self.website = website
 		self.webdriver = webdriver.Chrome
+		self.initialised = False
 
 
 
