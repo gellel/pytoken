@@ -1,4 +1,5 @@
 #!/usr/bin/python
+# -*- coding: utf-8 -*-
 #sys.argv[1:]
 
 ###################################
@@ -136,7 +137,7 @@ class String:
 
 
 
-class JSON:
+class JSON (String):
 	### attempt to fetch formatted json from string or file
 	def fetch (self, method = "strs"):
 		### determine which method to operate
@@ -144,7 +145,7 @@ class JSON:
 	### determine method to parse json
 	def __method__ (self, method):
 		### format method string to match class function string pattern
-		method = String().cconcat(["__", method, "__" ])
+		method = self.cconcat(["__", method, "__" ])
 		### confirm if self has the method defined within self
 		if hasattr(self, method):
 			### call found function
@@ -342,6 +343,7 @@ class LX:
 		self.attr = kwargs.pop('attr', {})
 		self.punctuate = kwargs.pop('punctuate', None)
 		self.optional = kwargs.pop('optional', False)
+
 
 
 
@@ -706,7 +708,7 @@ class File:
 		### confirm if file allows file to be written to
 		if re.compile('[rwa]\+?', re.IGNORECASE).match(self.file.mode):
 			self.file.seek(seeker)
-			self.file.write(contents)
+			self.file.write(str(contents))
 		else:
 			### notify developer that their class file instance does not allow edits
 			print "file mode doesn't allow writing"
@@ -1067,7 +1069,6 @@ class HX (String):
 				if Request(prompt = "unable to find element. try again?").open():
 					### recall function
 					self.__selector__()
-
 	### create the string required to set the starting position of the ad template
 	def __first__ (self):
 		### return the starting string
@@ -1096,8 +1097,8 @@ class HX (String):
 	def __html__ (self, html_selection = "innerHTML"):
 		### confirm that HTML instance exists
 		if self.html:
-			### retrieve attribute from selenium index
-			self.html = self.html.get_attribute(html_selection)
+			### retrieve attribute from selenium index and clean contents with selenium
+			self.html = Soup(html = self.html.get_attribute(html_selection)).create()
 	### constructor 
 	def __init__ (self, **kwargs):
 		self.name = kwargs.pop("name", "example")
@@ -1188,9 +1189,8 @@ class HTML (String):
 		self.partner = kwargs.pop("partner", "loremipsum")
 		self.path = kwargs.pop("path", "https://www.loremipsum.com/home")
 		self.filepath =  kwargs.pop("filepath", __filepath__)
-		self.html = kwargs.pop("html", None)
-		if not self.html:
-			self.html = self.cconcat([self.cconcat(['<div id="gemini-ad-example" class="gemini-example-ad">', "\n"]), self.cconcat(["    ", '<div class="main-image row">', "\n"]), self.cconcat(["    ", "    ", '<figure>', "\n"]), self.cconcat(["    ", "    ", "    ", '<a href="{{headline}}" target="_blank">', "\n"]), self.cconcat(["    ", "    ", "    ", "    ", '<img src="{{> gemini/image }}" alt="{{headline}}">', "\n"]), self.cconcat(["    ", "    ", "    ", '</a>', "\n"]), self.cconcat(["    ", "    ", '</figure>', "\n"]), self.cconcat(["    ", '</div>', "\n"]), self.cconcat(["    ", '<div class="main-headline row">', "\n"]), self.cconcat(["    ", "    ", '<h1>', "\n"]), self.cconcat(["    ", "    ", "    ", '<a href="{{headline}}" target="_blank">', "\n"]), self.cconcat(["    ", "    ", "    ", "    ", '{{headline}}', "\n"]), self.cconcat(["    ", "    ", "    ", '</a>', "\n"]), self.cconcat(["    ", "    ", '</h1>', "\n"]), self.cconcat(["    ", '</div>', "\n"]), self.cconcat(["    ", '<div class="main-sumamry row">', "\n"]), self.cconcat(["    ", "    ", '<p>', "\n"]), self.cconcat(["    ", "    ", "    ", "{{headline}}", "\n"]), self.cconcat(["    ", "    ", '</p>', "\n"]), self.cconcat(["    ", "    ", "{{#if source}}", "\n"]), self.cconcat(["    ", "    ", "    ", '<a href="{{adchoices_url}}" target="_blank">', "\n"]), self.cconcat(["    ", "    ", "    ", "    ", '<span>Sponsored by {{source}}</span>', "\n"]), self.cconcat(["    ", "    ", "    ", '</a>', "\n"]), self.cconcat(["    ", "    ", "{{/if}}"]), "\n", self.cconcat(["    ", '</div>', "\n"]), self.cconcat(['</div>'])])
+		self.html = Soup(html = kwargs.pop("html", self.cconcat([self.cconcat(['<div id="gemini-ad-example" class="gemini-example-ad">', "\n"]), self.cconcat(["    ", '<div class="main-image row">', "\n"]), self.cconcat(["    ", "    ", '<figure>', "\n"]), self.cconcat(["    ", "    ", "    ", '<a href="{{headline}}" target="_blank">', "\n"]), self.cconcat(["    ", "    ", "    ", "    ", '<img src="{{> gemini/image }}" alt="{{headline}}">', "\n"]), self.cconcat(["    ", "    ", "    ", '</a>', "\n"]), self.cconcat(["    ", "    ", '</figure>', "\n"]), self.cconcat(["    ", '</div>', "\n"]), self.cconcat(["    ", '<div class="main-headline row">', "\n"]), self.cconcat(["    ", "    ", '<h1>', "\n"]), self.cconcat(["    ", "    ", "    ", '<a href="{{headline}}" target="_blank">', "\n"]), self.cconcat(["    ", "    ", "    ", "    ", '{{headline}}', "\n"]), self.cconcat(["    ", "    ", "    ", '</a>', "\n"]), self.cconcat(["    ", "    ", '</h1>', "\n"]), self.cconcat(["    ", '</div>', "\n"]), self.cconcat(["    ", '<div class="main-sumamry row">', "\n"]), self.cconcat(["    ", "    ", '<p>', "\n"]), self.cconcat(["    ", "    ", "    ", "{{headline}}", "\n"]), self.cconcat(["    ", "    ", '</p>', "\n"]), self.cconcat(["    ", "    ", "{{#if source}}", "\n"]), self.cconcat(["    ", "    ", "    ", '<a href="{{adchoices_url}}" target="_blank">', "\n"]), self.cconcat(["    ", "    ", "    ", "    ", '<span>Sponsored by {{source}}</span>', "\n"]), self.cconcat(["    ", "    ", "    ", '</a>', "\n"]), self.cconcat(["    ", "    ", "{{/if}}"]), "\n", self.cconcat(["    ", '</div>', "\n"]), self.cconcat(['</div>'])]))).create()
+
 
 
 
@@ -1231,6 +1231,7 @@ class Partner:
 		self.syndication = kwargs.pop("syndication", "0111001001101111011000100110111101110100")
 		self.html_context = []
 		self.javascript_context = []
+
 
 
 
@@ -1305,16 +1306,16 @@ class AI (String):
 		self.browser.start()
 		### setup the partner
 		self.__setup__()
-
+	### main manual setup handler
 	def __setup__ (self):
+		### initialise partner class
 		self.__partner__()
-
+	### initialise partner class instance
 	def __partner__ (self):
 		### initialise partner class
 		self.partner = Partner()
-	
+		### attempt to set the name of the partner being initialised
 		self.__name__()
-
 	### create the partner name for manual setup
 	def __name__ (self):
 		self.partner.name = Set(request = self.concat("the", self.tag("Gemini partner's name")), response = self.concat("the partner's name")).open()['response']
@@ -1373,7 +1374,6 @@ class AI (String):
 
 
 
-from selenium import webdriver
 
 class Browser (String):
 	### find the HTML request on the opened webpage
@@ -1411,19 +1411,75 @@ class Browser (String):
 		self.initialised = False
 
 
+from selenium import webdriver
+from bs4 import BeautifulSoup
+
+class Soup (String):
+	### create the formatted and prettified code string
+	def create (self):
+		### edit the anchor tags
+		self.__anchors__()
+		### beautiful the HTML string
+		self.__prettify__()
+		### return indented HTML string provided from beautify
+		return self.__indent__()
+	### set all of the anchor tags to include macros
+	def __anchors__ (self):
+		### iterate over all available anchor tags and substitute values
+		for anchor_tag in self.soup.select('a[href]'):
+			anchor_tag["href"] = "{{clickUrl}}"
+			anchor_tag["title"] = "{{headline}}"
+			anchor_tag["target"] = "_blank"
+	### beautify HTML string with BS4 formatting
+	def __prettify__ (self):
+		self.prettify = self.soup.prettify()
+
+	### encode or decode string
+	def __stringcode__ (self, string):
+		### confirm if string type is unicode
+		if type(string) is unicode:
+			### replace string components with ignorecase
+			string = string.encode('ascii','ignore')
+		### return string
+		return string
+
+	### format prettified HTML string to include further four space indentation
+	def __indent__ (self, indentation = "    "):
+		### string to contain reformatted and reindented HTML
+		self.unicodeHTML = ""
+		### list of strings seperated by lines from bs4 prettified code
+		self.splitlines = self.prettify.splitlines()
+		### iterate over the length of the potential splitlines
+		for i in range(0, len(self.splitlines)):
+			### attempt to find strings that lead with any number of whitespace
+			regexp = re.compile(r'^\s+').search(self.splitlines[i])	
+			### confirm that regexp pattern was found
+			if regexp is not None:
+				### convert unicode string instance to normal string
+				self.splitlines[i] = self.__stringcode__(self.splitlines[i])
+				### set string of splitline to the replace string omitting single space indentation with supplied indentation
+								#print regexp.group(0), 'group' 
+				#print re.compile(r'(?:\s+).+').search(self.splitlines[i]).group(0)
+
+				self.splitlines[i] = self.cconcat(["".join(list(indentation * len(regexp.group(0)))), self.splitlines[i][len(regexp.group(0)):]])
+			### set indented string to include existing string as well as line string whether it was modified or not
+			self.unicodeHTML = self.cconcat([self.unicodeHTML, self.splitlines[i]])
+			### confirm that the iteration index is not the length of the list
+			if (i + 1) is not len(self.splitlines):
+				### add new line to the indented string
+				self.unicodeHTML = self.cconcat([self.unicodeHTML, "\n"])
+		### return new formatted string with indentation
+		return self.unicodeHTML
+	### constructor
+	def __init__ (self, **kwargs):
+		self.html = kwargs.pop("html", '<div><section><figure><img src="img-source.file"><figcaption><p>hello world</p></figcaption></figure></section></div>')
+		self.soup = BeautifulSoup(self.html, "html.parser")
+
+
+
+
 
 
 if __name__ == '__main__':
-	
 	AI().main()
 
-
-	### title: example automatic setup
-	### input: python eg.py auto '{"name":"thewhoot","website":"https://www.thewhoot.com.au/","syndication":"5511214","templates":[{"module":"instream","target":"#pt-cv-page-1","selector":"div","first":1,"interval":2,"path":"https://www.thewhoot.com.au/"}]}'
-		
-	#P = Partner(name = "robolindsay", website = "https://www.bleepboopiamarobot.com", syndication = "5555555")
-
-	#P.template(module = "standfirst", target = ".geminirobot", section = ".secret", first = 1, interval = 4, html = '<div id="gemini">{{clickurl}}</div>')
-	#P.template(module = "rightrail", target = ".lindsaygelle", section = ".killinit", first = 5, interval = 11, html = '<article>{{headline}}</article>')
-
-	#P.create()
