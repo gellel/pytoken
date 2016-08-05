@@ -7,6 +7,8 @@
 ###################################
 ### py subprocess class package
 import subprocess
+### py importlib class package
+import importlib
 ### py textwrap class package
 import textwrap
 ### py temp class package
@@ -33,6 +35,17 @@ import sys
 import os
 ### py regex
 import re
+
+###################################
+### python dynamic dependencies ###
+###################################
+### py pip selenium webdriver class package
+WEBDRIVER = None
+### py pip bs4 class package
+BS4 = None
+### py file version
+VERSION = 1.0
+
 
 ### script exe base file directory
 __filepath__ = os.path.dirname(os.path.realpath('__file__'))
@@ -350,7 +363,7 @@ class LX:
 
 class Responder (String):	
 	### returns a string (optionally filtered) prefixed by the name of the responder
-	def response (self, message = "destory all humans!", attr = {}):
+	def response (self, message = "destroy all humans!", attr = {}):
 		### return formatted concatenated string
 		return self.concat((self.__name__() + self.seperator), self.__message__(message, attr))
 	### private class for fetching the formatted string for the message part of ai response
@@ -598,7 +611,7 @@ class Install (String):
 			### if user agrees attempt to install each package
 			if Request(prompt = "attempt to install missing files?").open():
 				for i in range(0, len(packages)):
-					### install status will attempt to be changed from False to True during instal process
+					### install status will attempt to be changed from False to True during install process
 					self.__install__(packages[i])
 				### check the outcome of the install attempts
 				for i in range(0, len(packages)):
@@ -1248,7 +1261,7 @@ class AI (String):
 	def __process__ (self):
 		### confirm that system arguments were supplied
 		if not bool(self.actions):
-			### if system arguments missing setup proccess to run as normal
+			### if system arguments missing setup process to run as normal
 			return self.__manual__()
 		### should system arguments be found 			
 		### attempt to match the first argument instance
@@ -1407,12 +1420,11 @@ class Browser (String):
 	### constructor
 	def __init__ (self, website = None):
 		self.website = website
-		self.webdriver = webdriver.Chrome
+		self.webdriver = WEBDRIVER.Chrome
 		self.initialised = False
 
 
-from selenium import webdriver
-from bs4 import BeautifulSoup
+
 
 class Soup (String):
 	### create the formatted and prettified code string
@@ -1432,17 +1444,18 @@ class Soup (String):
 			anchor_tag["target"] = "_blank"
 	### beautify HTML string with BS4 formatting
 	def __prettify__ (self):
+		### use beautiful soup to seperate captured HTML into new lines
 		self.prettify = self.soup.prettify()
-
+		### return prettified string
+		return self.prettify
 	### encode or decode string
 	def __stringcode__ (self, string):
 		### confirm if string type is unicode
 		if type(string) is unicode:
 			### replace string components with ignorecase
 			string = string.encode('ascii','ignore')
-		### return string
+		### return string of type string
 		return string
-
 	### format prettified HTML string to include further four space indentation
 	def __indent__ (self, indentation = "    "):
 		### string to contain reformatted and reindented HTML
@@ -1457,10 +1470,7 @@ class Soup (String):
 			if regexp is not None:
 				### convert unicode string instance to normal string
 				self.splitlines[i] = self.__stringcode__(self.splitlines[i])
-				### set string of splitline to the replace string omitting single space indentation with supplied indentation
-								#print regexp.group(0), 'group' 
-				#print re.compile(r'(?:\s+).+').search(self.splitlines[i]).group(0)
-
+				### set the split line string to the newly formatted string; replacing the leading space set by BS4 to indented tabs; also splitlines string starts from regexp capture group (leading whitespace)
 				self.splitlines[i] = self.cconcat(["".join(list(indentation * len(regexp.group(0)))), self.splitlines[i][len(regexp.group(0)):]])
 			### set indented string to include existing string as well as line string whether it was modified or not
 			self.unicodeHTML = self.cconcat([self.unicodeHTML, self.splitlines[i]])
@@ -1473,13 +1483,149 @@ class Soup (String):
 	### constructor
 	def __init__ (self, **kwargs):
 		self.html = kwargs.pop("html", '<div><section><figure><img src="img-source.file"><figcaption><p>hello world</p></figcaption></figure></section></div>')
-		self.soup = BeautifulSoup(self.html, "html.parser")
+		self.soup = BS4.BeautifulSoup(self.html, "html.parser")
 
 
 
 
+
+class Pips (String):
+
+	def uninstall (self):
+		if self.__core__():
+			for i in range(0, len(self.pips)):
+				self.__uninstall__(self.pips[i])
+
+			self.__uninstall__()
+
+	def install (self):
+		if self.__core__():
+			for i in range(0, len(self.pips)):
+				self.__package__(self.pips[i])
+
+		return self.__installed__()
+
+	def __installed__ (self):
+		if not self.__isins__():
+			return False
+		else:
+			for i in range(0, len(self.pips)):
+				if not self.__isins__(self.pips[i]):
+					return False
+
+		return True
+
+	def __isins__ (self, package = None):
+		if not package:
+			return self.__main__()
+		else:
+			return self.__pip__(package)
+
+	def __core__ (self):
+		if not self.__isins__():
+			self.pip_core = HTTPResource("https://bootstrap.pypa.io/get-pip.py").fetch()
+			if self.pip_core:
+				self.pip_file =  File(name = "get-pip", ext = "py", temporary = False)
+				self.pip_file.write(self.pip_core)
+				self.pip_file.close()
+				if Command(command = [String().concat("sudo", "python", self.pip_file.file.name)], shell = True).process():
+					self.pip_file.remove()
+					return True
+
+			return False
+
+		return True
+
+	def __package__ (self, package):
+		Command(command = [self.concat("sudo", "-H", "pip", "install", package['pip'])], shell = True).process()
+		return self.__isins__(package)
+
+	def __main__ (self):
+		return Command(command = ["pip"]).process()
+
+	def __pip__ (self, package):
+		return self.__global__(package)
+
+	def __import__ (self, package = None):
+		try:
+			return importlib.import_module(package['import'])
+		except:
+			return False
+
+	def __global__ (self, package = None):
+		package['sys'] = self.__import__(package)
+
+		if package['sys']:
+			if 'module' in package:
+				if package['module'] in globals():
+					globals()[package['module']] = package['sys']
+					return True
+			else:
+				return True
+
+		return False
+
+	def __uninstall__ (self, package = None):
+		if not package:
+			return Command(command = [self.concat("sudo", "-H", "pip", "uninstall", "pip"), 'y'], shell = True, stdout = None).process()
+		else:
+			return Command(command = [self.concat("sudo", "-H", "pip", "uninstall", package['pip'])], shell = True, stdout = None).process()
+
+	def __init__ (self, **kwargs):
+		self.pips = kwargs.pop("pips", [{'name':'selenium', 'pip':'selenium', 'import':'selenium.webdriver', 'resource':'https://pypi.python.org/pypi/selenium', 'module': 'WEBDRIVER'}, {'name':'chromedriver', 'pip':'chromedriver_installer', 'import':'selenium.webdriver.chrome', 'resource':'https://pypi.python.org/pypi/chromedriver_installer'}, {'name':'beautifulsoup', 'pip':'beautifulsoup4', 'import':'bs4', 'resource':'https://pypi.python.org/pypi/bs4/0.0.1', 'module': 'BS4'}])
+		self.status = self.__installed__()
+
+
+
+
+
+
+class Main (String):
+
+	def start (self):
+
+		print self.cconcat(["\n", self.system.response(self.concat("starting program:", self.cconcat([self.get({'str':self.tag(str(__file__)),'attr':{'a':'bold'}}), "."]), "file version:", self.cconcat([self.get({'str':self.tag(str(globals()['VERSION'])),'attr':{'a':'bold'}}), "."])))])
+		print self.cconcat([self.system.response(self.concat("checking file dependencies:", self.cconcat([self.__pipstatus__(), "."]))), "\n"])
+
+		if not self.pip.status:
+			self.safe = False
+
+			print self.system.response(self.concat("program", self.get({'str':self.tag(__file__),'attr':{'a':'bold'}}), "has missing system files."))
+
+			if Request(prompt = "install missing files?").open():
+				
+				if self.pip.install():
+					self.safe = True
+					print self.cconcat(["\n", self.system.response("program successfully installed all items."), "\n"])
+				else:
+					print self.cconcat(["\n", self.system.response("program failed to install all requirements."), "\n"])
+			else:
+				print self.cconcat(["\n", self.system.response("this program cannot function without these items."), "\n"])
+				
+		if self.safe:
+			print self.cconcat([self.get({'str':'{{PROGRAM START}}','attr':{'a':'green'}}), "\n"])
+			AI().main()
+		else:
+			print self.cconcat([self.get({'str':'{{PROGRAM ABORTED}}','attr':{'a':'red'}}), "\n"])
+
+	def __pipstatus__ (self):
+		if self.pip.status:
+			return self.get({'str':'{{files installed}}','attr':{'a':'bold'}})
+		else:
+			return self.get({'str':'{{files missing}}','attr':{'a':'bold'}})
+
+	def __init__ (self):
+		self.system = Responder()
+		self.pip = Pips()
+		self.safe = True
+	
 
 
 if __name__ == '__main__':
-	AI().main()
+
+	#Pips().uninstall()
+	
+	Main().start()
+
+
 
