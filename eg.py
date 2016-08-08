@@ -1708,32 +1708,44 @@ class Pips (String):
 
 
 class Main (String):
-
+	### initialise main program
 	def start (self):
+		### clean terminal window
 		Command(command = ["clear"], shell = True, stdout = None).process()
-
+		### write status of program file
 		print self.cconcat([self.system.response(self.concat("starting program:", self.cconcat([self.get({'str':self.tag(str(__file__)),'attr':{'a':'bold'}}), "."]), "file version:", self.cconcat([self.get({'str':self.tag(str(globals()['VERSION'])),'attr':{'a':'bold'}}), "."])))])
 		print self.cconcat([self.system.response(self.concat("checking file dependencies:", self.cconcat([self.__pipstatus__(), "."]))), "\n"])
-
+		### confirm whether pip installation status passed or failed
 		if not self.pip.status:
+			### if pip or pip packages not found set run status of program to false
 			self.safe = False
-
+			### notify user that the system did not initialise as expected
 			print self.system.response(self.concat("program", self.get({'str':self.tag(__file__),'attr':{'a':'bold'}}), "has missing system files."))
-
+			### request that user installs the required files
 			if Request(prompt = "install missing files?").open():
-				
+				### confirm whether all pip items were installed
 				if self.pip.install():
+					### if all files successfully added reset program status
 					self.safe = True
+					### notify user that program succeeded installing all items
 					print self.cconcat(["\n", self.system.response("program successfully installed all items."), "\n"])
+				### if program failed to install requirements notify user
 				else:
+					### print failure message
 					print self.cconcat(["\n", self.system.response("program failed to install all requirements."), "\n"])
+			### if user opted to not install file requirements
 			else:
+				### notify user that the program cannot operate without these items
 				print self.cconcat(["\n", self.system.response("this program cannot function without these items."), "\n"])
-				
+		### confirm whether progam is safe to run	
 		if self.safe:
+			### notify user that program is starting 
 			print self.cconcat([self.get({'str':'{{PROGRAM START}}','attr':{'a':'green'}}), "\n"])
+			### initialise main file
 			AI().main()
+		### if program not safe
 		else:
+			### exit program
 			print self.cconcat([self.get({'str':'{{PROGRAM ABORTED}}','attr':{'a':'red'}}), "\n"])
 	### notification status on whether the program can run without installer
 	def __pipstatus__ (self):
@@ -1757,5 +1769,6 @@ if __name__ == '__main__':
 	
 	Main().start()
 
+	### python eg.py auto '{"name":"thewhoot","website":"https://www.thewhoot.com.au/","syndication":"5511214","templates":[{ "module":"instream", "target":"#pt-cv-page-1", "selector":"> div", "first":3, "interval":6, "path":"https://www.thewhoot.com.au/" }, { "module":"rightrail", "target":"#pt-cv-page-1", "selector":"> div", "first":3, "interval":10, "path":"http://thewhoot.com.au/whoot-news/crafty-corner/crochet-hooded-cowl" }, { "module":"article", "target":".main-content .mom-related-posts", "selector":"> li", "first":4, "interval":6, "path":"http://thewhoot.com.au/whoot-news/diy/grow-rose-cuttings-with-potatoes" }]}' '{"name":"nova","website":"https://www.nova969.com.au/","syndication":"500000","templates":[{ "module":"nova", "target":".main-content #block-system-main .field-items .field-item", "selector":"> .nova-para-magnet-chunk", "first":2, "interval":4, "path":"http://www.nova969.com.au/nova969" }]}'
 
 
