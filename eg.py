@@ -1060,7 +1060,13 @@ class HX (String):
 		self.target = Set(request = self.concat("the", self.tag("css selector"), "for the template's parent container"), response = self.concat("the parent css selector")).open()['response']	
 		### confirm that the css selector can be found on the provided page
 		if self.__element__("target", self.target, "html"):
-			print "found html"
+
+			self.__highlight__(self.target, True)
+
+			### confirm that the right HTML was located
+			if not Request(prompt = "was the correct HTML element selected?").open():
+				### recall function
+				self.__target__()
 		### if selenium failed to select find HTML on provided page
 		else:
 			### request to redefine the css selector and attempt to locate again
@@ -1075,7 +1081,12 @@ class HX (String):
 		if self.target:
 			### confirm that the css selector can be found on the provided page
 			if self.__element__("selector", self.concat(self.target, self.selector), "html"):
-				print "found html"
+
+				self.__highlight__(self.concat(self.target, self.selector))
+				### confirm that the right HTML was located
+				if not Request(prompt = "was the correct HTML element selected?").open():
+					### recall function
+					self.__selector__()
 			### if selenium failed to select find HTML on provided page
 			else:
 				### request to redefine the css selector and attempt to locate again
@@ -1106,6 +1117,23 @@ class HX (String):
 					setattr(self, html_attr, self.browser.find(selector = selector))
 					### return response for handler
 					return getattr(self, html_attr)
+	### highlight the selector if found on the page
+	def __highlight__ (self, selector = None, clear = None):
+		### confirm that CSS selector was provided
+		if selector:
+			### format supplied selector to javascript query selector method
+			selector = self.cconcat(["document.querySelector", "(", '"', selector, '"',");"])
+
+			if not clear:
+				clear = ""
+			else:
+				clear = "if (!e.clientHeight) { var cf = document.createElement('div'); cf.style.clear = 'both'; e.appendChild(cf); }"
+
+			### concatenate selector with javascript and include 
+			selector = self.concat("var", "e", "=", selector, clear, "e.style.border = '2px solid #9ecaed'; e.style.boxShadow = '0 0 10px #9ecaed';")
+
+			self.browser.exe(selector)
+
 	### extract HTML code from selected element
 	def __html__ (self, html_selection = "innerHTML"):
 		### confirm that HTML instance exists
@@ -1256,9 +1284,9 @@ class AI (String):
 	### main process handler
 	def main (self):
 		### attempt to process input context
-		return self.__process__()
+		return self.__path__()
 	### process argument string(s)
-	def __process__ (self):
+	def __path__ (self):
 		### confirm that system arguments were supplied
 		if not bool(self.actions):
 			### if system arguments missing setup process to run as normal
@@ -1289,6 +1317,9 @@ class AI (String):
 				if bool(config):
 					### create Partner class instance for associated dictionary
 					P = Partner(name = config['name'], website = config['website'], syndication = config['syndication'], filepath = Folder(name = config['name']).create())					
+					
+					print Responder().response(self.concat("setting up Gemini partner:", P.name))	
+				
 					### confirm that the supplied dictionary from json contained a list of templates to be constructed
 					if bool(config['templates']):	
 						### iterate over dictionaries within list
@@ -1301,18 +1332,19 @@ class AI (String):
 							config['templates'][k]['html'] = B.find(selector = self.concat(config['templates'][k]['target'], config['templates'][k]['selector']))
 							### confirm that selenium instance returned code
 							if bool(config['templates'][k]['html']):
+								print Responder().response(self.concat("HTML template created:", config['templates'][k]['module']))	
 								### assign innerHTML to the template constructor
 								config['templates'][k]['html'] = config['templates'][k]['html'].get_attribute("innerHTML")
 								### create config class
 								P.template(**config['templates'][k])
 							### HANDLER FOR ISSUE GETTING HTML
 							else:
-								print 'html not found'
+								print Responder().response(self.concat("cannot create HTML template:", config['templates'][k]['module']))	
+								#print self.responder.response(self.concat("cannot create HTML template:", self.get({'str':self.tag(config['templates'][k]['module']),'attr':{'weight':'bold'}})))
+						### produce status message for partner creation
+						self.__details__(P)
 						### produce all files
 						P.create()
-
-
-	
 	### process manual start
 	def __manual__ (self):
 		### initialise selenium browser
@@ -1331,51 +1363,95 @@ class AI (String):
 		self.__name__()
 	### create the partner name for manual setup
 	def __name__ (self):
+		### prompt user to set the gemini partners name
 		self.partner.name = Set(request = self.concat("the", self.tag("Gemini partner's name")), response = self.concat("the partner's name")).open()['response']
-		
+		### confirm that named response was sent
 		if self.partner.name:
+			### print newline
+			print ""
+			### proceed to set up gemini syndication id
 			self.__syndication__()
-
-
+	### create the partner id for manual setup
 	def __syndication__ (self):
+		### prompt user to set the gemini partners id
 		self.partner.syndication = Set(request = self.concat(self.cconcat([self.partner.name, "'s"]), self.tag("Gemini ID")), response = self.concat(self.cconcat([self.partner.name, "'s"]), "Gemini ID")).open()['response']
-		
+		### confirm that id response was sent
 		if self.partner.syndication:
+			### print newline
+			print ""
+			### proceed to selenium initialisation
 			self.__website__()
-
+	### create base website to open selenium page
 	def __website__ (self):
+		### prompt user to set the gemini partners website address for selenium to open
 		self.partner.website = Set(request = self.concat("the", self.tag("website address"), "for", self.partner.name), response = self.concat(self.cconcat([self.partner.name, "'s"]), "website address")).open()['response']
-		
+		### confirm that website response was sent
 		if self.partner.website:
+			### attempt to open selenium site
 			self.browser.open(self.partner.website)
-
+			### print newline
+			print ""
+			### proceed to set filepath
 			self.__filepath__()
-
-
+	### create filepath for local file storage
 	def __filepath__ (self):
+		### confirm whether user wishes to change from default path for file storage
 		if not Request(prompt = self.concat("use the", self.tag("default name"), "for the storage folder", self.cconcat(["(", self.partner.name, ")", "?"]))).open():
+			### prompt user to update the file path on their local system
 			self.partner.filepath = Set(request = self.concat("the", self.tag("folder name"), "for file storage"), response = self.concat("the storage folder")).open()['response']
+		### if not altered
 		else:
+			### set file path to be based on partner name
 			self.partner.filepath = self.partner.name
-		
+		### create new folder if none exists or create timestamped folder 
 		self.partner.filepath = Folder(name = self.partner.filepath).create()
-
+		### print newline
+		print ""
+		### proceed to template setup
 		self.__template__()
-
+	### create templates for the partner site
 	def __template__ (self):
-
+		### create entire template
 		self.partner.template(**HX(name = self.partner.name, path = self.partner.website, browser = self.browser).all())
-	
-		if Request(prompt = self.concat("create another template for", self.cconcat([self.partner.name, "?"]))).open():
+		### print newline
+		print ""
+		### confirm if user wishes to create another template for the current partner
+		if Request(prompt = self.concat("create another native template for", self.cconcat([self.partner.name, "?"]))).open():
+			### print newline
+			print ""
+			### recall function and create new template
 			self.__template__()
+		### if user chose to not continue making templates
 		else:
+			### print newline
+			print ""
+			### proceed to create partner
 			self.__create__()
-
+	### produce all required files for created partner
 	def __create__ (self):
+		### finalise creation of partner files
 		self.partner.create()
 
+		self.__details__(self.partner)
+
+		### confirm that user wishes to create another partner
 		if Request(prompt = "create another partner?").open():
+			### setup new partner file
 			self.__setup__()
+		else:
+			print "\n\n"
+			print self.get({'str':'{{PROGRAM COMPLETE}}','attr':{'color':'green'}})
+			print "\n\n"
+
+	def __details__ (self, partner):
+
+		print "\n"
+		print "Yahoo! Gemini partner created"
+		print "-----------------------------"
+		print "partner file name:", partner.name
+		print "syndication ident:", partner.syndication
+		print "templates created:", str(len(partner.html_context))
+		print "\n\n"
 
 	### constructor
 	def __init__ (self, name = "dee", actions = sys.argv[1:]):
@@ -1399,10 +1475,16 @@ class Browser (String):
 		except:
 			### return False for error handling
 			return False
+	### run flexible script from class inherited
+	def exe (self, script):
+		self.webdriver.execute_script(script)
 	### open the provided webpage within selenium
 	def open (self, website = None):
+		### confirm that website argument was provided
 		if website:
+			### set self instance of website to argument
 			self.website = website
+		### confirm that self has website instance
 		if self.website:
 			### create instance of page within selenium
 			self.webdriver.get(self.website)
@@ -1490,87 +1572,132 @@ class Soup (String):
 
 
 class Pips (String):
-
+	### sudo remove all pip packages associated with program and pip
+	### do not run this unless you want to actually remove pip itself and these packages
 	def uninstall (self):
+		### confirm that pip main is still available
 		if self.__core__():
+			### iterate over list of pip packages
 			for i in range(0, len(self.pips)):
+				### uninstall pip item as sudo with -H 
 				self.__uninstall__(self.pips[i])
-
+			### uninstall pip main core
 			self.__uninstall__()
-
+	### suo install pip package manager and pip dependencies
 	def install (self):
+		### confirm that pip main is installed
 		if self.__core__():
+			### iterate over list of pip packages
 			for i in range(0, len(self.pips)):
+				### install pip item
 				self.__package__(self.pips[i])
-
+		### confirm that all items including pip main was installed
 		return self.__installed__()
-
+	### handler for confirming that pip main or pip items are available
 	def __installed__ (self):
+		### confirm that pip main is or is not installed
 		if not self.__isins__():
+			### if not installed return False for error handler
 			return False
+		### if pip main in installed on system
 		else:
+			### iterate over list of pip packages
 			for i in range(0, len(self.pips)):
+				### confirm that pip package item is not installed
 				if not self.__isins__(self.pips[i]):
+					### return False for error handler
 					return False
-
+		### return True if BOTH pip core and all pip packages are available
 		return True
-
+	### check whether pip core or pip package is on system
 	def __isins__ (self, package = None):
+		### confirm that pip package dictionary was not supplied
 		if not package:
+			### check whether pip core is installed
 			return self.__main__()
+		### if pip package dictionary was supplied
 		else:
+			### check whether pip package item can be imported as module
 			return self.__pip__(package)
-
+	### installer for pip main
 	def __core__ (self):
+		### confirm that pip is not installed on the main system
 		if not self.__isins__():
+			### attempt to fetch pip main installer file from HTTP destination
 			self.pip_core = HTTPResource("https://bootstrap.pypa.io/get-pip.py").fetch()
+			### confirm if pip main installer file was retrieved from web resource
 			if self.pip_core:
+				### create new file instance as python file
 				self.pip_file =  File(name = "get-pip", ext = "py", temporary = False)
+				### write pip contents to new python file
 				self.pip_file.write(self.pip_core)
+				### close python file for use within subprocess
 				self.pip_file.close()
+				### attempt to run and install pip main
 				if Command(command = [String().concat("sudo", "python", self.pip_file.file.name)], shell = True).process():
+					### remove temporary file if installed correctly
 					self.pip_file.remove()
+					### return True for handler
 					return True
-
+			### return False if core failed to download or install
 			return False
-
+		### return True if pip core is instaled
 		return True
-
+	### installer for pip package from pip
 	def __package__ (self, package):
+		### install pip package using -H flag
 		Command(command = [self.concat("sudo", "-H", "pip", "install", package['pip'])], shell = True).process()
+		### return the result of the next import attempt
 		return self.__isins__(package)
-
+	### confirm that pip main is installed
 	def __main__ (self):
+		### return the result of the pip subprocess call
 		return Command(command = ["pip"]).process()
-
+	### attempt to assign pip package to import package module and possibly assign to global variable 
 	def __pip__ (self, package):
+		### attempt to assign to global variable if required
 		return self.__global__(package)
-
+	### confirm whether pip packge can be imported as a system module
 	def __import__ (self, package = None):
+		### attempt to import pip package into system
 		try:
+			### return imported package if found
 			return importlib.import_module(package['import'])
+		### handle exception error
 		except:
+			### return False if package could not be imported (assumed to be uninstalled)
 			return False
-
+	### set imported modules to global variables if required as system item
 	def __global__ (self, package = None):
+		### attempt to import package module into system
 		package['sys'] = self.__import__(package)
-
+		### confirm that pip package module was successfully imported into system
 		if package['sys']:
+			### confirm that package dictionary item has a global variable assignment requirement
 			if 'module' in package:
+				### confirm that instance name exists as global variable
 				if package['module'] in globals():
+					### assign imported system package to global window 
 					globals()[package['module']] = package['sys']
+					### return True for error handling
 					return True
+			### if package was successfully imported
 			else:
+				### return True
 				return True
-
+		### return False if package could not be imported or assigned to global variable
 		return False
-
+	### remove all requirements for this file
 	def __uninstall__ (self, package = None):
+		### confirm that package was not supplied 
 		if not package:
+			### uninstall pip main
 			return Command(command = [self.concat("sudo", "-H", "pip", "uninstall", "pip"), 'y'], shell = True, stdout = None).process()
+		### if pip package dictionary was supplied
 		else:
+			### uninstall pip package
 			return Command(command = [self.concat("sudo", "-H", "pip", "uninstall", package['pip'])], shell = True, stdout = None).process()
-
+	### constructor
 	def __init__ (self, **kwargs):
 		self.pips = kwargs.pop("pips", [{'name':'selenium', 'pip':'selenium', 'import':'selenium.webdriver', 'resource':'https://pypi.python.org/pypi/selenium', 'module': 'WEBDRIVER'}, {'name':'chromedriver', 'pip':'chromedriver_installer', 'import':'selenium.webdriver.chrome', 'resource':'https://pypi.python.org/pypi/chromedriver_installer'}, {'name':'beautifulsoup', 'pip':'beautifulsoup4', 'import':'bs4', 'resource':'https://pypi.python.org/pypi/bs4/0.0.1', 'module': 'BS4'}])
 		self.status = self.__installed__()
@@ -1583,8 +1710,9 @@ class Pips (String):
 class Main (String):
 
 	def start (self):
+		Command(command = ["clear"], shell = True, stdout = None).process()
 
-		print self.cconcat(["\n", self.system.response(self.concat("starting program:", self.cconcat([self.get({'str':self.tag(str(__file__)),'attr':{'a':'bold'}}), "."]), "file version:", self.cconcat([self.get({'str':self.tag(str(globals()['VERSION'])),'attr':{'a':'bold'}}), "."])))])
+		print self.cconcat([self.system.response(self.concat("starting program:", self.cconcat([self.get({'str':self.tag(str(__file__)),'attr':{'a':'bold'}}), "."]), "file version:", self.cconcat([self.get({'str':self.tag(str(globals()['VERSION'])),'attr':{'a':'bold'}}), "."])))])
 		print self.cconcat([self.system.response(self.concat("checking file dependencies:", self.cconcat([self.__pipstatus__(), "."]))), "\n"])
 
 		if not self.pip.status:
@@ -1607,13 +1735,17 @@ class Main (String):
 			AI().main()
 		else:
 			print self.cconcat([self.get({'str':'{{PROGRAM ABORTED}}','attr':{'a':'red'}}), "\n"])
-
+	### notification status on whether the program can run without installer
 	def __pipstatus__ (self):
+		### confirm whether pip package manager and dependencies were installed / available
 		if self.pip.status:
+			### create formatted string confirming that all files were installed
 			return self.get({'str':'{{files installed}}','attr':{'a':'bold'}})
+		### should package installer be missing
 		else:
+			### create formatted string confirming that some/all files are missing from system
 			return self.get({'str':'{{files missing}}','attr':{'a':'bold'}})
-
+	### constructor
 	def __init__ (self):
 		self.system = Responder()
 		self.pip = Pips()
@@ -1622,8 +1754,6 @@ class Main (String):
 
 
 if __name__ == '__main__':
-
-	#Pips().uninstall()
 	
 	Main().start()
 
