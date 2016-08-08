@@ -74,9 +74,10 @@ class String:
 		return " ".join(filter(None, args))
 	### wrap string in constructor with formatting syntax
 	def tag (self, context = None):
-		if (type(context) is str) and (not hasattr(self, context)):
-			self.context = context
-		return "{{" + self.context + "}}"
+		if context is None:
+			if self.context:
+				context = self.context
+		return self.cconcat(["{{", context, "}}"])
 	### prints a multiple line string with formatting
 	def wrap (self, width = 60):
 		print '\n'.join(line.strip() for line in re.findall(r'.{1,'+ str(width) +'}(?:\s+|$)', self.__process__()) )
@@ -373,7 +374,7 @@ class Responder (String):
 	### private class for fetching and formatting the string that defines the ai's name
 	def __name__ (self):
 		### encapsulate name of responder in formatting syntax, instantiate to String class
-		return self.get({'str': String(self.name).tag(), 'attr': self.style})
+		return self.get({'str': self.tag(self.name), 'attr': self.style})
 	### constructor
 	def __init__ (self, **kwargs):
 		self.name = kwargs.pop('name', 'system')
@@ -1282,6 +1283,7 @@ class AI (String):
 	ARG = r"^(?:[\.\-])*.{1}"
 	AUTO = r"^auto(mated)?$"
 	EDIT = r"^edit$"
+	UNINSTALL = r"^uninstall$"
 	### main process handler
 	def main (self):
 		### attempt to process input context
@@ -1299,6 +1301,10 @@ class AI (String):
 			if re.compile(self.AUTO).match(self.actions[0]):
 				### run program with automated setup
 				return self.__automatic__(self.actions[1:])
+			### attempt to match uninstall expression
+			elif re.compile(self.UNINSTALL).match(self.actions[0]):
+				### run program with uninstall path
+				return self.__uninstall__()
 		### failed to match with expression list
 		### run program with BIOS setup
 		return self.__manual__()
@@ -1318,34 +1324,43 @@ class AI (String):
 				if bool(config):
 					### create Partner class instance for associated dictionary
 					P = Partner(name = config['name'], website = config['website'], syndication = config['syndication'], filepath = Folder(name = config['name']).create())					
-					
-					print Responder().response(self.concat("setting up Gemini partner:", P.name))	
-				
+					### create Responder class for writing system messages
+					R = Responder()
+					### create temporary list to store successful writes
+					P.created = []
+					### confirm if no wait duration was specified
+					if not 'wait' in config:
+						### set waiting duration to 7 seconds
+						config['wait'] = 7
+
+					print R.response(self.concat("setting up new Gemini partner:", self.get({'str':self.cconcat([self.tag(P.name), "."]),'attr':{'weight':'bold'}})))
+
 					### confirm that the supplied dictionary from json contained a list of templates to be constructed
-					if bool(config['templates']):	
+					if bool(config['templates']):
 						### iterate over dictionaries within list
 						for k in range(0, len(config['templates'])):
 							### set template path to be the website of selenium browser
 							B.website = config['templates'][k]['path']
-							### open the provided url
-							B.open()
+							### open the provided url and set timeout cap
+							B.open(wait = config['wait'])
 							### attempt to find the HTML on the page
 							config['templates'][k]['html'] = B.find(selector = self.concat(config['templates'][k]['target'], config['templates'][k]['selector']))
 							### confirm that selenium instance returned code
 							if bool(config['templates'][k]['html']):
-								print Responder().response(self.concat("HTML template created:", config['templates'][k]['module']))	
+								P.created.append(k)
 								### assign innerHTML to the template constructor
 								config['templates'][k]['html'] = config['templates'][k]['html'].get_attribute("innerHTML")
 								### create config class
 								P.template(**config['templates'][k])
 							### HANDLER FOR ISSUE GETTING HTML
-							else:
-								print Responder().response(self.concat("cannot create HTML template:", config['templates'][k]['module']))	
-								#print self.responder.response(self.concat("cannot create HTML template:", self.get({'str':self.tag(config['templates'][k]['module']),'attr':{'weight':'bold'}})))
 						### produce status message for partner creation
-						self.__details__(P)
+						print R.response(self.concat(self.get({'str':self.tag(self.cconcat([str(len(P.created)), "/", str(len(config['templates']))])),'attr':{'weight':'bold'}}), "HTML templates were created."))
 						### produce all files
 						P.create()
+						### print newline
+						print ""
+
+		self.__complete__(before = "\n", after = "\n\n")
 	### process manual start
 	def __manual__ (self):
 		### initialise selenium browser
@@ -1441,17 +1456,30 @@ class AI (String):
 		### if user chose to not create another partner
 		else:
 			### print to terminal that program has finished its operation
-			print "\n\n", self.get({'str':'{{PROGRAM COMPLETE}}','attr':{'color':'green'}}), "\n\n"
+			self.__complete__()
+	### print conclusion message for program file
+	def __complete__ (self, **kwargs):
+		### print concatenated string with program completion status message
+		print kwargs.pop("before", "\n\n"), self.get({'str':'{{PROGRAM COMPLETE}}','attr':{'color':'green'}}), kwargs.pop("after", "\n\n")
 	### print a shorthand breakdown of the files created
 	def __details__ (self, partner):
 		### response to terminal
 		print "\n"
 		print "Yahoo! Gemini partner created"
 		print "-----------------------------"
-		print "partner file name:", partner.name
-		print "syndication ident:", partner.syndication
-		print "templates created:", str(len(partner.html_context))
-		print "\n\n"
+		print "Gemini partner name:", partner.name
+		print "Files folder destination on system:"
+		print "Gemini partner syndication identification:", partner.syndication
+		print "Total number of HTML templates created:", str(len(partner.html_context))
+		print "\n"
+	### uninstall pip requirements from system
+	def __uninstall__ (self):
+		### confirm if user wishes to uninstall the system requirements for this file
+		if Request(prompt = "uninstall program dependencies?").open():
+			### call pips class to uninstall pip
+			Pips().uninstall()
+		### print completition message
+		self.__complete__()
 	### constructor
 	def __init__ (self, name = "dee", actions = sys.argv[1:]):
 		self.responder = Responder(name = name)
@@ -1478,15 +1506,27 @@ class Browser (String):
 	def exe (self, script):
 		self.webdriver.execute_script(script)
 	### open the provided webpage within selenium
-	def open (self, website = None):
+	def open (self, **kwargs):
+		website = kwargs.pop("website", None)
+		wait = kwargs.pop("wait", None)
 		### confirm that website argument was provided
 		if website:
 			### set self instance of website to argument
 			self.website = website
 		### confirm that self has website instance
 		if self.website:
-			### create instance of page within selenium
-			self.webdriver.get(self.website)
+			### confirm that waiting time for browser was specified
+			if type(wait) is int or type(wait) is float:
+				### set wait timeout for page
+				self.webdriver.set_page_load_timeout(wait)
+			### attempt to reach website
+			try:
+				### create instance of page within selenium
+				self.webdriver.get(self.website)
+			### handle exception error
+			except:
+				### skipline
+				pass
 	### initialise selenium browser
 	def start (self):
 		if not self.initialised:
@@ -1770,6 +1810,6 @@ if __name__ == '__main__':
 	### initialise main program
 	Main().start()
 	### example terminal input for running program automatically 
-	### $ python eg.py auto '{"name":"thewhoot","website":"https://www.thewhoot.com.au/","syndication":"5511214","templates":[{ "module":"instream", "target":"#pt-cv-page-1", "selector":"> div", "first":3, "interval":6, "path":"https://www.thewhoot.com.au/" }, { "module":"rightrail", "target":"#pt-cv-page-1", "selector":"> div", "first":3, "interval":10, "path":"http://thewhoot.com.au/whoot-news/crafty-corner/crochet-hooded-cowl" }, { "module":"article", "target":".main-content .mom-related-posts", "selector":"> li", "first":4, "interval":6, "path":"http://thewhoot.com.au/whoot-news/diy/grow-rose-cuttings-with-potatoes" }]}' '{"name":"nova","website":"https://www.nova969.com.au/","syndication":"500000","templates":[{ "module":"nova", "target":".main-content #block-system-main .field-items .field-item", "selector":"> .nova-para-magnet-chunk", "first":2, "interval":4, "path":"http://www.nova969.com.au/nova969" }]}'
-
+	### automatic setup: $ python [ACTUAL FILE NAME].py auto '{"name":"thewhoot","website":"https://www.thewhoot.com.au/","syndication":"5511214", "wait":6, "templates":[{ "module":"instream", "target":"#pt-cv-page-1", "selector":"> div", "first":3, "interval":6, "path":"https://www.thewhoot.com.au/" }, { "module":"rightrail", "target":"#pt-cv-page-1", "selector":"> div", "first":3, "interval":10, "path":"http://thewhoot.com.au/whoot-news/crafty-corner/crochet-hooded-cowl" }, { "module":"article", "target":".main-content .mom-related-posts", "selector":"> li", "first":4, "interval":6, "path":"http://thewhoot.com.au/whoot-news/diy/grow-rose-cuttings-with-potatoes" }]}' '{"name":"nova","website":"https://www.nova969.com.au/","syndication":"500000","templates":[{ "module":"nova", "wait": 6, "target":".main-content #block-system-main .field-items .field-item", "selector":"> .nova-para-magnet-chunk", "first":2, "interval":4, "path":"http://www.nova969.com.au/nova969" }]}'
+	### automatic json: JSON markup: '{"name":"REQUIRED","website":"REQUIRED","syndication":"REQUIRED",'templates':[{}]}'
 
