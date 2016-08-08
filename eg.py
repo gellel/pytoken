@@ -853,6 +853,7 @@ class HTTPResource:
 
 
 
+
 class Command:
 	### return the result of the attempted command
 	def process (self):
@@ -883,6 +884,7 @@ class Command:
 		self.stdout = stdout
 		self.stderr = stderr
 		self.function = self.__funct__()
+
 
 
 
@@ -1236,7 +1238,6 @@ class HTML (String):
 
 
 
-
 class Partner:
 	### create all files
 	def create (self):
@@ -1431,20 +1432,19 @@ class AI (String):
 	def __create__ (self):
 		### finalise creation of partner files
 		self.partner.create()
-
+		### print to terminal a considated markdown of the files generated
 		self.__details__(self.partner)
-
 		### confirm that user wishes to create another partner
 		if Request(prompt = "create another partner?").open():
 			### setup new partner file
 			self.__setup__()
+		### if user chose to not create another partner
 		else:
-			print "\n\n"
-			print self.get({'str':'{{PROGRAM COMPLETE}}','attr':{'color':'green'}})
-			print "\n\n"
-
+			### print to terminal that program has finished its operation
+			print "\n\n", self.get({'str':'{{PROGRAM COMPLETE}}','attr':{'color':'green'}}), "\n\n"
+	### print a shorthand breakdown of the files created
 	def __details__ (self, partner):
-
+		### response to terminal
 		print "\n"
 		print "Yahoo! Gemini partner created"
 		print "-----------------------------"
@@ -1452,7 +1452,6 @@ class AI (String):
 		print "syndication ident:", partner.syndication
 		print "templates created:", str(len(partner.html_context))
 		print "\n\n"
-
 	### constructor
 	def __init__ (self, name = "dee", actions = sys.argv[1:]):
 		self.responder = Responder(name = name)
@@ -1504,6 +1503,7 @@ class Browser (String):
 		self.website = website
 		self.webdriver = WEBDRIVER.Chrome
 		self.initialised = False
+
 
 
 
@@ -1706,7 +1706,6 @@ class Pips (String):
 
 
 
-
 class Main (String):
 	### initialise main program
 	def start (self):
@@ -1762,13 +1761,15 @@ class Main (String):
 		self.system = Responder()
 		self.pip = Pips()
 		self.safe = True
-	
+
+
+
 
 
 if __name__ == '__main__':
-	
+	### initialise main program
 	Main().start()
-
-	### python eg.py auto '{"name":"thewhoot","website":"https://www.thewhoot.com.au/","syndication":"5511214","templates":[{ "module":"instream", "target":"#pt-cv-page-1", "selector":"> div", "first":3, "interval":6, "path":"https://www.thewhoot.com.au/" }, { "module":"rightrail", "target":"#pt-cv-page-1", "selector":"> div", "first":3, "interval":10, "path":"http://thewhoot.com.au/whoot-news/crafty-corner/crochet-hooded-cowl" }, { "module":"article", "target":".main-content .mom-related-posts", "selector":"> li", "first":4, "interval":6, "path":"http://thewhoot.com.au/whoot-news/diy/grow-rose-cuttings-with-potatoes" }]}' '{"name":"nova","website":"https://www.nova969.com.au/","syndication":"500000","templates":[{ "module":"nova", "target":".main-content #block-system-main .field-items .field-item", "selector":"> .nova-para-magnet-chunk", "first":2, "interval":4, "path":"http://www.nova969.com.au/nova969" }]}'
+	### example terminal input for running program automatically 
+	### $ python eg.py auto '{"name":"thewhoot","website":"https://www.thewhoot.com.au/","syndication":"5511214","templates":[{ "module":"instream", "target":"#pt-cv-page-1", "selector":"> div", "first":3, "interval":6, "path":"https://www.thewhoot.com.au/" }, { "module":"rightrail", "target":"#pt-cv-page-1", "selector":"> div", "first":3, "interval":10, "path":"http://thewhoot.com.au/whoot-news/crafty-corner/crochet-hooded-cowl" }, { "module":"article", "target":".main-content .mom-related-posts", "selector":"> li", "first":4, "interval":6, "path":"http://thewhoot.com.au/whoot-news/diy/grow-rose-cuttings-with-potatoes" }]}' '{"name":"nova","website":"https://www.nova969.com.au/","syndication":"500000","templates":[{ "module":"nova", "target":".main-content #block-system-main .field-items .field-item", "selector":"> .nova-para-magnet-chunk", "first":2, "interval":4, "path":"http://www.nova969.com.au/nova969" }]}'
 
 
